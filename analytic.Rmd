@@ -1,0 +1,27 @@
+---
+title: 'Thesis, Chap 1: Modelisation'
+output: pdf_document
+---
+
+# Objectives:
+
+1. Find more coexistence between the two species.
+2. Get more spatial autocorrelation between the 2 species.
+
+# Tasks:
+
+* Find analytical solution by pair approximation
+* Find a smart way to analyse model.
+
+# First step: simple model with 3 states
+
+* We have 3 states ($+$, $0$, $-$).
+* We have six different pairs ($\rho_{++}$, $\rho_{+0}$, $\rho_{+-}$, $\rho_{00}$, $\rho_{0-}$, $\rho_{--}$) since $\rho_{\sigma\sigma'} = \rho_{\sigma'\sigma}$.
+* We have four conservation equations:
+  1. $\rho_{+} + \rho_{0} + \rho_{-} = 1$
+  2. $\rho_{+} = \rho_{++} + \rho_{+0} + \rho_{+-}$
+  3. $\rho_{0} = \rho_{00} + \rho_{+0} + \rho_{0-}$
+  4. $\rho_{-} = \rho_{--} + \rho_{-0} + \rho_{+-}$
+* There are 3 singleton variables: $\rho_{+}$, $\rho_{0}$, $\rho_{-}$
+
+So we need $6+3-4 = 5$ equations to solve this system. As in Kéfi et al. (2007), I choose $\frac{d\rho_{++}}{dt}$, $\frac{d\rho_{+-}}{dt}$, $\frac{d\rho_{--}}{dt}$, $\frac{d\rho_{+}}{dt}$, $\frac{d\rho_{-}}{dt}$
