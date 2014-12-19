@@ -13,7 +13,7 @@ output: html_document
 * Find analytical solution by pair approximation
 * Find a smart way to analyse model.
 
-## First step: simple model with 3 states
+## I. Simple model with 3 states
 
 * We have 3 states ($+$, $0$, $-$).
 * We have six different pairs ($\rho_{++}$, $\rho_{+0}$, $\rho_{+-}$, $\rho_{00}$, $\rho_{0-}$, $\rho_{--}$) since $\rho_{\sigma\sigma'} = \rho_{\sigma'\sigma}$.
@@ -26,7 +26,9 @@ output: html_document
 
 So we need $6+3-4 = 5$ equations to solve this system. As in Kéfi et al. (2007), I choose $\frac{d\rho_{++}}{dt}$, $\frac{d\rho_{+-}}{dt}$, $\frac{d\rho_{--}}{dt}$, $\frac{d\rho_{+}}{dt}$, $\frac{d\rho_{-}}{dt}$.
 
-### 1. $\frac{d\rho_{++}}{dt}$
+### Write equations
+
+#### 1. $\frac{d\rho_{++}}{dt}$
 
 $\frac{d\rho_{++}}{dt} = 2\rho_{0+}w_{0,+} - 2\rho_{++}w_{+,0}$
 
@@ -43,7 +45,7 @@ $$
 $$
 
 
-### 2. $\frac{d\rho_{+-}}{dt}$
+#### 2. $\frac{d\rho_{+-}}{dt}$
 
 $\frac{d\rho_{+-}}{dt} = \rho_{0+}w_{0,-} + \rho_{0-}w_{0,+} - \rho_{+-}(w_{-,0}+w_{+,0})$
 
@@ -60,7 +62,7 @@ $$
   \end{aligned}
 $$
 
-### 3. $\frac{d\rho_{--}}{dt}$
+#### 3. $\frac{d\rho_{--}}{dt}$
 
 $\frac{d\rho_{--}}{dt} = 2\rho_{0-}w_{0,-} - 2\rho_{--}w_{-,0}$
 
@@ -73,11 +75,11 @@ $$
 $$
 
 
-### 4. $\frac{d\rho_{+}}{dt}$
+#### 4. $\frac{d\rho_{+}}{dt}$
 
 $\frac{d\rho_{+}}{dt}= \rho_{0}w_{0,+} $
 
-With: $\rho_0 = 1- \rho_+ - \rho_- $, $w_{0,+} - \rho_+m $
+With: $\rho_0 = 1- \rho_+ - \rho_- $, $w_{0,+} - \rho_+m$
 
 We have:
 
@@ -89,7 +91,7 @@ $$
 \end{aligned}
 $$
 
-### 5. $\frac{d\rho_{-}}{dt}$
+#### 5. $\frac{d\rho_{-}}{dt}$
 
 $\frac{d\rho_{-}}{dt} = \rho_{0}w_{0,-} - \rho_{-}w_{-,0}$
 
@@ -101,3 +103,25 @@ $$
 \end{aligned}
 $$
 
+### Solve Equations for $\frac{dp_{\sigma}}{dt} = 0$ and $\frac{dp_{\sigma\sigma}}{dt} = 0$
+
+#### 1. $\frac{d\rho_{++}}{dt} = 0$
+
+#### 2. $\frac{d\rho_{+-}}{dt} = 0$
+
+#### 3. $\frac{d\rho_{--}}{dt} = 0$
+
+#### 4. $\frac{d\rho_{+}}{dt} = 0$
+
+#### 5. $\frac{d\rho_{-}}{dt} = 0$
+
+$$
+\begin{aligned}
+d(1-\rho_+-\rho_-) - (r+\frac{\rho_{+-}}{\rho_-}f)\rho_- =& 0 \\
+d(1- \rho_+) - d\rho_- - r\rho_- - f\rho_-\frac{\rho_{+-}}{\rho_-} =& 0 \\
+d\rho_0 + d\rho_- - d\rho_- - r\rho_- - f\rho_{+-} =& 0 \\
+- r\rho_- =& -d\rho_0 + f\rho_{+-} \\
+r\rho_- =& d\rho_0 - f\rho_{+-} \\
+\rho_- =& \frac{ d\rho_0 - f\rho_{+-}}{r} \\
+\end{aligned}
+$$
