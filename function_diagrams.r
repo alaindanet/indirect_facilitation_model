@@ -24,10 +24,14 @@
 # seuil: threshold proportion of replicates which indicates same result to take in account this result
 # alpha: transparency factor of colours
 
-diag.coex4 <- function(folder="~/result/scenario1.1/", name="result_scenario1.1_", iterations=iterations,com= "poly", delta=0.1, n = 1, c_12 = 0.05,c_21 = 0.4, m=0.2, c_1 = 0.2, c_2 = 0.2, seuil=0.9,  alpha=255, ...){
+diag.coex4 <- function(folder="~/result/scenario1.1/", name="result_scenario1.1_", file_iterations="output_scenario1.1.csv",com= "poly", b=seq(0.7,0.5,-0.1), g=seq(0,0.1,0.05),
+                       delta=0.1, n = 1, c_12 = 0.05,c_21 = 0.05, m=0.2, c_1 = 0.2, c_2 = 0.2, seuil=0.9,  alpha=150, ...){
+  
+  # Read iteration table
+  iterations <- read.table(paste(folder, file_iterations, sep=""), sep=",", dec=".", row.names=1, header=T)
   
   # Load all iteration ID for choosen variable combination
-  iter <- iterations[iterations$com==com & iterations$del1==delta & iterations$n == n & iterations$c_12 == c_12 & iterations$c_21 == c_21, ]$ID
+  iter <- iterations[iterations$com==com  & iterations$n == n & iterations$c_12 == c_12 & iterations$c_21 == c_21, ]$ID #& iterations$del1==delta
   if(length(iter)==0) warning (" Non valid parameters combination")
   if(!is.vector(iter)) warning ("iter must be a numeric vector of iterations ID")
   if(!is.vector(b) | !is.vector(g)) warning ("b & g must be a numeric vector of unique values of each parameter")
