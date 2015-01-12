@@ -30,4 +30,4 @@ $c_1 = c_2 = 0.2$, $c_{12} = [0.05,0.1,0.15,0.2]$, $c_{21} = [0.05,0.1,0.15,0.2]
 
 ##### Results
 
-Coexistence occured but the clustering between the 2 species were always lower than 1. The nursing has not been very effective (26 when n=0 vs 31 when n=1).
+Coexistence occured but the clustering between the 2 species were always lower than 1. The nursing has not been very effective (26 when n=0 vs 31 when n=1). My point of view was two species can potentially coexist is there are more intra- than inter-competition. But stay, these species can so coexist whithout nursing effect and the clustering is lower than 1. So which hypothesis can make the cooccurence between my two species higher ?  

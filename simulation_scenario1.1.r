@@ -306,9 +306,6 @@ foreach(iteration = iterations$ID, .combine = rbind) %dopar% {
       
       # 4 - applying the rules to fill the cells in x_new
       
-      #if(flag) { # if density is unequal 0, then
-      #recolonisation1 <- with(parms_temp, (del1*rho1+(1-del1)*Q_plus1)*(b1-c_1*rho1-c_21*rho2-g*Q_plus2*p)*delta)
-      #recolonisation2 <- with(parms_temp, (del2*rho2+(1-del2)*Q_plus2)*(b2-c_2*rho2-c_12*rho1-g*(1-Q_plus1*n))*delta)
       # calculate recolonisation rates of all cells
       recolonisation1 <- with(parms_temp, (del1*rho_nurse+(1-del1)*Q_plus1)*(b1-c_1*rho_nurse-c_21*rho_protege-g*Q_plus2*p)*delta)
       recolonisation2 <- with(parms_temp, (del2*rho_protege+(1-del2)*Q_plus2)*(b2-c_2*rho_protege-c_12*rho_nurse-g*(1-Q_plus1*n))*delta)
