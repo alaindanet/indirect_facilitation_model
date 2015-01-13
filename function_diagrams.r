@@ -31,7 +31,7 @@ diag.coex4 <- function(folder="~/result/scenario1.1/", name="result_scenario1.1_
   iterations <- read.table(paste(folder, file_iterations, sep=""), sep=",", dec=".", row.names=1, header=T)
   
   # Load all iteration ID for choosen variable combination
-  iter <- iterations[iterations$com==com  & iterations$n == n & iterations$c_12 == c_12 & iterations$c_21 == c_21, ]$ID #& iterations$del1==delta
+  iter <- iterations[iterations$com==com  & iterations$n == n & iterations$c_12 == c_12 & iterations$c_21 == c_21, ]$ID 
   if(length(iter)==0) warning (" Non valid parameters combination")
   if(!is.vector(iter)) warning ("iter must be a numeric vector of iterations ID")
   if(!is.vector(b) | !is.vector(g)) warning ("b & g must be a numeric vector of unique values of each parameter")

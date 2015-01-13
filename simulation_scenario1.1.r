@@ -38,10 +38,7 @@ parameters <- c(
   parameters,
   starting = 0.5,
   m2 = as.numeric(parameters["m1"]),
-  #b2 = as.numeric(parameters["b1"]),
   c_2 = as.numeric(parameters["c_1"]),
-  #c_21 = as.numeric(parameters["c_1"])+dif_c,
-  #c_12 = as.numeric(parameters["c_1"]),
   del2 = as.numeric(parameters["del1"]),
   p=0.0,
   com="poly"
@@ -56,7 +53,6 @@ parallel_param <- list(b1 = seq(0.7,0.5,-0.1),
                        n = seq(0,1,1),
                        c_21 = seq(0.05,0.2,0.05),
                        c_12 = seq(0.05,0.2,0.05)
-                       #p = seq(0,1,0.1)#Parameters range to run in parallel
 )
 iterations <- expand.grid(parallel_param)
 
