@@ -119,13 +119,13 @@ parameters = list(
 	r = 0.0, 	# regeneration rate
 	f = 0.9,  # local fascilitation
 	g = 0.1,
-	n = 1, # protege protection against herbivory (associational résistance)
+	n = 0, # protege protection against herbivory (associational résistance)
 	p = 0,
   g2 = 0,# grazing
-  al1 = 0.5,
-  al2 = 1,
-  n1 = 0.5,
-  n2 = 0.8
+  al1 = 0,
+  al2 = 0,
+  n1 = 0,
+  n2 = 0
   )
 # Add parameters for second species
 parameters <- c(

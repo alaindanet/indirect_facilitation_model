@@ -37,9 +37,14 @@ $$w_{ \left\{0,- \right\} } = d$$
 
 | Parameters  | Values  |
 | ----------- | ------- |
-| $        |
-|            |        |
-|            |        |
+| $b$         | 0.8     |
+| $c_1 = c_2$ | 0.2     |
+| $d$         | 0.1     |
+| $r$         | 0.0     |
+| $f$         | 0.9     |
+| $m_1 = m_2$ | 0.2     |
+| $\delta$    | 0.1     |
+| $n$         | 0 ou 1  |
 
 ## 1. Coexistence
 
@@ -67,4 +72,12 @@ Coexistence occured but the clustering between the 2 species were always lower t
 
 ### 1.2 Global competition and local intercompetition
 
+The goal is to obtain more spatial correlation between the species so I used new equations of colonisation. There is a global competition for water ($c\rho_+$) and local competition intra patch.
+
+$$
+  w_{ \left\{0,+_N \right\} } = \left( \delta_N\rho_{+_N} + \left( 1 - \delta_N \right)q_{+_N|0}\right) \left(b_N-c\rho_{+} -  c_{PN}q_{+_P|+_N} - gq_{+_P|+_N}p \right)
+$$
+$$
+  w_{ \left\{0,+_P \right\} } = \left( \delta_P\rho_{+_P} + \left( 1 - \delta_P \right)q_{+_P|0}\right) \left(b_P-c\rho_{+} -  c_{NP}q_{+_N|+_P} - g(1 - q_{+_N|+_P}n) \right)
+$$
 
