@@ -113,13 +113,14 @@ parameters = list(
 	m1 = 0.2, m2 = 0.2,  # intrinsic mortality
 	b1 = 0.8,  # beta*eps
 	d = 0.1,		# degradation
-	c_1 = 0.1, c_2 = 0.1,		# beta*g
-	c_12 = 0.05, c_21 = 0.2, 
+	c_1 = 0.2, c_2 = 0.2,		# beta*g
+	c_12 = 0.1, c_21 = 0.1, 
 	del1 = 0.1, # seeds dispersed; (1-del) seeds on nearest neighbourhood
+	del2 = 0.9,
 	r = 0.0, 	# regeneration rate
 	f = 0.9,  # local fascilitation
-	g = 0.1,
-	n = 0, # protege protection against herbivory (associational résistance)
+	g = 0.2,
+	n = 1, # protege protection against herbivory (associational résistance)
 	p = 0,
   g2 = 0,# grazing
   al1 = 0,
@@ -130,8 +131,7 @@ parameters = list(
 # Add parameters for second species
 parameters <- c(
   parameters,
-  b2 = as.numeric(parameters["b1"]),
-  del2 = as.numeric(parameters["del1"])
+  b2 = as.numeric(parameters["b1"])
   )
 
   

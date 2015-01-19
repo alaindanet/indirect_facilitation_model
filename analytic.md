@@ -111,6 +111,18 @@ $$
 
 #### 3. $\frac{d\rho_{--}}{dt} = 0$
 
+$$
+\begin{aligned}
+2(\rho_- -\rho_{--} - \rho_{+-})d - 2\rho_{--}(r + \frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f) =& 0 \\
+2\rho_-d - 2\rho_{--}d - 2\rho_{+-}d - 2\rho_{--}r - 2\rho_{--}\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f =& 0 \\
+-2\rho_--(d+r+\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f) =&  2\rho_{+-}d - 2\rho_-d \\
+-\rho_--(d+r+\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f) =& d(\rho_{+-} - \rho_-) = d(-\rho{--} -\rho_{-0}) \\
+d\rho{--} - d\rho{--} - \rho{--}(r+\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f) =& -d\rho_{-0} \\
+-\rho_{--}(r+\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f) =& -d\rho_{-0} \\
+\rho_{--} =& \frac{d\rho_{-0}}{r+\frac{z-1}{z}\frac{\rho_{+-}}{\rho_-}f} 
+\end{aligned}
+$$
+
 #### 4. $\frac{d\rho_{+}}{dt} = 0$
 
 #### 5. $\frac{d\rho_{-}}{dt} = 0$

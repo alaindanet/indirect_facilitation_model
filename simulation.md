@@ -54,17 +54,37 @@ I defined presence of a species when its cover is higher than 5%.
 
 ### 1.1 Scenario 1 : High intra competition and low inter
 
-##### Parameters
-
-$c_1 = c_2 = 0.4$, $c_{12} = [0.1,0.2,0.3,0.4]$, $c_{21} = [0.1,0.2,0.3,0.4]$, $b=[0.5,0.6,0.7]$, $g=[0,0.05,0.1]$, $d=0.1$, $r=0.0$, $m=0.2$, $\delta = 0.1$, $n =[0,1]$
+| Parameters  | Values            |
+|-------------|-------------------|
+| $b$         | 0.7,0.6,0.5       |
+| $c_1 = c_2$ | 0.4               |
+| $c_{12}$    | 0.2,0.2,0.3,0.4   |
+| $c_{21}$    | 0.2,0.2,0.3,0.4   |
+| $d$         | 0.1               |
+| $r$         | 0.0               |
+| $f$         | 0.9               |
+| $m_1 = m_2$ | 0.2               |
+| $\delta$    | 0.1               |
+| $g$         | 0,0.05,0.1        |
+| $n$         | 0 ou 1            |
 
 ##### Results
 
 #### Scenario 1.1: Intra competition higher than inter: Competition lower than previously
 
-##### Parameters
-
-$c_1 = c_2 = 0.2$, $c_{12} = [0.05,0.1,0.15,0.2]$, $c_{21} = [0.05,0.1,0.15,0.2]$, $b=[0.5,0.6,0.7]$, $g=[0,0.05,0.1]$, $d=0.1$, $r=0.0$, $m=0.2$, $\delta = 0.1$, $n =[0,1]$
+| Parameters  | Values            |
+|-------------|-------------------|
+| $b$         | 0.7,0.6,0.5       |
+| $c_1 = c_2$ | 0.2               |
+| $c_{12}$    | 0.5,0.1,0.15,0.2  |
+| $c_{21}$    | 0.5,0.1,0.15,0.2  |
+| $d$         | 0.1               |
+| $r$         | 0.0               |
+| $f$         | 0.9               |
+| $m_1 = m_2$ | 0.2               |
+| $\delta$    | 0.1               |
+| $g$         | 0,0.05,0.1        |
+| $n$         | 0 ou 1            |
 
 ##### Results
 
@@ -74,10 +94,34 @@ Coexistence occured but the clustering between the 2 species were always lower t
 
 The goal is to obtain more spatial correlation between the species so I used new equations of colonisation. There is a global competition for water ($c\rho_+$) and local competition intra patch.
 
+#### Equations of recolonisation
 $$
   w_{ \left\{0,+_N \right\} } = \left( \delta_N\rho_{+_N} + \left( 1 - \delta_N \right)q_{+_N|0}\right) \left(b_N-c\rho_{+} -  c_{PN}q_{+_P|+_N} - gq_{+_P|+_N}p \right)
 $$
 $$
   w_{ \left\{0,+_P \right\} } = \left( \delta_P\rho_{+_P} + \left( 1 - \delta_P \right)q_{+_P|0}\right) \left(b_P-c\rho_{+} -  c_{NP}q_{+_N|+_P} - g(1 - q_{+_N|+_P}n) \right)
 $$
+
+#### Parameters
+
+| Parameters  | Values            |
+|-------------|-------------------|
+| $b$         | 0.8               |
+| $c_1 = c_2$ | 0.1               |
+| $c_{12}$    | 0.05              |
+| $c_{21}$    | 0.2               |
+| $d$         | 0.1               |
+| $r$         | 0.0               |
+| $f$         | 0.9               |
+| $m_1 = m_2$ | 0.2               |
+| $\delta$    | 0.1               |
+| $g$         | 0.05              |
+| $n$         | 0 ou 1            |
+
+##### Results
+- When $n=1$, there is coexistence but the clustering is only $0.6$. The result is the same when $n=0$.
+
+- With $c_{21}=0.05$ & $n=0$, no coexistence. Same with $n=1$.
+
+- With $c_1=c_2=0.2$, $c_{12}=c_{21}=0.1$, $\delta_P=0.6$. Clustering is only 0.8. And it's only 0.9 when $\delta_P=0.9$.
 
