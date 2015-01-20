@@ -93,6 +93,7 @@ Coexistence occured but the clustering between the 2 species were always lower t
 ### 1.2 Global competition and local intercompetition
 
 The goal is to obtain more spatial correlation between the species so I used new equations of colonisation. There is a global competition for water ($c\rho_+$) and local competition intra patch.
+If we consider the facilitated is more competitive, $c_{21} > c_{12}$. So, here I consider it's more easy for a sapling of protégée to etablish in patch of nurse than for a sapling of nurse to etablish in a patch of protégée.
 
 #### Equations of recolonisation
 $$
