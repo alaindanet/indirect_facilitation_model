@@ -54,13 +54,13 @@ odesys <- function (t, rho, parms = modelparms) {
 }
 
 modelparms <- list(
-		   del = 0.9,
+		   del = 0.1,
 		   b   = 0.8,
 		   cn  = 0.2,
 		   cp  = 0.2,
 		   cnp = 0.05,
 		   cpn = 0.2,
-		   g   = 0.05,
+		   g   = 0.08,
 		   n   = 1,
 		   m   = 0.2
 	  )
@@ -77,11 +77,13 @@ runmodel <- ode(y = rho, func = odesys, times = seq(1, 3000, 30), parms = modelp
 
 # transfer into ouput and calculate missing rho values
 out       <- as.data.frame(runmodel)
+out  <- round(out,3)
 out$rho0  <- 1 - out$rhop - out$rhon
 out$rhop0 <- with(out, rhop-rhonp-rhopp)
 out$rhon0 <- with(out, rhon-rhonp-rhonn)
 out$rho00 <- with(out, rho0-rhon0-rhop0)
-out$Cnp   <- with(out, rhonp/(rhon*rhop))
+out$Cnp   <- with(out, (rhonp/rhon)/rhop)
+
 # out$Cpn <- with(out, rhonp
 # plot
 plot(Cnp ~ time, data = out, type = "l", lwd = 2, ylab = "Species clustering", ylim = c(0,2))
