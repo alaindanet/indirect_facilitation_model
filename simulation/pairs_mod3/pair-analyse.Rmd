@@ -1,0 +1,174 @@
+---
+title: "Analyse model"
+output:
+  pdf_document:
+    fig_width: 7
+    fig_height: 6
+    fig_caption: true
+    toc: true
+    toc_depth: 3
+    highlight: zenburn 
+    number_sections: true
+---
+
+
+# Pair approximation model with local competition
+
+```{r, echo=FALSE}
+source("~/Documents/thesis/thesis_chap1_model/code/analysis_function.r")
+data <- read.table("output.csv", sep=",", row.names=1, header=T)
+library(knitr)
+```
+## Equation used
+
+Compared to the initial model we used here, we expressed competition as only local.
+
+### Colonisation
+
+#### Nurse species
+\begin{equation}
+	w_{ \left\{0,+_n \right\} } = \left( \delta_n\rho_{+_N} + \left( 1 - \delta_n \right)q_{+_n|0}\right) \left(b_n-c_nq_{+_n|+_n} -  c_{pn}q_{+_p|0} \right)
+\end{equation}
+
+#### Protégée species
+\begin{equation}
+	w_{ \left\{0,+_p \right\} } = \left( \delta_p\rho_{+_p} + \left( 1 - \delta_p \right)q_{+_p|0}\right) \left(b_p-c_pq_{+_p|0} -  c_{np}q_{+_n|0} - g(1 - q_{+_n|0}n) \right)
+	\label{recolP}
+\end{equation}
+
+## Parameters used
+
+```{r, echo=FALSE}
+pars <- c("del","m","n","b","cn","cp","cnp","cpn","g")
+parameters <- list()
+for(i in 1:length(pars)){
+	parameters[[i]] <- unique(as.vector(data[,pars[i]]))
+}
+names(parameters) <- pars
+param <- t(as.data.frame(lapply(parameters,
+				FUN=function(x){return(c(round(min(x),2),round(max(x),2))
+)})))
+colnames(param)  <- c("min", "max")
+
+kable(param, caption="Listes des paramètres utilisées et de leur valeurs")
+```
+
+## Coexistence
+
+### Effect of mortality
+
+```{r, echo=FALSE, fig.cap="Green light: nurse alone, green dark: coexistence, black: protégée alone"}
+par(mfrow=c(2,2))
+m <- parameters$m
+for(i in 1:4){
+	diag.pairs(data  = data,
+		   delta = 0.1,
+		   cp    = 0.2,
+		   cn    = 0.2,
+		   cpn   = 0.45,
+		   cnp   = 0.1,
+		   m     = m[i],
+		   n     = 1,
+		   alpha = 150,
+		   main = paste("m=",m[i],sep="")
+		   )
+}
+
+```
+
+### Effect of competitive ability of the protégée
+
+```{r, echo=FALSE, fig.cap="Green light: nurse alone, green dark: coexistence, black: protégée alone"}
+par(mfrow=c(2,3))
+cpn <- parameters$cpn[9:length(parameters$cpn)]
+for(i in 1:length(cpn)){
+	diag.pairs(data  = data,
+		   delta = 0.1,
+		   cp    = 0.2,
+		   cn    = 0.2,
+		   cpn   = cpn[i],
+		   cnp   = 0.1,
+		   m     = 0.02,
+		   n     = 1,
+		   alpha = 150,
+		   main = paste("cpn=",cpn[i],sep="")
+		   )
+}
+
+```
+
+## Co-occurences
+
+### Statistics
+
+Which parameter combination gives positive co-occurences (i.e. $Cnp >= 1.1$) between two species when the density of the two species is superior to 0?
+
+```{r, echo=FALSE}
+coex <- data[which(data$Cnp > 1.1 & data$rhon > 0.05 & data$rhop > 0.05),]
+summary(coex[,c("m","n","b","cnp","cpn","g","Cnp")])
+```
+The positive co-occurences arises when the grazing pressure and the competition of the nurse on the protégée is also high. A longer lifespan seems also promote coexistence.
+
+
+### The dynamic of co-occurences
+
+```{r, echo=FALSE}
+g   <- c(0.25, 0.75)
+cpn <- c(0.35, 0.85)
+
+par(mfrow=c(length(cpn),length(g)))
+for(i in 1:length(g)){
+	for(j in 1:length(cpn)){
+	stab.pairs(data  = data,
+	   delta = 0.1,
+	   cp    = 0.2,
+	   cn    = 0.2,
+	   cpn   = cpn[j],
+	   cnp   = 0.1,
+	   m     = 0.02,
+	   n     = 1,
+	   g     = g[i],
+	   alpha = 150,
+	   main = paste("g=",g[i]," ","cpn=",cpn[j], sep=""))
+	}
+}
+
+```
+
+### Co-occurence diagram
+
+```{r, echo=FALSE}
+diag.c.pairs(data  = data,
+	     delta = 0.1,
+       	     cp    = 0.2,
+	     cn    = 0.2,
+	     cpn   = 0.85,
+	     cnp   = 0.1,
+	     m     = 0.02,
+	     n     = 1,
+	     alpha = 150,
+	     main = "Co-occurences")
+legend( x= 0.5, y=0.5,legend=seq(0,1.2,0.1), col=c(heat.colors(12)), pch=6)
+```
+
+
+# Cellular automata with local competition
+
+```{r, echo=FALSE}
+data <- read.table("../CA_mod3/CA_output.csv", sep=",", row.names=1, header=T)
+library(knitr)
+hist(data$clus_2_1)
+summary(data[data$clus_2_1 >=0.8,])
+```
+
+## Parameters used
+
+Same as pair approximation!
+
+## Results
+
+No positive co-occurence occurs! Fuck, fuck, fuck. Futhermore, the use of a low mortality ( m=  `r unique(data$m)`) made the vegetal cover very high.
+
+```{r, echo=FALSE}
+
+```

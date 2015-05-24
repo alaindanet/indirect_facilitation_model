@@ -1,3 +1,21 @@
 # Thesis: First chapter "Theorical Model"
 
-The main problem is I have coexistence but no positive spatial occurence in the model. As in Gross et al. (2008), the fact of just put an associative protection can promote coexistence between two species in competition. But, in nature, association protection or abiotic facilitation leads to positive spatial co-occurence between two species. This does not happen in my model. 
+## Objectives
+
+- Devolop a theorical model of two species in competition and add an interaction of indirect facilitation. A nurse species is protected against herbirory can protect the saplings of a protégée species by associative protection. We make the simple assumption of a growth-defence trade-off.
+
+## Pair approximation model
+
+The cells can take 3 states: occupied by a nurse, a protégée or be empty.
+
+### Model with global competition and local associative protection
+
+I have coexistence but the main problem is that no positive spatial occurence occurs in the model. As in Gross et al. (2008), the fact of just put an associative protection can promote coexistence between two species in competition. But, in nature, association protection or abiotic facilitation leads to positive spatial co-occurence between two species. This does not happen in my model. 
+
+### Model with local competition  and local associative protection
+
+This model provide coexistence and positive spatial co-occurence between the two species and we can see as in Vervijmeren et al. (2013), Saiz & Alados (2011). The change of co-occurence between species is not high but we have qualitatively predictions which approaches of those predict by Vervijmeren et al. (2013).
+
+### Model (2) with local competition and local competition
+
+
