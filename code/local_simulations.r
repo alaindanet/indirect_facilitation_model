@@ -110,16 +110,16 @@ plot(initial, cols = color)# }}}
 
 # defining parameter set# {{{
 parameters = list(
-	m1 = 0.02, m2 = 0.02,  # intrinsic mortality
-	b1 = 0.6,  # beta*eps
+	m1 = 0.1, m2 = 0.1,  # intrinsic mortality
+	b1 = 0.39,  # beta*eps
 	d = 0.1,		# degradation
-	c_1 = 0.1, c_2 = 0.1,		# beta*g
-	c_12 = 0.1, c_21 = 0.4, 
+	c_1 = 0.2,c_2 = 0.2,		# beta*g
+	c_12 = -0.2, c_21 = 0.2, 
 	del1 = 0.1, # seeds dispersed; (1-del) seeds on nearest neighbourhood
 	del2 = 0.1,
 	r = 0.01, 	# regeneration rate
-	f = 0.9,  # local fascilitation
-	g = 0.2,
+	f = 0.9,  # local facilitation
+	g = 0.20,
 	n = 1, # protege protection against herbivory (associational résistance)
 	p = 0,
   g2 = 0,# grazing
@@ -274,10 +274,7 @@ library(animation)
 if(Sys.info()[['sysname']] == "Linux") X11.options(antialias = "none") #for Linux Systems to enable pixel-wise plotting in (animated) gif-files. 
 if(Sys.info()[['sysname']] == "Windows") windows.options(antialias = "none") #for Windows Systems to enable pixel-wise plotting in (animated) gif-files. 
 
-saveGIF( 
-	for(i in seq(1, length(result$timeseries), 1)) {
-	    par(mar = c(0,0,0,0))
-		plot(result$timeseries[[i]], grid = FALSE, cols = color, ani = TRUE)
-	}
-, movie.name = "facilitation_test.gif", img.name = "grid", convert = "convert", interval = 0.01/1,
-    cmd.fun = system, clean = TRUE, ani.width = width, ani.height = height, outdir = getwd())
+saveGIF(for(i in seq(1, length(result$timeseries), 1)) {
+	par(mar = c(0,0,0,0))
+	plot(result$timeseries[[i]], grid = FALSE, cols = color, ani = TRUE)
+	}, movie.name = "facilitation_test.gif", img.name = "grid", convert = "convert", interval = 0.1/1, cmd.fun = system, clean = TRUE, ani.width = width, ani.height = height, outdir = getwd())

@@ -155,10 +155,11 @@ legend( x= 0.5, y=0.5,legend=seq(0,1.2,0.1), col=c(heat.colors(12)), pch=6)
 # Cellular automata with local competition
 
 ```{r, echo=FALSE}
-data <- read.table("../CA_mod3/CA_output.csv", sep=",", row.names=1, header=T)
+data <- read.table("~/Documents/thesis/thesis_chap1_model/simulation/CA_mod3/CA_output.csv", sep=",", row.names=1, header=T)
 library(knitr)
 hist(data$clus_2_1)
-summary(data[data$clus_2_1 >=0.8,])
+summary(data[data$clus_2_1 >=0.6 & data$rho_nurse >=0.05 & data$rho_protege >=0.05,
+	c("rho_nurse", "rho_protege", "c_1", "c_2", "c_21", "c_12", "b", "m", "g","clus_2_1")])
 ```
 
 ## Parameters used
