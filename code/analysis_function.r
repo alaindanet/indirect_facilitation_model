@@ -145,12 +145,15 @@ diag.coex <- function(folder          = "~/result/scenario1.1/",
   mat1 <- matrix(NA,ncol=length(g),nrow=length(b))
   mat2 <- mat1
   mat3 <- mat1
+
   for(n in 1:length(iter)){
+
     infile <- paste(folder,name,iter[n],".rdata",sep="")# load each simulation of choosen iteration
     load(infile)
    
     parms_temp <- result$out[,c("g","b","clus_1_2","clus_1_1", "clus_2_2","clus_2_1")] # take parameters
     parms_temp$g  <- round(parms_temp$g,2)
+
     # Fill the matrices
     mat1[which(unique(b)==parms_temp$b), which(unique(g)==parms_temp$g) ] <- ifelse( mean(result$runs$rho_nurse > 0.05) >= seuil, 1, NA) 
     mat2[which(unique(b)==parms_temp$b), which(unique(g)==parms_temp$g) ] <- ifelse( mean(result$runs$rho_protege > 0.05) >= seuil, 2, NA)
@@ -168,8 +171,10 @@ diag.coex <- function(folder          = "~/result/scenario1.1/",
     image(b, g ,mat2,col=rgb( grey[1,], grey[2,], grey[3,], maxColorValue = 255, alpha = 255),
           xlab="Aridité", ylab="Pâturage", main=main)
     image(b , g, mat1, col = rgb( green[1,], green[2,], green[3,], maxColorValue = 255, alpha = alpha), add=T)
-    #image(b,g,mat3,col=rgb( blue[1,], blue[2,], blue[3,], maxColorValue = 255, alpha = alpha), add=T)
-    image(b , g, mat3, col = rgb( yellow[1,], yellow[2,], yellow[3,], maxColorValue = 255, alpha = alpha), add=T)
+  if(all(is.na(as.vector(mat3)))==FALSE){
+	  image(b , g, mat3, col = rgb( yellow[1,], yellow[2,], yellow[3,], maxColorValue = 255, alpha = alpha), add=T)
+  }    
+  
   }
   if(com == "mono_p"){
     image(b,g,mat2,col=rgb( grey[1,], grey[2,], grey[3,], maxColorValue = 255, alpha = alpha), family="Times", ...)
@@ -208,7 +213,6 @@ diag.coex2 <- function(folder          = "~/result/scenario1.1/",
   if(!is.vector(iter)) warning ("iter must be a numeric vector of iterations ID")
   if(!is.vector(b) | !is.vector(g)) warning ("b & g must be a numeric vector of unique values of each parameter")
   
-  print(length(iter))
   # set up matrices to fill result: SP1 wins, SP2 wins or no one  is alive along aridity (b) and grazing (g) gradients.
   mat1 <- matrix(NA,ncol=length(g),nrow=length(b))
   mat2 <- mat1
@@ -224,7 +228,6 @@ diag.coex2 <- function(folder          = "~/result/scenario1.1/",
     mat2[which(unique(b)==parms.temp$b), which(unique(g)==parms.temp$g) ] <- ifelse( mean(result$runs$rho.protege > 0.05) >= seuil, 2, NA)
     mat3[which(unique(b)==parms.temp$b), which(unique(g)==parms.temp$g)] <- ifelse( mean(result$runs$rho.protege < 0.05) >= seuil & mean(result$runs$rho.nurse < 0.05) >= seuil, 3, NA)
   }
-  print(mat2)
   green <- col2rgb(c("green1")) # Sp1
   yellow <- col2rgb(c("yellow2")) # Desert
   grey <- col2rgb("black") # Sp2

@@ -1,0 +1,79 @@
+---
+title: 'Thesis, Chap 1: pair approximation: the 4 state model'
+output: pdf_document
+---
+
+The model describes an arid ecosystem as a lattice-structured habitat. Each site can be in four different states: occupied by a nurse, occupied by a protégée, empty or degraded. The transition rates between states are as follows:
+
+* $w_{o,p} = (\delta_p \rho_{p} + (1-\delta_p) q_{p|o}) (b_p - c_p \rho_p - c_{np} \rho_n - g(1-q_{n|o}n))$
+* $w_{o,n} = (\delta_n \rho_{n} + (1-\delta_n) q_{n|o}) (b_n - c_n \rho_n - c_{pn} \rho_p - gq_{p|o}p)$
+* $w_{n,o} = m_n$
+* $w_{p,o} = m_p$
+* $w_{o,-} = d$
+* $w_{-,o} = r + q_{n|-}f + q_{p|-}f$
+
+We intend to write the pair approximations corresponding to that model:
+
+* There 4 states ($n$, $p$, $0$, $-$), so 4 singleton variables: $\rho_{n}$, $\rho_{p}$, $\rho_{0}$, $\rho_{-}$.
+
+* There are ten distinct doublets ($\rho_{nn}$, $\rho_{n0}$, $\rho_{np}$, $\rho_{n-}$, $\rho_{pp}$, $\rho_{p0}$, $\rho_{p-}$, $\rho_{00}$, $\rho_{0-}$,  $\rho_{--}$) since $\rho_{\sigma\sigma'} = \rho_{\sigma'\sigma}$.
+
+* There are five conservation equations:
+  1. $\rho_{n} + \rho_{p} + \rho_{0} + \rho_{-}  = 1$
+  2. $\rho_{n} = \rho_{nn} + \rho_{n0} + \rho_{np} + \rho_{n-}$
+  3. $\rho_{0} = \rho_{00} + \rho_{n0} + \rho_{p0} + \rho_{0-}$
+  4. $\rho_{p} = \rho_{pp} + \rho_{p0} + \rho_{np} + \rho_{p-}$
+  5. $\rho_{-} = \rho_{--} + \rho_{0-} + \rho_{n-} + \rho_{p-}$
+
+So, we need $10+4-5 = 9$ equations to solve this system. We chose: $\frac{d\rho_{nn}}{dt}$, $\frac{d\rho_{n-}}{dt}$, $\frac{d\rho_{np}}{dt}$, $\frac{d\rho_{pp}}{dt}$, $\frac{d\rho_{p-}}{dt}$, $\frac{d\rho_{--}}{dt}$, $\frac{d\rho_{n}}{dt}$, $\frac{d\rho_{p}}{dt}$, $\frac{d\rho_{-}}{dt}$.
+
+The objective is to write those 9 equations as a function of the 9 chosen variables only. 
+
+
+#Equations of the singleton variables:
+
+$$
+\begin{aligned}
+\frac{d\rho_{p}}{dt} =& \rho_{0} (\delta_p \rho_{p} +  (1-\delta_p) q_{p|o}) (b_p - c_{p}\rho_{p} - c_{np}\rho_{n} - g(1 - q_{n|o} n) ) \\ 
+&- \rho_{p} m_p \\
+\frac{d\rho_{n}}{dt} =& \rho_{0} ( \delta_n\rho_{n} + (1-\delta_n) q_{n|o}) (b_n - c_{n}\rho_{n} - c_{pn} \rho_{p} - g q_{p|o} p) \\
+&- \rho_{n} m_n\\
+\frac{d\rho_{-}}{dt} =& \rho_{0} d - \rho_{-}(r + f q_{n|-} + f q_{p|-}) \\
+\end{aligned}
+$$
+
+Replacing the variables here below by their expressions in the above equations:
+
+* $\rho_{o}=1-\rho_{p}-\rho_{n}-\rho_{-}$
+* $q_{p|o}=\frac{\rho_{po}}{\rho_{o}} = \frac{\rho_{p}-\rho_{pp}-\rho_{pn}-rho_{p-}}{1-\rho_{p}-\rho_{n}-\rho_{-}}$
+* $q_{n|o}=\frac{\rho_{no}}{\rho_{o}} = \frac{\rho_{n}-\rho_{nn}-\rho_{pn}-rho_{n-}}{1-\rho_{p}-\rho_{n}-\rho_{-}}$
+* $q_{n|-}=\frac{\rho_{n-}}{\rho_{-}}$
+* $q_{p|-}=\frac{\rho_{p-}}{\rho_{-}}$
+
+#Equations of the doublets: 
+
+$$
+\begin{aligned}
+\frac{d\rho_{nn}}{dt}=& 2 \rho_{n0} ( \delta_n\rho_{n} + \frac{(1-\delta_n)}{z} + (1-\delta_n)\frac{(z-1)}{z} q_{n|0} ) (b_n - c_{n}\rho_n - c_{pn}\rho_p - \frac{z-1}{z} g q_{p|o} p)\\
+&- 2\rho_{nn}m_n\\
+\frac{d\rho_{pp}}{dt} =& 2\rho_{po} (\delta_p \rho_{p} + \frac{(1-\delta_p)}{z} + (1-\delta_p) \frac{(z-1)}{z} q_{p|o})  (b_p - c_{p}\rho_p - c_{np}\rho_{n} - g(1 - \frac{(z-1)}{z} q_{n|o} n)) \\
+& - 2\rho_{pp}m_p\\
+\frac{d\rho_{--}}{dt} =& 2 \rho_{0-} d - 2\rho_{--}(r + f \frac{z-1}{z}(q_{n|-} + q_{p|-})) \\
+\frac{d\rho_{n-}}{dt}=& \rho_{no}d + \rho_{o-} ( \delta_n\rho_{n} + (1-\delta_n)\frac{(z-1)}{z} q_{n|o} ) (b_n- c_{n}\rho_{n} - c_{pn}\rho_{p} - g \frac{(z-1)}{z} q_{p|o}p)\\
+& - \rho_{n-}(m_n + r + \frac{f}{z} + \frac{(z-1)}{z}f (q_{n|-}+q_{p|-}))\\
+\frac{d\rho_{np}}{dt} =& \rho_{n0} (\delta_p \rho_{p} + (1-\delta_p) \frac{(z-1)}{z} q_{p|o}) (b_p - c_{p}\rho_{p} - c_{np}\rho_n - g( 1 - \frac{n}{z} - \frac{(z-1)}{z} q_{n|o} n) ) \\
+&+ \rho_{p0}( \delta_n\rho_{n} + (1-\delta_n)\frac{(z-1)}{z} q_{n|o} ) (b_n- c_{n}\rho_{n} - c_{pn}\rho_{p} - \frac{gp}{z} - g \frac{z-1}{z} q_{p|o}p)\\
+&- \rho_{np} (m_p + m_n)\\
+\frac{d\rho_{p-}}{dt} =& \rho_{po} d + \rho_{o-} (\delta_p \rho_{p} + (1-\delta_p) \frac{(z-1)}{z} q_{p|o}) (b_p-c_{p}\rho_{p} - c_{np}\rho_{n} - g(1 - \frac{(z-1)}{z} q_{n|o}n) )\\
+&- \rho_{p-}(m_p + r \frac{f}{z} + f \frac{(z-1)}{z} (q_{p|-} + q_{n|-}))\\
+\frac{d\rho_{--}}{dt} =& 2 \rho_{0-} d - 2\rho_{--}(r + f \frac{z-1}{z}(q_{n|-} + q_{p|-})\\ 
+\end{aligned}
+$$
+
+Using the expression of the variables given in the previous part and here below:
+
+* $\rho_{0-} = \rho_{-} - \rho_{--} - \rho_{n-} - \rho_{p-}$
+* $q_{n|p}=\frac{\rho_{pn}}{\rho_{p}}$
+* $q_{p|n}=\frac{\rho_{pn}}{\rho_{n}}$
+* $\rho_{po} = \rho_{p} - \rho_{pp} - \rho_{np} - \rho_{p-}$
+* $\rho_{no} = \rho_{n} - \rho_{nn} - \rho_{np} - \rho_{n-}$

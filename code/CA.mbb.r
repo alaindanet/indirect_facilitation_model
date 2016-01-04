@@ -25,7 +25,7 @@ parameters = list(m = 0.1,   # intrinsic mortality
 		  starting = 0.5,
 		  p=0.0,
 		  com="poly",
-		  b = seq(0.9,0.2,-0.1),
+		  b = seq(0.8,0.3,-0.1),
                   g = seq(0.0,0.3,0.05),
                   n = seq(0,1,1),
                   c21 = seq(-0.2,0.2,0.05),
@@ -40,7 +40,8 @@ First.ID = 1
 iterations <- expand.grid(parameters)
 iterations <- cbind(ID = 1:dim(iterations)[1],
                     iterations)
-iterations  <- iterations[which(iterations$c12 > iterations$c21),]
+iterations  <- iterations[-which(iterations$c12 > iterations$c21),]
+
 str(iterations)
 
 min.replicates = 10

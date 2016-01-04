@@ -45,7 +45,8 @@ setwd("~/Documents/thesis/thesis_chap1_model/simulation/pairs_mod3/")
 source("~/Documents/thesis/thesis_chap1_model/code/analysis_function.r")
 data <- read.table("output.csv", sep=",", row.names=1, header=T)
 ```
-#### Parameters used
+
+* Parameters used
 
 ```{r, echo=FALSE}
 pars <- c("del","m","n","b","cn","cp","cnp","cpn","g")
@@ -61,9 +62,10 @@ colnames(param)  <- c("Min", "Max")
 
 kable(param, caption="Listes des paramètres utilisées et de leur valeurs")
 ```
-#### Coexistence
 
-##### Effect of mortality
+* Coexistence
+
+  * Effect of mortality
 
 ```{r, echo=FALSE, fig.cap="Green light: nurse alone, green dark: coexistence, black: protégée alone"}
 par(mfrow=c(2,2))
@@ -84,10 +86,10 @@ for(i in 1:4){
 
 ```
 
-##### Effect of competitive ability of the protégée
+* Effect of competitive ability of the protégée
 
 ```{r, echo=FALSE, fig.cap="Green light: nurse alone, green dark: coexistence, black: protégée alone"}
-par(mfrow=c(2,3))
+par(mfrow=c(3,3))
 cpn <- parameters$cpn[9:length(parameters$cpn)]
 for(i in 1:length(cpn)){
 	diag.pairs(data  = data,
@@ -105,9 +107,9 @@ for(i in 1:length(cpn)){
 
 ```
 
-#### Co-occurences
+* Co-occurences
 
-##### Statistics
+* Statistics
 
 Which parameter combination gives positive co-occurences (i.e. $Cnp >= 1.1$) between two species when the density of the two species is superior to 0?
 
@@ -115,10 +117,11 @@ Which parameter combination gives positive co-occurences (i.e. $Cnp >= 1.1$) bet
 coex <- data[which(data$Cnp > 1.1 & data$rhon > 0.05 & data$rhop > 0.05),]
 summary(coex[,c("m","n","b","cnp","cpn","g","Cnp")])
 ```
+
 The positive co-occurences arises when the grazing pressure and the competition of the nurse on the protégée is also high. A longer lifespan seems also promote coexistence.
 
 
-##### The dynamic of co-occurences
+* The dynamic of co-occurences
 
 ```{r, echo=FALSE}
 g   <- c(0.25, 0.75)
@@ -147,15 +150,16 @@ for(i in 1:length(g)){
 ### Cellular automata with 4 states
 
 There are 4 states: nurse, protégée, empty and degraded
+
 ```{r, echo=FALSE}
 data <- read.table("~/Documents/thesis/thesis_chap1_model/simulation/CA_mod3/CA_output.csv", sep=",", row.names=1, header=T)
 ```
 
-#### Parameters used
+* Parameters used
 
 Same as pair approximation! But we add $f=0.9$,$r=0.01$, $d=0.1$.
 
-#### Results
+* Results
 
 No positive co-occurence occurs! Fuck, fuck, fuck. Futhermore, the use of a low mortality ( m=  `r unique(data$m)`) made the vegetal cover very high.
 
@@ -165,9 +169,11 @@ summary(data[data$clus_2_1 >=0.6 & data$rho_nurse >=0.05 & data$rho_protege >=0.
 	c("rho_nurse", "rho_protege", "c_1", "c_2", "c_21", "c_12", "b", "m", "g","clus_2_1")])
 
 ```
-##### Coexistence
+
+* Coexistence
 
  - Effect of the competition of the protégée on the nurse
+
 ```{r, echo=FALSE, fig.cap="Green light: nurse alone, green dark: coexistence, black: protégée alone"}
 par(mfrow=c(2,2))
 c21 <- c(0.10,0.5, 0.75, 0.9)
@@ -190,22 +196,25 @@ diag.coex(folder          = "~/Documents/thesis/thesis_chap1_model/simulation/CA
 	  main= paste("c21=",c21[i]))
 }
 ```
+
 We can see that the inter competition of the protégée on the nurse doesn't have a great impact on the size of the area of coexistence. I think it is because I put a too weak mortality. It's may be on of the reason why I don't have positive co-occurence between the two species.
 
 
 
-##### Stability
+* Stability
 
 ### Cellular automata with 4 states
 
 #### Model with local competition: intraspecific competition and interspecific facilitation
+ 
+Here, I tested the effect of interspecific facilitation for etablishment on the co-occurence between the two species. I did it by setting the intercompetition to negative values and intracompetition to $0.3$.
 
 ```{r, echo=FALSE}
 setwd("~/Documents/thesis/thesis_chap1_model/simulation/CA.mod4/")
 source("~/Documents/thesis/thesis_chap1_model/code/analysis_function.r")
 data <- read.table("output.coex.27.05.csv", sep=",", row.names=1, header=T)
 ```
-##### Parameters used
+* Parameters used
 
 ```{r, echo=FALSE}
 pars <- c("del","m","n","b","c1","c2","c12","c21","g")
@@ -222,12 +231,14 @@ colnames(param)  <- c("Min", "Max")
 kable(param, caption="Listes des paramètres utilisées et de leur valeurs")
 ```
 
-##### Coexistence
+* Coexistence
 
 ```{r, echo=FALSE}
 summary(data[data$clus.2.1 >=1.0 & data$rho.nurse >=0.05 & data$rho.protege >=0.05,
 	c("rho.nurse", "rho.protege", "c1", "c2", "c21", "c12", "b", "m", "g","clus.2.1")])
+# render("~/Documents/thesis/thesis_chap1_model/results/summary.Rmd")
 ```
+We see that coexistence occurs but obsviously, in the state diagram, we lost the part where the protégée survive alone because the intercompetition is below 0.
 
 ```{r, echo=FALSE}
 par(mfrow=c(2,2))
@@ -251,8 +262,11 @@ diag.coex2(folder         = "~/Documents/thesis/thesis_chap1_model/simulation/CA
 	  main            = paste("c inter=",ci[i]))
 }
 ```
-##### Stability
 
+* Stability
+
+
+#### Cellular automata with nurse as grazing protector and etablishment facilitator
 
 
 # Discussion

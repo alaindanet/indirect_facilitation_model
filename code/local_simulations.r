@@ -20,7 +20,7 @@
 
 
 rm(list=ls())
-
+library(beepr)
 #
 #setwd("sftp://alain@162.38.184.118/home/alain/test")
 
@@ -61,7 +61,7 @@ height = 50
 
 # time and resolution of simulation
 timesteps = 500
-delta = 1/5
+delta = 1/4
 
 
 # derive helper vectors for counting: 
@@ -110,17 +110,17 @@ plot(initial, cols = color)# }}}
 
 # defining parameter set# {{{
 parameters = list(
-	m1 = 0.1, m2 = 0.1,  # intrinsic mortality
-	b1 = 0.39,  # beta*eps
+	m1 = 0.04, m2 = 0.04,  # intrinsic mortality
+	b1 = 0.20,  # beta*eps
 	d = 0.1,		# degradation
 	c_1 = 0.2,c_2 = 0.2,		# beta*g
-	c_12 = -0.2, c_21 = 0.2, 
+	c_12 = 0.05, c_21 = 0.1, 
 	del1 = 0.1, # seeds dispersed; (1-del) seeds on nearest neighbourhood
 	del2 = 0.1,
 	r = 0.01, 	# regeneration rate
 	f = 0.9,  # local facilitation
-	g = 0.20,
-	n = 1, # protege protection against herbivory (associational résistance)
+	g = 0.04,
+	n = 0, # protege protection against herbivory (associational résistance)
 	p = 0,
   g2 = 0,# grazing
   al1 = 0,
@@ -128,7 +128,7 @@ parameters = list(
   n1 = 0,
   n2 = 0
   )
-# Add parameters for second species
+# add parameters for second species
 parameters <- c(
   parameters,
   b2 = as.numeric(parameters["b1"])
@@ -196,8 +196,8 @@ for(i in seq_along(result$time)) {    #calculation loop
 	
 # 4 - applying the rules to fill the cells in x_new
 		
-    recolonisation1 <- with(parms_temp, (del1*rho1+(1-del1)*Q_plus1)*(b1-c_1*Q_plus1 - c_21*Q_plus2 - g*Q_plus2*p)*delta)
-    recolonisation2 <- with(parms_temp, (del2*rho2+(1-del2)*Q_plus2)*(b2-c_2*Q_plus2 - c_12*Q_plus1 - g*(1-Q_plus1*n))*delta)
+    recolonisation1 <- with(parms_temp, (del1*rho1+(1-del1)*Q_plus1)*(b1-c_1*rho1 - c_21*rho2 - g*Q_plus2*p)*delta)
+    recolonisation2 <- with(parms_temp, (del2*rho2+(1-del2)*Q_plus2)*(b2-c_2*rho2 - c_12*rho1 - g*(1-Q_plus1*n))*delta)
     degradation <- with(parms_temp, (d *delta))
     death1 <- with(parms_temp, (m1 + g2*(al1 - n1*Q_plus1))*delta)
     death2 <- with(parms_temp, (m2 + g2*(al2 - n2*Q_plus1))*delta)
@@ -240,7 +240,7 @@ if(any(c(recolonisation1, recolonisation2, degradation, regeneration) < 0)) warn
 		#gc()  #garbage collection
 	} # end of simulation.
 # }}}
-
+beep(4)
 # the rest is graphical output# {{{
 
 # FIGURE 1 	-- final states of the grid
