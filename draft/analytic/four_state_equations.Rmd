@@ -1,0 +1,103 @@
+---
+title: 'Thesis, Chap 1: pair approximation: the 4 state model'
+output: pdf_document
+---
+
+* We have 4 states ($n$, $p$, $0$, $-$).
+* We have ten different pairs ($\rho_{nn}$, $\rho_{n0}$, $\rho_{np}$, $\rho_{n-}$, $\rho_{pp}$, $\rho_{p0}$, $\rho_{p-}$, $\rho_{00}$, $\rho_{0-}$,  $\rho_{--}$) since $\rho_{\sigma\sigma'} = \rho_{\sigma'\sigma}$.
+
+* We have five conservation equations:
+  1. $\rho_{n} + \rho_{p} + \rho_{0} + \rho_{-}  = 1$
+  2. $\rho_{n} = \rho_{nn} + \rho_{n0} + \rho_{np} + \rho_{n-}$
+  3. $\rho_{0} = \rho_{00} + \rho_{n0} + \rho_{p0} + \rho_{0-}$
+  4. $\rho_{p} = \rho_{pp} + \rho_{p0} + \rho_{np} + \rho_{p-}$
+  5. $\rho_{-} = \rho_{--} + \rho_{0-} + \rho_{n-} + \rho_{p-}$
+
+* There are 4 singleton variables: $\rho_{n}$, $\rho_{p}$, $\rho_{0}$, $\rho_{-}$
+
+So we need $10+4-5 = 9$ equations to solve this system:
+
+ * $\frac{d\rho_{nn}}{dt}$
+ * $\frac{d\rho_{n-}}{dt}$
+ * $\frac{d\rho_{np}}{dt}$
+ * $\frac{d\rho_{pp}}{dt}$
+ * $\frac{d\rho_{p-}}{dt}$
+ * $\frac{d\rho_{--}}{dt}$
+ * $\frac{d\rho_{n}}{dt}$
+ * $\frac{d\rho_{p}}{dt}$
+ * $\frac{d\rho_{-}}{dt}$
+
+
+For clarity, here is the list of replacement rules:
+
+* $\rho_{0} = 1 - \rho_{n} - \rho_{p} - \rho_{-}$
+* $\rho_{n0} = \rho_{n} - \rho_{nn} - \rho_{np} - \rho_{n-}$
+* $\rho_{p0} = \rho_{p} - \rho_{pp} - \rho_{np} - \rho_{p-}$
+* $\rho_{0-} = \rho_{-} - \rho_{--} - \rho_{n-} - \rho_{p-}$
+
+Equation system:
+
+
+$$
+\begin{aligned}
+\frac{d\rho_{nn}}{dt}=& \rho_{n0} ( \delta\rho_{n} + \frac{(1-\delta)}{z} + (1-\delta)\frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b - \frac{c_{n}}{z} - c_{n}\frac{(z-1)}{z}\frac{\rho_{n0}}{\rho_{0}} - c_{pn}\frac{(z-1)}{z}\frac{\rho_{p0}}{\rho_{0}}) \\
+&- 2\rho_{nn}m  
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{n-}}{dt}=& \rho_{n0}d + \rho_{0-} ( \delta\rho_{n} + (1-\delta)\frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b- c_{n}\frac{(z-1)}{z}\frac{\rho_{n0}}{\rho_{0}} - c_{pn}\frac{(z-1)}{z}\frac{\rho_{p0}}{\rho_{0}})\\
+&- \rho_{n-}m - \rho_{n-}(r + f (\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})\frac{(z-1)}{z})
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{np}}{dt} =& \rho_{n0} (\delta \rho_{p} + (1-\delta) \frac{(z-1)}{z} \frac{\rho_{p0}}{\rho_{0}}) (b- \frac{(z-1)}{z}c_{p}\frac{\rho_{p0}}{\rho_{0}} - \frac{c_{np}}{z} -\frac{(z-1)}{z}c_{np}\frac{\rho_{n0}}{\rho_{0}} - g( 1 - \frac{n}{z} - \frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}}n) ) \\
+&+ \rho_{p0}( \delta\rho_{n} + (1-\delta)\frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b- c_{n}\frac{(z-1)}{z}\frac{\rho_{n0}}{\rho_{0}} - \frac{c_{pn}}{z} - c_{pn}\frac{(z-1)}{z}\frac{\rho_{p0}}{\rho_{0}})\\
+&- 2 \rho_{np} m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{pp}}{dt} =& \rho_{p0} (\delta \rho_{p} + \frac{(1-\delta)}{z} + (1-\delta) \frac{(z-1)}{z} \frac{\rho_{p0}}{\rho_{0}})  (b- \frac{c_{p}}{z} - \frac{(z-1)}{z}c_{p}\frac{\rho_{p0}}{\rho_{0}} - \frac{(z-1)}{z}c_{np}\frac{\rho_{n0}}{\rho_{0}} - g(1 - \frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}}n)) \\
+& - 2\rho_{pp}m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{p-}}{dt} =& \rho_{p0} d + \rho_{0-} (\delta \rho_{p} + (1-\delta) \frac{(z-1)}{z} \frac{\rho_{p0}}{\rho_{0}}) (b- \frac{(z-1)}{z}c_{p}\frac{\rho_{p0}}{\rho_{p0}} - \frac{(z-1)}{z}c_{np}\frac{\rho_{n0}}{\rho_{0}} - g(1 - \frac{(z-1)}{z} \frac{\rho_{n0}}{\rho_{0}}n) )\\
+& - \rho_{p-}m - \rho_{p-}(r + f (\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})\frac{(z-1)}{z})
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{--}}{dt} =& \rho_{0-}d - 2\rho_{--}(r + f (\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{n0}}{\rho_{0}})\frac{(z-1)}{z}) \\ 
+\end{aligned}
+$$
+
+
+$$
+\begin{aligned}
+\frac{d\rho_{p}}{dt} =& \rho_{0} (\delta \rho_{p} +  (1-\delta)\frac{\rho_{p0}}{\rho_{0}}) (b- c_{p} \frac{\rho_{p0}}{\rho_{0}} - c_{np}\frac{\rho_{n0}}{\rho_{0}} - g( 1 - \frac{\rho_{n0}}{\rho_{0}}n) ) \\ 
+&- \rho_{p}m 
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{n}}{dt} =& \rho_{0} ( \delta\rho_{n} + (1-\delta) \frac{\rho_{n0}}{\rho_{0}} ) (b- c_{n}\frac{\rho_{n0}}{\rho_{0}} - c_{pn} \frac{\rho_{p0}}{\rho_{0}}) \\
+&- \rho_{n} m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{-}}{dt} =& \rho_{0} d - \rho_{-}(r + f (\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})) \\
+\end{aligned}
+$$
+
