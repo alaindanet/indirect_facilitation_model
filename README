@@ -8,3 +8,9 @@ of indirect facilitation. A nurse species is protected against grazing can prote
 The cells can take 3 states: occupied by a nurse, a protégée or be empty.
 
 
+## TODO  
+
+- [ ] Ecological model
+- [ ] ODE system function 
+- [ ] ODEs  
+- [ ] Transition equation function  
