@@ -2,7 +2,12 @@
 
 export(NE_context)
 export(Ncolonize)
+export(PE_context)
+export(Pcolonize)
 export(check_nbs)
+export(check_var)
+export(check_z)
+export(die)
 export(indirect_facilitation_model)
 export(three_states_sys)
 export(upca_model)

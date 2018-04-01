@@ -8,9 +8,15 @@ equations(upca)$f <- equations(upca)$f2
 test <- sim(upca)
 plotupca(test)
 
-# Test
-devtools::use_testthat()
-testthat
+##   
 
-library(devtools)
-version
+# Test
+mod <- indirect_facilitation_model()
+mod
+parms(mod)
+times(mod) <- c(from = 0, to = 1000, by = 10)
+equations(mod)$asymp_cost <- equations(mod)$asymp_cost
+test <- sim(mod)
+out(test)
+plot(test)
+traceback()

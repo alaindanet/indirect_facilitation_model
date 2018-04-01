@@ -42,13 +42,14 @@ Ncolonize <- function(N, NE, E, z, del, b, c, gamma1, nbs){
 #' @return a rate of transition
 #'
 #' @export
-Pcolonize <- function(P, PE, E, z, del, b, c, g, nbs){
+Pcolonize <- function(P, N, NE, PE, E, z, del, b, c, g, n, nbs){
 
   PE_proba <- PE_context(nbs, PE, E, z)
+  NE_proba <- NE_context(nbs, NE, E, z)
 
   dispersion <- del * P + PE_proba * (1 - del)
 
-  early_survival <- b - c * (1 - E) - g
+  early_survival <- b - c * (1 - E) - g * (1 - NE_proba * n)
 
   return(dispersion * early_survival)
 
@@ -56,7 +57,8 @@ Pcolonize <- function(P, PE, E, z, del, b, c, g, nbs){
 
 #' Neighboring function 
 #'
-#' 
+#' Define the probability of an event according to the Neighboring cells for a 
+#' nurse cell. 
 #' @param nbs 
 #' @param NE 
 #' @param E 
@@ -65,7 +67,6 @@ Pcolonize <- function(P, PE, E, z, del, b, c, g, nbs){
 #' @return definition of the probability
 #'
 #' @export
-
 NE_context <- function(nbs, NE, E, z) {
 
   check_nbs(nbs)
@@ -83,7 +84,8 @@ NE_context <- function(nbs, NE, E, z) {
 
 #' Neighboring function 
 #'
-#' 
+#' Define the probability of an event according to the Neighboring cells for a 
+#' protegé cell. 
 #' @param nbs 
 #' @param NE 
 #' @param E 
@@ -105,4 +107,17 @@ PE_context <- function(nbs, PE, E, z) {
     return(1 / z + ( (z - 1) / z) * PE / E)
   }
 
+}
+
+#' Death transition function 
+#'
+#' Define the probability to die for a cell.
+#'
+#' @param m rate of mortality.  1/m defines the life expectancy.  
+#'
+#' @return definition of the probability
+#'
+#' @export
+die <- function(m) {
+  return(m)
 }
