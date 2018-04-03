@@ -2,10 +2,17 @@
 
 ## TODO  
 
-- [ ] Ecological model
-- [ ] ODE system function 
-- [ ] ODEs  
-- [ ] Transition equation functions  
+- [x] Ecological model
+- [x] ODE system function 
+- [x] ODEs  
+- [x] Transition equation functions  
+- [x] Test functions
+- [/] Document functions
+- [ ] Framework to build simulation diagrams
+    - [x] Run simulations over a range of parameters  
+    - [x] Extract the average of the last timesteps
+    - [ ] Check if simulations have reached stability
+    - [ ] Define a plot method 
 
 ## Objectives
 

@@ -7,6 +7,9 @@ Depends: R (>= 3.4.3)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: simecol
+Imports: simecol,
+    ggplot2,
+    magrittr,
+    dplyr
 Suggests: testthat
 RoxygenNote: 6.0.1
