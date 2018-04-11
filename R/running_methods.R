@@ -19,7 +19,8 @@
 run_2d_gradient <- function(y = "g", x = "gamma1",
   gradienty = seq(0, 0.2, length.out = 5), gradientx = NULL,
   model_spec = indirect_facilitation_model(),
-  time_seq = c(from = 0, to = 100, by = .1)) {
+  time_seq = c(from = 0, to = 1000, by = 1),
+  param = NULL, nb_cores = NULL) {
 
   if (is.null(gradientx)) {
     gradientx <- gradienty
@@ -33,6 +34,9 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   # Prepare the model:
   model <- model_spec
   simecol::times(model) <- time_seq
+  if (!is.null(param)) {
+    simecol::parms(model) <- param
+  }
 
   # Run the model
   run_model <- function(x, y) {
@@ -43,13 +47,26 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
     output <- simecol::out(run) %>%
       dplyr::select(-time)
     return(output)
+  }
+
+  if (is.null(nb_cores) | nb_cores <= 1) {
+    output <- gradient %>%
+      dplyr::mutate(runs = purrr::map2(gamma1, g, run_model))
+  } else {
+    # In parallel
+    cluster <- multidplyr::create_cluster(nb_cores)
+    multidplyr::cluster_assign_value(cluster, "model", model)
+    multidplyr::cluster_assign_value(cluster, "run_model", run_model)
+    multidplyr::set_default_cluster(cluster)
+    by_var <- gradient %>%
+      multidplyr::partition(gamma1) %>%
+      dplyr::mutate(runs = purrr::map2(gamma1, g, run_model)) %>%
+      multidplyr::collect()
+
+    return(by_var)
 
   }
-  # Select the last values 
 
-  # TODO: generalize for any argument
-  output <- gradient %>%
-    dplyr::mutate(runs = purrr::map2(gamma1, g, run_model))
   return(output)
 
 }
@@ -65,14 +82,52 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 #' @return a dataframe. It contains
 #' @export
 avg_runs <- function(run, cut_row = 100) {
-  # Keep the last 100
-  out  <- run %>%
-    dplyr::slice(n() - cut_row: n()) %>%
+
+  if (nrow(run) <= cut_row) {
+    # Create a NA data.frame of length one
+    out <- lapply(vector("list", ncol(run)), function(x) return(NA))
+    names(out) <- names(run)
+    out %<>% as.data.frame(.)
+
+  } else {
+
+  out <- run %>%
+    dplyr::slice( (n() - cut_row) : n()) %>% # Keep the last 100
     tidyr::gather(species, rho) %>%
     dplyr::group_by(species) %>%
-    dplyr::summarise(rho = mean(rho)) %>%
+    dplyr::summarise(rho = mean(rho, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     tidyr::spread(species, rho)
 
+  }
+  # check negative or NaN
+  out$status <- is_run_normal(run)
   return(out)
+}
+
+#' Define the state result of a simulation 
+#'
+#' This function gives the result of a simulation, i.e., "warning", "nurse",
+#' "protegee", "coexistence"
+#' 
+#' @param nurse a dbl of length 1. The density of the nurse at the steady
+#' state. 
+#' @param protegee a dbl of length 1. The density of the protegee at the steady
+#' state. 
+#' @return a chr vector of length 1
+#' @export
+def_state <- function (nurse, protegee, sim_status,
+  threshold = 10 ^ - 3) {
+
+  if (!sim_status) {
+    return("warning")
+  } else if (nurse <= threshold & protegee > threshold) {
+    return("protégée")
+  } else if (nurse > threshold & protegee <= threshold) {
+    return("nurse")
+  } else if (nurse <= threshold & protegee <= threshold) {
+    return("extinct")
+  } else if (nurse > threshold & protegee > threshold) {
+    return("coexistence")
+  }
 }

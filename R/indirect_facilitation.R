@@ -26,7 +26,7 @@ indirect_facilitation_model <- function() {
       ),
     times = c(from = 0, to = 100, by = 0.1),
     parms = c(z = 4, del = 0.1, b = 0.8, c = 0.2, g = 0.08, m = 0.2, gamma1 =
-      0.08, tau = 20),
+      0.08, tau = 20, extinction_threshold = 1 * 10 ^ -3),
     init = c(N = .4, P = .4, NP = 0.1, PP = .1, NN = .1),
     solver = "lsoda"
     )

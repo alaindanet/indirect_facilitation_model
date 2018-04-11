@@ -11,6 +11,8 @@
 - [ ] Framework to build simulation diagrams
     - [x] Run simulations over a range of parameters  
     - [x] Extract the average of the last timesteps
+    - [ ] Check if Transition probabilities are negative (return a WARNING ?)
+    - [ ] Ajouter un seuil d'extinction
     - [ ] Check if simulations have reached stability
     - [ ] Define a plot method 
 

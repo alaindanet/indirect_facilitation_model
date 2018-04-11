@@ -4,7 +4,7 @@
 \alias{avg_runs}
 \title{Extract the average density of the last timesteps}
 \usage{
-avg_runs(run, n = 100)
+avg_runs(run, cut_row = 100)
 }
 \arguments{
 \item{run}{a dataframe. It contains the variable time and the density of the
