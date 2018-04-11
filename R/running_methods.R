@@ -49,19 +49,26 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
     return(output)
   }
 
-  if (is.null(nb_cores) | nb_cores <= 1) {
+  if (is.null(nb_cores)) {
     output <- gradient %>%
       dplyr::mutate(runs = purrr::map2(gamma1, g, run_model))
   } else {
     # In parallel
     cluster <- multidplyr::create_cluster(nb_cores)
-    multidplyr::cluster_assign_value(cluster, "model", model)
-    multidplyr::cluster_assign_value(cluster, "run_model", run_model)
+    # Export functions of the ODE:
+    f_to_load <- c("run_model", "NE_context", "Ncolonize", "PE_context",
+      "Pcolonize", "check_nbs", "check_z", "die")
+    export_f <- function(x) {
+    multidplyr::cluster_assign_value(cluster, x, get(x))
+  }
+    lapply(f_to_load, export_f)
+
     multidplyr::set_default_cluster(cluster)
+    multidplyr::cluster_library(cluster, c("magrittr"))
     by_var <- gradient %>%
       multidplyr::partition(gamma1) %>%
       dplyr::mutate(runs = purrr::map2(gamma1, g, run_model)) %>%
-      multidplyr::collect()
+      dplyr::collect()
 
     return(by_var)
 

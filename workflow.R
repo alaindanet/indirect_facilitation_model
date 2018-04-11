@@ -28,14 +28,15 @@ tail(out(mod_run), 40)
 plotnp(mod_run)
 
 # Run_gradient
-g_gradient <- seq(0, 0.2, length.out = 20)
+g_gradient <- seq(0, 0.2, length.out = 10)
 gamma_gradient <- seq(0, 0.2, length.out = 10)
 
 spec_param <- parms(mod)["b"] <- .8
+
 gradient_2d <- run_2d_gradient(gradienty = g_gradient,
-  time_seq = c(from = 0, to = 1000, by = 1)
-  #, nb_cores = 4
+  time_seq = c(from = 0, to = 1000, by = 1), nb_cores = 4
   )
+
 gradient_2d
 
 averaged_runs <- gradient_2d %>%
@@ -43,6 +44,7 @@ averaged_runs <- gradient_2d %>%
   tidyr::unnest(avg)
 
 plot_diagram(averaged_runs)
+ggsave("./inst/figs/diag_cost_grazing.pdf")
 plot_diagram(averaged_runs, debug_mode = TRUE)
 # Not work bc many values by gradient value 
 plotnp_gradient(averaged_runs)
