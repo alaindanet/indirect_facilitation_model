@@ -4,12 +4,19 @@ library(tibble)
 library(magrittr)
 
 devtools::document()
+#devtools::use_vignette("three_states_model")
 
 upca <- upca_model()
-parms(upca)
-equations(upca)$f <- equations(upca)$f2
+parms(upca)["wstar"] <- 0.1
+equations(upca)$f <- equations(upca)$f1
 test <- sim(upca)
 plotupca(test)
+
+root <- function(time, init, parms) {
+  dstate <- unlist(upca_ode(time, init, parms))
+  return(sum(abs(dstate)) - 1e-4)
+}
+lsodar(init(upca), c(0, 1e10), upca_ode, parms(upca), rootfun = root)
 
 ##   
 
