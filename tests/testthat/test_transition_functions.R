@@ -40,7 +40,7 @@ test_that("Ncolonization returns the right proba", {
   expect_equal(with(as.list(arg),
       Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = NULL)),
     with(as.list(arg),
-      (del * N + NE * (1 - del)) *
+      (del * N + NE/E * (1 - del)) *
       (b - c * (1 - E) - gamma1))
     )
   })
@@ -62,8 +62,8 @@ test_that("Pcolonization returns the right proba", {
   expect_equal(with(as.list(arg),
       Pcolonize(P, N, NE, PE, E, z, del, b, c, g, n, nbs = NULL)),
     with(as.list(arg),
-      (del * P + PE * (1 - del)) *
-      (b - c * (1 - E) - g * (1 - (NE) * n))
+      (del * P + PE / E * (1 - del)) *
+      (b - c * (1 - E) - g * (1 - (NE/E) * n))
     )
     )
   })

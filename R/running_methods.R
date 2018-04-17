@@ -20,7 +20,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   gradienty = seq(0, 0.2, length.out = 5), gradientx = NULL,
   model_spec = indirect_facilitation_model(),
   time_seq = c(from = 0, to = 1000, by = 1),
-  param = NULL, nb_cores = NULL) {
+  param = NULL, nb_cores = NULL, solver_type = NULL) {
 
   if (is.null(gradientx)) {
     gradientx <- gradienty
@@ -35,14 +35,18 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   model <- model_spec
   simecol::times(model) <- time_seq
   if (!is.null(param)) {
-    simecol::parms(model) <- param
+    simecol::parms(model)[names(param)] <- param
+  }
+
+  if (!is.null(solver_type)) {
+    simecol::solver(model) <- solver_type
   }
 
   # Run the model
-  run_model <- function(x, y) {
+  run_model <- function(x, y, name_x, name_y) {
 
-    simecol::parms(model)["gamma1"] <- x
-    simecol::parms(model)["g"] <- y
+    simecol::parms(model)[name_x] <- x
+    simecol::parms(model)[name_y] <- y
     run <- simecol::sim(model)
     output <- simecol::out(run) %>%
       dplyr::select(-time)
@@ -51,27 +55,34 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 
   if (is.null(nb_cores)) {
     output <- gradient %>%
-      dplyr::mutate(runs = purrr::map2(gamma1, g, run_model))
+      dplyr::mutate(
+	runs = purrr::map2(get(x), get(y), run_model, name_x = x, name_y = y)
+	)
   } else {
     # In parallel
     cluster <- multidplyr::create_cluster(nb_cores)
+
     # Export functions of the ODE:
     f_to_load <- c("run_model", "NE_context", "Ncolonize", "PE_context",
-      "Pcolonize", "check_nbs", "check_z", "die")
-    export_f <- function(x) {
-    multidplyr::cluster_assign_value(cluster, x, get(x))
-  }
-    lapply(f_to_load, export_f)
+      "Pcolonize", "check_nbs", "check_z", "die", "three_states_sys")
+    lapply(f_to_load, function(x) {
+      multidplyr::cluster_assign_value(cluster, x, get(x))
+      })
+    # Export arguments of the functions
+    multidplyr::cluster_copy(cluster, x)
+    multidplyr::cluster_copy(cluster, y)
 
     multidplyr::set_default_cluster(cluster)
-    multidplyr::cluster_library(cluster, c("magrittr"))
-    by_var <- gradient %>%
-      multidplyr::partition(gamma1) %>%
-      dplyr::mutate(runs = purrr::map2(gamma1, g, run_model)) %>%
-      dplyr::collect()
-
-    return(by_var)
-
+    multidplyr::cluster_library(cluster, c("magrittr", "deSolve"))
+    output <- gradient %>%
+      multidplyr::partition() %>%
+      dplyr::mutate(
+	runs = purrr::map2(
+	  get(x),
+	  get(y),
+	  run_model, name_x = x, name_y = y)) %>% 
+      dplyr::collect() %>%
+      dplyr::ungroup()
   }
 
   return(output)

@@ -1,0 +1,234 @@
+---
+title: "Definition of the associative protection"
+author: "Alain Danet"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = TRUE}
+library(tidyverse)
+library(magrittr)
+```
+
+
+# Definition of the associative protection $n = f(\gamma)$  
+
+## In previous papers
+
+Le Galliard et al. (2003) models the cost of altruism as: 
+
+$$ 
+\gamma = Kn^{u}
+$$
+
+with $n$, the level of altruism, $u$, the shape of the relationship between the
+associative protection and $\gamma$, the cost.
+
+Lion et al. (2007) used the same kind of relationship but assumed that the cost
+is dependant of the environment (i.e. of the neighboring cells).
+
+```{r, fig.width = 7, fig.height = 5}
+gamma_lion <- function(n, u = 0.3, K = 1) {
+  K*n^u
+}
+factors <- list(n = seq(0, 1, .05), u = c(.5, 1.5))
+df <- expand.grid(factors)
+df %<>% dplyr::mutate(
+  gamma1 = purrr::map2_dbl(n,u, gamma_lion),
+  u = as.factor(u)
+  )
+
+p <- ggplot(df, aes(x = n, y = gamma1, group = u))
+p + geom_line(aes(colour = u), linetype = 1) +
+  labs(y = expression(paste("Cost of the defence (", gamma, ")")), 
+    x = expression(paste("Altruistic trait (", n, ")")), 
+    title = "Lion et al. (2003) relationship")
+```
+
+## Exponential relationship  
+ 
+In our case, we can assume that there is a relationship between the maximal associative
+protection and the cost of the defence ($\gamma$). The level of maximal
+associative protection ($n$) is defined as the relative decrease of grazing
+effect when a sapling is surrounded by four nurse plants ($q_{N|0} = 1$, so
+effective associative protection becomes $n*q_{N|0} = n$).
+
+Let $n(\gamma) = 1 - e^{-\tau\gamma}$
+
+```{r, fig.width = 7, fig.height = 5, echo = FALSE}
+#Function
+gamma_asymp <- function(gamma1, tau = 20) {
+  1 - exp(-tau*gamma1)
+}
+
+#Data
+factors <- list(gamma1 = seq(0, 1, .01), tau = c(5, 20))
+df <- expand.grid(factors) 
+df %<>% 
+  dplyr::mutate(
+  n = purrr::map2_dbl(gamma1, tau, gamma_asymp),
+  tau = as.factor(tau)
+  )
+
+#Plot
+p <- ggplot(df, aes(x = gamma1, y = n, group = tau))
+p + geom_line(aes(colour = tau), linetype = 1) +
+  labs(
+    y = expression(paste("Maximum level of associative protection (", n, ")")),
+    x = expression(paste("Cost of the defence (", gamma, ")")), 
+    title = "Relationship between the cost of defence and the maximum level of
+    associative protection")
+```
+
+The resulting protection against grazing is given by $n*q_{N|0}$. The
+resulting decrease in mortality due to grazing is maximal when both $n = 1$ and
+$q_{N|0} = 1$ meaning that the protegee sapling is surrounded by four nurse
+plant. 
+
+```{r, fig.width = 7, fig.height = 5, echo = FALSE}
+#Function
+linear_protection_inc <- function(q_n0, n = 1) {
+  1 -  q_n0*n
+}
+
+#Data
+factors <- list(q_n0 = seq(0, 1, .25), n = seq(0, 1, 0.25))
+df <- expand.grid(factors) 
+df %<>% 
+  dplyr::mutate(
+  protection = purrr::map2_dbl(q_n0, n, linear_protection_inc),
+  n = as.factor(n)
+  )
+
+#Plot
+p <- ggplot(df, aes(x = q_n0, y = protection, group = n))
+p + geom_line(aes(colour = n), linetype = 1) +
+  labs(
+    y = expression(paste("Level of effective protection (", n*q[N0], ")")),
+    x = expression(paste("Relative number of neighbors (", q[N0], ")")), 
+    title = "Relationship between the neighborhood of a cell and the effective 
+    level of associative protection")
+```
+
+* * * * *
+
+
+This protection type is really weak and we might want to increase it. The
+maximum effective protection $n*q_{N|0}$ when a protegee
+sapling is surrounded by one adult nurse $q_{N|0}$ is $.25$.
+We can define an function $f(\gamma)$ which reach a maximum earlier but which is
+restricted to $1$. 
+
+The mortality due to grazing is defined like this: 
+$$
+g(1 - n*q_{N|0})
+$$
+
+Let define it as a function of protection function:
+$$
+g(1 - p)
+$$
+
+A protection function which is restricted to 1:
+
+$$
+p = (1 - e^{- \tau * q_{N0}})
+$$
+
+with $p$ being the mortality of the sapling due to grazing depending notably on
+the presence of the nurse.
+
+For example, we could say in case of a very good protection, the risk to be
+killed by grazers when there is one neighbor is 5\% of the base rate.
+
+We might want compute $\tau$ to define a given level of protection for a sapling
+surrounded by one nurse ($q_{N0} = .25$):
+
+$$
+\tau = \frac{ log(\frac{ -1 }{ p - 1 })}{ q }
+$$
+
+```{r, echo = FALSE}
+compute_tau <- function(p = 9/10, q = 1/4) {
+  log(-1/(p - 1))/q
+}
+```
+
+
+
+```{r, fig.width = 7, fig.height = 5, echo = FALSE}
+exp_grazing_protection <- function(q_n0, tau = 20) {
+  1 - exp(- tau * q_n0) 
+}
+
+factors <- list(
+  q_n0 = seq(0, 1, .25),
+  tau = compute_tau(
+    p = c(1/4, 1/2, 3/4, 9/10), 
+    q = 1/4)
+  )
+df <- expand.grid(factors) 
+df %<>% 
+  dplyr::mutate(
+  protection = purrr::map2_dbl(q_n0, tau, exp_grazing_protection),
+  tau = as.factor(tau)
+  )
+
+#Plot
+p <- ggplot(df, aes(x = q_n0, y = protection, group = tau))
+p + geom_line(aes(colour = tau), linetype = 1) +
+  labs(
+    y = expression(paste("Level of effective protection (", 1 - e^(- tau * q[N0]),
+	")")), 
+    x = expression(paste("Relative number of neighbors (", q[N0], ")")), 
+    title = "Relationship between the neighborhood of a cell and the effective
+    level of associative protection")
+```
+
+Let's now exam how the protection can be linked to the cost of defense. We
+introduce $p_{\frac{1}{z}}$, which is the effective protection when a protegee is
+surrounded by one nurse plant.
+
+$$
+p_{\frac{1}{z}}(\gamma) \in [0,1]
+$$
+
+We can define the relationship between $p_{\frac{1}{z}}$ and $\gamma$: 
+
+$$
+p_{\frac{1}{z}}(\gamma) = 1 - e^{- u \gamma} 
+$$
+
+It cost only one parameter ($u$)! With $q$ and $p$ known, $\tau$ is easily
+computed and so the level of protection depending on $q_{N|0}$.
+
+```{r, fig.width = 7, fig.height = 5, echo = FALSE}
+compute_p_one_z <- function(gamma1, u) {
+ 1 - exp(- u * gamma1)
+}
+
+factors <- list(
+  gamma1 = seq(0, .2, .01),
+  u = seq(5, 20, 4)
+  )
+
+df <- expand.grid(factors) 
+df %<>% 
+  dplyr::mutate(
+  tau = purrr::pmap_dbl(list(gamma1, u), compute_p_1_z),
+  u = as.factor(u),
+  )
+
+#Plot
+p <- ggplot(df, aes(x = gamma1, y = tau))
+p + geom_line(aes(colour = u)) +
+  labs(
+    y = expression(paste("Relative decrease of mortality due to grazing when surrounded by one neighbor ","(", p[frac(1,z)], ")")), 
+    x = expression(paste("Cost of defense (", gamma, ")")), 
+    title = "Relationship between the protection provided by one neighbor and
+    the cost of defense")
+```

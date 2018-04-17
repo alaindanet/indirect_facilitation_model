@@ -5,7 +5,6 @@
 #' @return A list of ODEs 
 #'
 #' @export
-
 three_states_sys <- function(time, init, parms) {
   # Variables:
   NP <- init["NP"]
@@ -41,5 +40,18 @@ three_states_sys <- function(time, init, parms) {
     # init = c(N = .4, P = .4, NP = 0.3, PP = .3, NN = .3),
     list(c(dN, dP, dNP, dPP, dNN))
 })
+}
+
+#' Define a custom solver checking for steady state
+#' 
+#' 
+#'
+#' @export
+steady_state <- function(time, init, func, parms) {
+  root <- function(time, init, parms) {
+    dstate <- unlist(three_states_sys(time, init, parms))
+    return(sum(abs(dstate)) - 1e-50)
+  }
+  lsodar(time, init, func, parms, rootfun = root, atol = 1e-20, rtol = 1e-20)
 }
 

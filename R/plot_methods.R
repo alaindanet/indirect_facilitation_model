@@ -58,7 +58,7 @@ plotnp_gradient <- function(data, state_var = c("N", "P"), param = c("gamma1", "
 #' @export
 plot_diagram <- function (
   data,
-  param = c("cost" = "gamma1", "grazing" = "g"),
+  param = c(x = "gamma1", y = "g"),
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
   debug_mode = FALSE, ...) {
@@ -76,9 +76,9 @@ plot_diagram <- function (
   names(cols) <- possible_states
 
   g <- ggplot2::ggplot(data,
-    aes_string(x = param["cost"], y = param["grazing"], fill = "state")) +
-  geom_raster() +
-  scale_fill_manual(
+    aes_string(x = param["x"], y = param["y"], fill = "state")) +
+  ggplot2::geom_raster() +
+  ggplot2::scale_fill_manual(
     values = col_states,
     limits = possible_states
     )

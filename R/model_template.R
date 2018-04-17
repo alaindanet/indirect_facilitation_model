@@ -35,6 +35,6 @@ upca_model <- function() {
     parms = c(a = 1, b = 1, c = 10, alpha1 = 0.2, alpha2 = 1,
       k1 = 0.05, k2 = 0, wstar = 0.1),
     init = c(u = 10, v = 5, w = 0.1),
-    solver = steady_state_upca
+    solver = "lsoda"
     )
 }

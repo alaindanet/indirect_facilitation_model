@@ -73,7 +73,7 @@ NE_context <- function(nbs, NE, E, z) {
   check_z(z)
 
   if (is.null(nbs)){
-    return(NE)
+    return(NE / E)
   } else if (nbs == "P") {
     return( ( (z - 1) / z) * NE / E)
   } else {
@@ -100,7 +100,7 @@ PE_context <- function(nbs, PE, E, z) {
   check_z(z)
 
   if (is.null(nbs)){
-    return(PE)
+    return(PE / E)
   } else if (nbs == "N") {
     return( ( (z - 1) / z) * PE / E)
   } else {
