@@ -1,6 +1,7 @@
 context("running_methods")
 
 library(tibble)
+library(magrittr)
 set.seed(123)
 
 run <- tibble(
@@ -19,13 +20,14 @@ test_that("is_normal_run works well", {
     })
 
 
+test_that("avg_runs return a good summary of the simulation", {
+
 my_calc <- dplyr::slice(run, (n() - 100) :n()) %>%
   tidyr::gather(species, rho, -time) %>%
   dplyr::group_by(species) %>%
   dplyr::summarise(avg = mean(rho)) %>%
   tidyr::spread(species, avg)
 
-test_that("avg_runs return a good summary of the simulation", {
   summary_run <- avg_runs(run, cut_row = 100)
   expect_equal(summary_run$N, my_calc$N, tolerance = .001)
   expect_equal(summary_run$P, my_calc$P, tolerance = .001)
@@ -34,7 +36,6 @@ test_that("avg_runs return a good summary of the simulation", {
   summary_run <- avg_runs(bad_run)
   expect_false(summary_run$status)
     })
-
 test_that("avg_run returns NA if simulations has stoped early", {
   short_run <- tibble(
     time = seq(0, 2),
@@ -65,4 +66,17 @@ test_that("the good states are returned", {
     "nurse")
   })
 
+two_d_sim <- run_2d_gradient(gradienty = 0.1,
+  time_seq = c(from = 0, to = 10, by = 1))
 
+test_that("Run_2d_gradient returns a list", {
+  expect_is(two_d_sim, "list")
+  expect_is(two_d_sim[["param"]], "list")
+  })
+
+test_that("Avg_runs returns a list", {
+  avg_two_d_sim <- avg_runs(two_d_sim)
+
+  expect_is(avg_two_d_sim, "list")
+  expect_is(avg_two_d_sim[["param"]], "list")
+  })

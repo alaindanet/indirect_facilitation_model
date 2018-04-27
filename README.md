@@ -2,24 +2,23 @@
 
 ## TODO  
 
-- [ ] Modularize:  
-    - [ ] make easy to the specification of the associative protection
+- [x] Modularize:  
+    - [x] make easy the specification of the associative protection
 - [x] Test functions
     - [x] Test probability transitions
-    - [ ] Test  
+    - [ ] Test that the parameters are well spelled       
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
-    - [x] Run simulations over a range of parameters  
-    - [x] Extract the average of the last timesteps
-    - [x] Check if simulations become weird (return a WARNING ?)
-    - [x] Ajouter un seuil d'extinction
+    - [ ] Add a class "gradient" with appropriate methods 
+	- [ ] Build `run_bifurcation` (`run_2d_gradient` wrapper)
+	- [ ] Build `plot_np` method for bifurcation class
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
     - [x] Define a plot method 
 	- [ ] print parameters of the simulations in the plot 
-	- [x] Generalize the 2d gradient 
-	- [x] Generalize the plot method 
+	    - [ ] Put an annotate method
+	    - [x] Keep the parameters values in the simulation Framework
 
 ## Objectives
 

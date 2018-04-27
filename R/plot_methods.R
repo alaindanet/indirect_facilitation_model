@@ -56,14 +56,20 @@ plotnp_gradient <- function(data, state_var = c("N", "P"), param = c("gamma1", "
 #' 
 #' @return a plot
 #' @export
-plot_diagram <- function (
+plot_diagram <- function(x, ...) UseMethod("plot_diagram")
+plot_diagram.default <- function(x) "Unknown class"
+plot_diagram.gradient <- function (
   data,
   param = c(x = "gamma1", y = "g"),
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
   debug_mode = FALSE, ...) {
 
+  params <- data[["param"]]
+  data %<>% .[["run"]]
+
   var_to_drop <- names(data)[!(names(data) %in% c(param))]
+
   data %<>%
     dplyr::mutate(
       state = purrr::pmap_chr(
@@ -88,5 +94,4 @@ plot_diagram <- function (
   } else {
     return(g)
   }
-
 }

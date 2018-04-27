@@ -38,33 +38,27 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
     simecol::parms(model)[names(param)] <- param
   }
 
+  # Define the solver type
   if (!is.null(solver_type)) {
     simecol::solver(model) <- solver_type
   }
 
   # Run the model
-  run_model <- function(x, y, name_x, name_y) {
-
-    simecol::parms(model)[name_x] <- x
-    simecol::parms(model)[name_y] <- y
-    run <- simecol::sim(model)
-    output <- simecol::out(run) %>%
-      dplyr::select(-time)
-    return(output)
-  }
-
   if (is.null(nb_cores)) {
     output <- gradient %>%
       dplyr::mutate(
-	runs = purrr::map2(get(x), get(y), run_model, name_x = x, name_y = y)
+	runs = purrr::map2(get(x), get(y), run_2d_model,
+	  name_x = x, name_y = y, model = model
+	  )
 	)
   } else {
     # In parallel
     cluster <- multidplyr::create_cluster(nb_cores)
 
     # Export functions of the ODE:
-    f_to_load <- c("run_model", "NE_context", "Ncolonize", "PE_context",
-      "Pcolonize", "check_nbs", "check_z", "die", "three_states_sys")
+    f_to_load <- c("run_2d_model", "model", "NE_context", "Ncolonize", "PE_context",
+      "Pcolonize", "check_nbs", "check_z", "die", "three_states_sys",
+      "compute_as", "compute_p_one_z", "compute_tau")
     lapply(f_to_load, function(x) {
       multidplyr::cluster_assign_value(cluster, x, get(x))
       })
@@ -80,13 +74,42 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 	runs = purrr::map2(
 	  get(x),
 	  get(y),
-	  run_model, name_x = x, name_y = y)) %>% 
+	  run_2d_model, name_x = x, name_y = y, model = model)) %>% 
       dplyr::collect() %>%
       dplyr::ungroup()
   }
 
-  return(output)
 
+  return(
+    structure(
+      list(
+	param = parms(model)[which(!names(parms(model)) %in% c(x, y))],
+	run = output
+	),
+    class = c("list", "gradient"))
+    )
+}
+
+#' Run the model by specifying two parameters  
+#' 
+#' Run the model of a two dimensional gradient.
+#' 
+#' @param x First variable.
+#' @param y Second variable.
+#' @param name_x A character vector. 
+#' @param name_y A character vector. 
+#'
+#'
+#' @return a data.frame 
+#' @export
+run_2d_model <- function(x, y, name_x, name_y, model) {
+
+  simecol::parms(model)[name_x] <- x
+  simecol::parms(model)[name_y] <- y
+  run <- simecol::sim(model)
+  output <- simecol::out(run) %>%
+    dplyr::select(-time)
+  return(output)
 }
 
 #' Extract the average density of the last timesteps 
@@ -99,7 +122,9 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 #' selected to average density 
 #' @return a dataframe. It contains
 #' @export
-avg_runs <- function(run, cut_row = 100) {
+avg_runs <- function(x, ...) UseMethod("avg_runs")
+avg_runs.default <- function(x) "Unknown class"
+avg_runs.data.frame <- function(run, cut_row = 100) {
 
   if (nrow(run) <= cut_row) {
     # Create a NA data.frame of length one
@@ -116,11 +141,29 @@ avg_runs <- function(run, cut_row = 100) {
     dplyr::summarise(rho = mean(rho, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     tidyr::spread(species, rho)
-
   }
   # check negative or NaN
   out$status <- is_run_normal(run)
+
+  #return(list(param = parms(model)[which(!names(parms(model)) %in% c(x,y))],
+      #run = out))
   return(out)
+}
+avg_runs.gradient <- function(run, cut_row = 100) {
+
+  param <- run[["param"]]
+  run %<>% .[["run"]]
+  run %<>% dplyr::mutate(
+    avg = purrr::map(runs, avg_runs, cut_row = cut_row)) %>%
+    tidyr::unnest(avg)
+
+  return(
+    structure(
+      list(param = param,
+      run = run),
+    class = c("list", "gradient")
+    )
+    )
 }
 
 #' Define the state result of a simulation 
@@ -139,13 +182,13 @@ def_state <- function (nurse, protegee, sim_status,
 
   if (!sim_status) {
     return("warning")
-  } else if (nurse <= threshold & protegee > threshold) {
+  } else if (nurse <= threshold && protegee > threshold) {
     return("protégée")
-  } else if (nurse > threshold & protegee <= threshold) {
+  } else if (nurse > threshold && protegee <= threshold) {
     return("nurse")
-  } else if (nurse <= threshold & protegee <= threshold) {
+  } else if (nurse <= threshold && protegee <= threshold) {
     return("extinct")
-  } else if (nurse > threshold & protegee > threshold) {
+  } else if (nurse > threshold && protegee > threshold) {
     return("coexistence")
   }
 }

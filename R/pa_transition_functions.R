@@ -42,16 +42,18 @@ Ncolonize <- function(N, NE, E, z, del, b, c, gamma1, nbs){
 #' @return a rate of transition
 #'
 #' @export
-Pcolonize <- function(P, N, NE, PE, E, z, del, b, c, g, n, nbs){
+Pcolonize <- function(P, N, NE, PE, E, z, del, b, c, g, nbs, p_fun, n, tau){
 
-  PE_proba <- PE_context(nbs, PE, E, z)
-  NE_proba <- NE_context(nbs, NE, E, z)
+PE_proba <- PE_context(nbs, PE, E, z)
+NE_proba <- NE_context(nbs, NE, E, z)
 
-  dispersion <- del * P + PE_proba * (1 - del)
+protection <- p_fun(NE_proba, n, tau)
 
-  early_survival <- b - c * (1 - E) - g * (1 - NE_proba * n)
+dispersion <- del * P + PE_proba * (1 - del)
 
-  return(dispersion * early_survival)
+early_survival <- b - c * (1 - E) - g * (1 - protection)
+
+return(dispersion * early_survival)
 
 }
 
@@ -120,4 +122,58 @@ PE_context <- function(nbs, PE, E, z) {
 #' @export
 die <- function(m) {
   return(m)
+}
+
+#' Protection function for the protegee 
+#' 
+#' @param type  
+#' @param NE_proba 
+#'
+#' @return a rate of transition
+#'
+#' @export
+compute_as <- function(type = "linear"){
+
+  if (is.null(type)) {
+    # No protection
+    protection <- function (NE_proba, n, tau) {
+      return(0)
+    }
+
+  } else if (type == "linear") {
+    protection <- function (NE_proba, n, tau) {
+      return(NE_proba * n)
+    }
+
+  } else if (type == "first_protect") {
+    protection <- function (NE_proba, n, tau) {
+      return(1 - exp(- tau * NE_proba))
+    }
+  }
+  return(protection)
+}
+
+#' relationship between the effect of a nurse and the cost of defense 
+#' 
+#' @param gamma1 cost of defence
+#' @param u shape of the curve.  
+#'
+#' @return a rate of transition
+#'
+#' @export
+compute_p_one_z <- function(gamma1, u) {
+  return(1 - exp(- u * gamma1))
+}
+
+#' Define the shape of the relationship between the protection effect and the
+#' number of nurse 
+#' 
+#' @param p the effect of one nurse 
+#' @param z the number of neighbors
+#'
+#' @return tau 
+#'
+#' @export
+compute_tau <- function(p = 9 / 10, z = 4) {
+  log(-1 / (p - 1)) / (1 / z)
 }

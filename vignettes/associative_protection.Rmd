@@ -158,8 +158,6 @@ compute_tau <- function(p = 9/10, q = 1/4) {
 }
 ```
 
-
-
 ```{r, fig.width = 7, fig.height = 5, echo = FALSE}
 exp_grazing_protection <- function(q_n0, tau = 20) {
   1 - exp(- tau * q_n0) 
@@ -219,7 +217,7 @@ factors <- list(
 df <- expand.grid(factors) 
 df %<>% 
   dplyr::mutate(
-  tau = purrr::pmap_dbl(list(gamma1, u), compute_p_1_z),
+  tau = purrr::pmap_dbl(list(gamma1, u), compute_p_one_z),
   u = as.factor(u),
   )
 

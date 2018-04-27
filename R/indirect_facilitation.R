@@ -14,7 +14,6 @@
 #' }
 #'
 #' @export
-
 indirect_facilitation_model <- function() {
   new("odeModel",
     main = three_states_sys,
@@ -25,8 +24,8 @@ indirect_facilitation_model <- function() {
       asymp_cost = function(gamma1, tau){ return(1 - exp(tau * gamma1))}
       ),
     times = c(from = 0, to = 100, by = 0.1),
-    parms = c(z = 4, del = 0.1, b = 0.8, c = 0.2, g = 0.08, m = 0.2, gamma1 =
-      0.08, tau = 20, extinction_threshold = 1 * 10 ^ -3),
+    parms = c(z = 4, del = 0.1, b = 0.8, c = 0.2, g = 0.08, m = 0.2, gamma1 = 0.08,
+      extinction_threshold = 1 * 10 ^ -3, protection_type = list("linear"), u = 15, n = 1, tau_n = 15),
     init = c(N = .4, P = .4, NP = 0.1, PP = .1, NN = .1),
     solver = "lsoda"
     )
