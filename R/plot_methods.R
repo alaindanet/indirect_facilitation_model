@@ -6,7 +6,9 @@ plotupca <- function(obj, ...) {
 }
 
 #' @importFrom magrittr %>%
-plotnp <- function(obj, ...) {
+plotnp <- function(x, ...) UseMethod("plotnp")
+plotnp.default <- function(x, ...) "Unknown class"
+plotnp.odeModel <- function(obj, ...) {
 
   o <- tibble::as.tibble(out(obj)) %>%
     dplyr::select(time, N, P) %>%
@@ -20,6 +22,38 @@ plotnp <- function(obj, ...) {
     geom_line(aes(colour = factor(species)))
   g + scale_colour_manual(values = cols) +
     axis_labels
+
+}
+plotnp.bifurcation <- function(data, threshold = 10^-3, debug_mode = FALSE, alpha = .15) {
+  #TODO: generalise for other parameters than b
+
+  params <- data[["param"]]
+  data %<>% .[["run"]]
+
+  #Replace low values by 0
+  var_to_drop <- c("runs", "NP", "NN", "PP", "status")
+  data %<>%
+    purrr::modify_at(var_to_drop, ~NULL) %>%
+    gather(species, rho, N, P) %>%
+    mutate(
+      rho = replace(rho, rho < threshold, 0)
+      ) %>%
+    purrr::modify_at(c("init", "species"), as.factor)
+
+  if (any(is.nan(data$rho))) {
+    data %<>% mutate(rho = replace(rho, is.nan(rho), 0))
+    warning("NaNs produced in simulations have been replaced by 0")
+  }
+
+  g <- ggplot(data,
+    aes(y = rho, x = b, color = species, linetype = init)) +
+  geom_line(alpha = alpha) + theme_minimal()
+
+  if (debug_mode) {
+    return(data)
+  } else {
+    return(g)
+  }
 
 }
 
@@ -43,7 +77,6 @@ plotnp_gradient <- function(data, state_var = c("N", "P"), param = c("gamma1", "
     geom_line(aes(colour = factor(species), linetype = factor(gradient))) +
     scale_colour_manual(values = cols)
   g
-
 
 }
 

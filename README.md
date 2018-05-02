@@ -5,13 +5,15 @@
 - [x] Modularize:  
     - [x] make easy the specification of the associative protection
 - [x] Test functions
+    - [ ] Compare new simulations to master's one
     - [x] Test probability transitions
+    - [ ] Test facilitate function
     - [ ] Test that the parameters are well spelled       
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
     - [ ] Add a class "gradient" with appropriate methods 
-	- [ ] Build `run_bifurcation` (`run_2d_gradient` wrapper)
-	- [ ] Build `plot_np` method for bifurcation class
+	- [x] Build `run_bifurcation` (`run_2d_gradient` wrapper)
+	- [x] Build `plot_np` method for bifurcation class
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 

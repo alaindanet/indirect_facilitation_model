@@ -18,8 +18,6 @@ test_that("is_normal_run works well", {
   expect_false(is_run_normal(bad_run))
   expect_true(is_run_normal(run))
     })
-
-
 test_that("avg_runs return a good summary of the simulation", {
 
 my_calc <- dplyr::slice(run, (n() - 100) :n()) %>%
@@ -68,15 +66,33 @@ test_that("the good states are returned", {
 
 two_d_sim <- run_2d_gradient(gradienty = 0.1,
   time_seq = c(from = 0, to = 10, by = 1))
-
 test_that("Run_2d_gradient returns a list", {
   expect_is(two_d_sim, "list")
   expect_is(two_d_sim[["param"]], "list")
   })
-
 test_that("Avg_runs returns a list", {
   avg_two_d_sim <- avg_runs(two_d_sim)
 
   expect_is(avg_two_d_sim, "list")
   expect_is(avg_two_d_sim[["param"]], "list")
+  })
+
+# Bifurcation
+test_that("run_bifurc_model runs", {
+bifurc_sim <- run_bifurc_model(
+  x = 0.1, y = c(.1, .3),
+  name_x = "b",
+  model = indirect_facilitation_model()
+  )
+expect_output(str(bifurc_sim), "data.frame")
+
+  })
+
+test_that("run_bifurcation works well", {
+  bifurc_sim2 <- run_bifurcation(
+    gradientx = .9,
+    time_seq = c(from = 0, to = 5, by = 1)
+    )
+  expect_output(str(bifurc_sim2), "data.frame")
+
   })

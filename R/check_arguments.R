@@ -9,7 +9,8 @@
 check_nbs <- function(nbs) {
   if (is.null(nbs)) {
       # Good
-    } else if (is.character(nbs) & nbs %in% c("P", "N")){
+    } else if (is.character(nbs) & nbs %in% c("P", "N", "D")){
+      # Good
     } else {
     stop("nbs is badly defined")
   }

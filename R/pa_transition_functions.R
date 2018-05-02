@@ -76,7 +76,7 @@ NE_context <- function(nbs, NE, E, z) {
 
   if (is.null(nbs)){
     return(NE / E)
-  } else if (nbs == "P") {
+  } else if (nbs != ("N")) {
     return( ( (z - 1) / z) * NE / E)
   } else {
     return(1 / z + ( (z - 1) / z) * NE / E)
@@ -103,10 +103,38 @@ PE_context <- function(nbs, PE, E, z) {
 
   if (is.null(nbs)){
     return(PE / E)
-  } else if (nbs == "N") {
+  } else if (nbs != "P") {
     return( ( (z - 1) / z) * PE / E)
   } else {
     return(1 / z + ( (z - 1) / z) * PE / E)
+  }
+
+}
+
+#' Neighboring function 
+#'
+#' Define the probability of an event according to the Neighboring cells for a 
+#' degraded cell. 
+#' @param nbs 
+#' @param ND
+#' @param PD
+#' @param D 
+#' @param z 
+#'
+#' @return definition of the probability
+#'
+#' @export
+D_context <- function(nbs, ND, PD, D, z) {
+
+  check_nbs(nbs)
+  check_z(z)
+
+  if (is.null(nbs)){
+    return(ND / D)
+  } else if (nbs != "D") {
+    return( 1 / z + ( (z - 1) / z) * (ND / D + PD / D))
+  } else {
+    return( ( (z - 1) / z ) * (ND / D + PD / D))
   }
 
 }
@@ -122,6 +150,64 @@ PE_context <- function(nbs, PE, E, z) {
 #' @export
 die <- function(m) {
   return(m)
+}
+
+#' Degradation transition function 
+#'
+#' Define the probability to be degraded for a cell.
+#'
+#' @param d rate of degradation.  1/d defines the degradation time expectancy.  
+#'
+#' @return definition of the probability
+#'
+#' @export
+degradation <- function(d) {
+  return(d)
+}
+
+#' Degradation transition function 
+#'
+#' Define the probability to be degraded for a empty cell.
+#'
+#' @param d rate of degradation.  1/d defines the degradation time expectancy.  
+#'
+#' @return definition of the probability
+#'
+#' @export
+degrade <- function(d) {
+  return(d)
+}
+
+#' Regeneration transition function 
+#'
+#' Define the probability to be regenerated for a degraded  cell.
+#'
+#' @param r rate of regeneration.  1/r defines the expected time before
+#' regeneration.
+#'
+#' @return definition of the probability
+#'
+#' @export
+regen <- function(r) {
+  return(r)
+}
+
+#' Facilitation transition function 
+#'
+#' Define the probability to be regenerated for a degraded cell thanks to the
+#' improvement of local conditions by an adult plant.
+#'
+#' @param f rate of local condition improvement.
+#'
+#' @return definition of the probability
+#'
+#' @export
+facilitate <- function(ND, PD, D, z, f, nbs = NULL) {
+
+  D_proba <- D_context(nbs, ND, PD, D, z)
+  facilitation <- f * D_proba
+
+  return(facilitation)
 }
 
 #' Protection function for the protegee 

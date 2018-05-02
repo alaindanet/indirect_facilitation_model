@@ -30,3 +30,18 @@ indirect_facilitation_model <- function() {
     solver = "lsoda"
     )
 }
+
+two_facilitation_model <- function() {
+  new("odeModel",
+    main = four_states_sys,
+    times = c(from = 0, to = 100, by = 0.1),
+    parms = c(z = 4, del = .1, b = .8, c = .2, g = .08, m = .2,
+      gamma1 = .08, r = .01, f = .9, d = .1,
+      extinction_threshold = 1 * 10 ^ -3, protection_type = list("linear"),
+      u = 15, n = 1, tau_n = 15),
+    init = c(N = .4, P = .4, D = .1,
+      NP = .1, PP = .1, NN = .1,
+      DD = .1, PD = .1, ND = .1),
+    solver = "lsoda"
+    )
+}
