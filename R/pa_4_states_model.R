@@ -47,11 +47,14 @@ four_states_sys <- function(time, init, parms) {
 
     dNP <- PE * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = "P") +
       NE * Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs = "N", p_fun, n, tau) -
-      2 * NP * die(m)
+      NP * die(m) - # For the first species
+      NP * die(m) # For the other species
+
     dND <- NE * degrade(d) +
       DE * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = "D") -
       ND * die(m) -
       ND * (regen(r) + facilitate(ND, PD, D, z, f, nbs = "N"))
+
     dPD <- PE * degrade(d) +
       DE * Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs = "D", p_fun, n, tau) -
       PD * die(m) -
@@ -62,7 +65,7 @@ four_states_sys <- function(time, init, parms) {
     dNN <- 2 * NE * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = "N") -
       2 * NN * die(m)
     dDD <- 2 * DE * degrade(d) -
-      2 * DD * (regen(r) + facilitate(ND, PD, D, z, f, nbs = NULL))
+      2 * DD * (regen(r) + facilitate(ND, PD, D, z, f, nbs = "D"))
 
     # Singleton variables
     dN <- E * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = NULL) -

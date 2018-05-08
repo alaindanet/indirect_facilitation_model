@@ -1,0 +1,135 @@
+---
+title: "The four state model: Nurse, Protégée, Empty and Degraded"
+author: "Alain Danet"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## ODEs 
+
+* We have 4 states ($n$, $p$, $0$, $-$)
+* We have ten different pairs ($\rho_{nn}$, $\rho_{n0}$, $\rho_{np}$,
+  $\rho_{n-}$, $\rho_{pp}$, $\rho_{p0}$, $\rho_{p-}$, $\rho_{00}$, $\rho_{0-}$,
+  $\rho_{--}$) since $\rho_{\sigma\sigma'} = \rho_{\sigma'\sigma}$
+
+* We have five conservation equations:
+  1. $\rho_{n} + \rho_{p} + \rho_{0} + \rho_{-}  = 1$
+  2. $\rho_{n} = \rho_{nn} + \rho_{n0} + \rho_{np} + \rho_{n-}$
+  3. $\rho_{0} = \rho_{00} + \rho_{n0} + \rho_{p0} + \rho_{0-}$
+  4. $\rho_{p} = \rho_{pp} + \rho_{p0} + \rho_{np} + \rho_{p-}$
+  5. $\rho_{-} = \rho_{--} + \rho_{0-} + \rho_{n-} + \rho_{p-}$
+
+* There are 4 singleton variables: $\rho_{n}$, $\rho_{p}$, $\rho_{0}$, $\rho_{-}$
+
+So we need $10+4-5 = 9$ equations to solve this system:
+
+ * $\frac{d\rho_{nn}}{dt}$
+ * $\frac{d\rho_{n-}}{dt}$
+ * $\frac{d\rho_{np}}{dt}$
+ * $\frac{d\rho_{pp}}{dt}$
+ * $\frac{d\rho_{p-}}{dt}$
+ * $\frac{d\rho_{--}}{dt}$
+ * $\frac{d\rho_{n}}{dt}$
+ * $\frac{d\rho_{p}}{dt}$
+ * $\frac{d\rho_{-}}{dt}$
+
+
+For clarity, here is the list of replacement rules:
+
+* $\rho_{0} = 1 - \rho_{n} - \rho_{p} - \rho_{-}$
+* $\rho_{n0} = \rho_{n} - \rho_{nn} - \rho_{np} - \rho_{n-}$
+* $\rho_{p0} = \rho_{p} - \rho_{pp} - \rho_{np} - \rho_{p-}$
+* $\rho_{0-} = \rho_{-} - \rho_{--} - \rho_{n-} - \rho_{p-}$
+
+Equation system:
+
+
+$$
+\begin{aligned}
+\frac{d\rho_{nn}}{dt}=& 2\rho_{n0} ( \delta\rho_{n} + \frac{1-\delta}{z} + (1-\delta)\frac{z-1}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b - c\rho_+ - \gamma) \\
+&- 2\rho_{nn}m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{n-}}{dt}=& \rho_{n0}d + \rho_{0-} ( \delta\rho_{n} + (1-\delta)\frac{z-1}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b - c\rho_+ - \gamma)\\
+&- \rho_{n-}m - \rho_{n-}(r + f (\frac{1}{z} + \frac{z-1}{z}(\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})))
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{np}}{dt} =& \rho_{n0} (\delta \rho_{p} + (1-\delta) \frac{z-1}{z} \frac{\rho_{p0}}{\rho_{0}}) (b- c\rho_+ - g(1 - p) ) \\
+&+ \rho_{p0}( \delta\rho_{n} + (1-\delta)\frac{z-1}{z} \frac{\rho_{n0}}{\rho_{0}} ) (b - c\rho_+ - \gamma)\\
+&- 2 \rho_{np} m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{pp}}{dt} =& \rho_{p0} (\delta \rho_{p} + \frac{1-\delta}{z} + (1-\delta) \frac{z-1}{z} \frac{\rho_{p0}}{\rho_{0}})  (b - c\rho_+ - g(1 - p)) \\
+& - 2\rho_{pp}m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{p-}}{dt} =& \rho_{p0} d \\ 
+&+ \rho_{0-} (\delta \rho_{p} + (1-\delta) \frac{z-1}{z} \frac{\rho_{p0}}{\rho_{0}}) (b - c\rho_+ - g(1 - p)) \\
+&- \rho_{p-}m \\
+&- \rho_{p-}(r + f (\frac{1}{z} + \frac{z-1}{z}(\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})))
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{--}}{dt} =& 2 \rho_{0-}d \\
+&- 2\rho_{--}(r + f \frac{z-1}{z}(\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})) \\ 
+\end{aligned}
+$$
+
+
+$$
+\begin{aligned}
+\frac{d\rho_{p}}{dt} =& \rho_{0} (\delta \rho_{p} +  (1-\delta)\frac{\rho_{p0}}{\rho_{0}}) (b - c\rho_+ - g(1 - p)) \\ 
+&- \rho_{p}m 
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{n}}{dt} =& \rho_{0} ( \delta\rho_{n} + (1-\delta) \frac{\rho_{n0}}{\rho_{0}} ) (b - c\rho_+ - \gamma) \\
+&- \rho_{n} m
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\frac{d\rho_{-}}{dt} =& \rho_{0} d \\
+&- \rho_{-}(r + f (\frac{\rho_{n0}}{\rho_{0}} + \frac{\rho_{p0}}{\rho_{0}})) \\
+\end{aligned}
+$$
+
+
+## Simulations
+
+### grazing and level of protection
+
+
+![gamma = .05](../inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.05.png){ width=9in }\
+
+![gamma = .1](../inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png){ width=9in }\
+
+
+### grazing and resources 
+
+
+![u = 0](../inst/figs/four_states/diag_aridity_grazing_first_protect_u=0.png){ width=9in }\
+
+![u = 15](../inst/figs/four_states/diag_aridity_grazing_first_protect_u=15.png){ width=9in }\
+

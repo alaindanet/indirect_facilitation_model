@@ -2,13 +2,18 @@
 
 ## TODO  
 
-- [x] Modularize:  
-    - [x] make easy the specification of the associative protection
+- [ ] Stability analysis:
+    1. [ ] Desert stability
+    2. [ ] Community stability
+	1. [ ] Nurse seule
+	2. [ ] Protégé seule
+	3. [ ] Both species  
+- [ ] Co-occurence analysis: f(b,g)
+- [ ] Comparison pair-approx to mean field: f(b,g)
 - [x] Test functions
     - [ ] Compare new simulations to master's one
     - [x] Test probability transitions
     - [ ] Test facilitate function
-    - [ ] Test that the parameters are well spelled       
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
     - [ ] Add a class "gradient" with appropriate methods 

@@ -105,92 +105,37 @@ $$
 \end{aligned}
 $$
 
-### Definition of the associative protection $n = f(\gamma)$  
+# Simulations
 
-Le Galliard et al. (2003) models the cost of altruism as: 
+## Relationship between $g$ \& $\gamma$
 
-$$ 
-\gamma = Kn^{u}
-$$
+```{r, eval = FALSE}
+g_gradient <- seq(0, 0.3, length.out = 10)
+gamma_gradient <- seq(0, 0.3, length.out = 10)
+gradient_2d <- run_2d_gradient(
+  y = "g",
+  gradienty = g_gradient,
+  x = "gamma1",
+  gradientx = gamma_gradient,
+  param = c(b = 0.8, u = 0, tau_n = 0, protection_type = list("linear")),
+  time_seq = c(from = 0, to = 3000, by = 1),
+  nb_cores = 4,
+  solver_type = NULL#steady_state
+  )
 
-with $n$, the level of altruism, $u$, the shape of the relationship between the
-associative protection and $\gamma$, the cost.
-
-Lion et al. (2007) used the same kind of relationship but assumed that the cost
-is dependant of the environment (i.e. of the neighboring cells).
-
-```{r, fig.width = 7, fig.height = 5}
-gamma_lion <- function(n, K = 1, u = 0.3) {
-  K*n^u
-}
-curve(gamma_lion(n = x, K = 1, u = 0.5), 0, 1,
-  col = "blue", xlab = expression(n),
-  ylab = expression(gamma),
-  main = "Lion et al. (2003) relationship")
-curve(gamma_lion(n = x, K = 1, u = 1.5), 0, 1,
-  col = "green", add = TRUE)
+averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
+plot_diagram(averaged_runs, param = c(x = "gamma1", y = "g"), debug_mode = FALSE)
 ```
 
- 
-In our case, we can assume that there is a relationship between the associative
-protection and the cost of protection.
+![u = 0](../inst/figs/diag_g_gamma_null.png){ width=9in }\
 
-Let $n(\gamma) = 1 - e^{-\tau\gamma}$
+![u = 10](../inst/figs/diag_g_gamma_first_protect_u=15.png){ width=9in }\
 
-```{r, fig.width = 7, fig.height = 5, echo = FALSE}
-gamma_asymp <- function(gamma1, tau = 20) {
-  1 - exp(-tau*gamma1)
-}
-curve(gamma_asymp(gamma1 = x, tau = 20), 0, 1,
-  col = "blue", xlab = expression(gamma),
-  ylab = expression(n),
-  main = "Choosen relationship")
-curve(gamma_asymp(gamma1 = x, tau = 5), 0, 1,
-  col = "green", add = TRUE)
-```
 
-The resulting protection against grazing is given by $n*q_{N|0}$. The
-resulting decrease in mortality due to grazing is maximal when both $n = 1$ and
-$q_{N|0} = 1$ meaning that the protegee sapling is surrounded by four nurse
-plant. 
+## Relationship between $b$ \& $g$
 
-```{r, fig.width = 7, fig.height = 5, echo = FALSE}
-linear_protection_inc <- function(q_n0, n = 1) {
-  1 -  q_n0*n
-}
-curve(linear_protection_inc(q_n0 = x, n = 1), 0, 1,
-  col = "blue", xlab = expression(gamma),
-  ylab = expression(1 - n * q[N0]),
-  main = "Decrease of the grazing thanks to associative protection ")
-curve(linear_protection_inc(q_n0 = x, n = .5), 0, 1,
-  col = "green", add = TRUE)
-```
+![u = 0](../inst/figs/diag_aridity_grazing_first_protect_u=0.png){ width=9in }\
 
-This protection type is really weak and we might want to increase it. One
-possibility could be to define a function which reach a maximum earlier but
-which is restricted to 1. 
+![u = 10](../inst/figs/diag_aridity_grazing_first_protect_u=15.png){ width=9in }\
 
-A function as below has those properties: 
 
-$$
-p = 1 - (1 - e^{- \tau * q_{N0}})
-$$
-
-with p being the mortality of the sapling due to grazing depending notably on
-the presence of the nurse.
-
-For example, we could say in case of a very good protection, the risk to be
-killed by grazers when there is one neighbor. 
-
-```{r, fig.width = 7, fig.height = 5, echo = FALSE}
-exp_grazing_protection <- function(q_n0, tau = 20) {
-  1 - exp(- tau * q_n0) 
-}
-
-curve(exp_grazing_protection(q_n0 = x, tau = 4*log(20)), 0, 1,
-  col = "blue", xlab = expression(q[N0]),
-  ylab = "decrease",
-  main = "Decrease of the grazing thanks to associative protection ")
-curve(exp_grazing_protection(q_n0 = x, tau = ), 0, 1,
-  col = "green", add = TRUE)
-```

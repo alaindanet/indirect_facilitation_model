@@ -130,7 +130,7 @@ D_context <- function(nbs, ND, PD, D, z) {
   check_z(z)
 
   if (is.null(nbs)){
-    return(ND / D)
+    return(ND / D + PD / D)
   } else if (nbs != "D") {
     return( 1 / z + ( (z - 1) / z) * (ND / D + PD / D))
   } else {
@@ -202,7 +202,7 @@ regen <- function(r) {
 #' @return definition of the probability
 #'
 #' @export
-facilitate <- function(ND, PD, D, z, f, nbs = NULL) {
+facilitate <- function(ND, PD, D, z, f, nbs) {
 
   D_proba <- D_context(nbs, ND, PD, D, z)
   facilitation <- f * D_proba

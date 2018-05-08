@@ -39,11 +39,14 @@ three_states_sys <- function(time, init, parms) {
 
     dNP <- PE * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = "P") +
       NE * Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs = "N", p_fun, n, tau) -
-      2 * NP * die(m)
+      NP * die(m) - # For the first species 
+      NP * die(m) # For the other species
+
     dPP <- 2 * PE * Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs = "P", p_fun, n, tau) -
       2 * PP * die(m)
     dNN <- 2 * NE * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = "N") -
       2 * NN * die(m)
+
     dN <- E * Ncolonize(N, NE, E, z, del, b, c, gamma1, nbs = NULL) -
       N * die(m)
     dP <- E * Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs = NULL, p_fun, n, tau) -

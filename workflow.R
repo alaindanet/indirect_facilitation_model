@@ -52,7 +52,7 @@ gradient_2d <- run_2d_gradient(
   gradienty = g_gradient,
   x = "b",
   gradientx = b_gradient,
-  param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 5),
+  param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 0),
   time_seq = c(from = 0, to = 5000, by = 1),
   nb_cores = 4,
   solver_type = NULL#steady_state
@@ -60,7 +60,7 @@ gradient_2d <- run_2d_gradient(
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
 plot_diagram(averaged_runs, param = c(x = "b", y = "g"))
-ggsave("diag_aridity_grazing_first_protect_u=5.png")
+#ggsave("./inst/figs/4_states_diag_aridity_grazing_first_protect_u=0.png")
 
 ###############################
 #  Bifurcation state diagram  #
@@ -70,9 +70,9 @@ bifurc <- run_bifurcation(
   gradientx = seq(0.2, 1, by = 0.1),
   gradienty = c(0.4, 0.01),
   param = c(
-    g = .20, gamma1 = .15,
+    g = .15, gamma1 = .1,
     protection_type = list("first_protect"), #list("first_protect")
-    u = 5
+    u = 0 
     )
   )
 
@@ -86,35 +86,74 @@ plotnp(averaged_runs, alpha = 0.65)
 
 mod <- two_facilitation_model()
 init(mod)
-parms(mod)["g"] <- 0.05
-parms(mod)["gamma1"] <- 0.01
+parms(mod)["g"] <- 0.3
+parms(mod)["gamma1"] <- 0.08
 parms(mod)["protection_type"] <- list("first_protect")
 parms(mod)["protection_type"] <- list("linear")
-times(mod) <- c(from = 0, to = 3000, by = 1)
+times(mod) <- c(from = 0, to = 1000, by = 1)
+parms(mod)["u"] <- 30
 mod_run <- sim(mod)
-tail(out(mod_run), 40)
 plotnp(mod_run)
+
+#############################################
+#  Grazing and grazing protection strength  #
+#############################################
+
+g_gradient <- seq(0, 0.3, length.out = 10)
+u_gradient <- seq(0, 20, length.out = 10)
+gradient_2d <- run_2d_gradient(
+  y = "g",
+  gradienty = g_gradient,
+  x = "u",
+  gradientx = u_gradient,
+  model_spec = two_facilitation_model(),
+  param = c(protection_type = list("first_protect"), gamma1 = 0.1),
+  time_seq = c(from = 0, to = 3000, by = 1),
+  nb_cores = 4,
+  solver_type = NULL
+  )
+
+averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
+plot_diagram(averaged_runs, param = c(x = "u", y = "g"))
+ggsave("inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png")
 
 ##################################
 #  Grazing and aridity gradient  #
 ##################################
 
 g_gradient <- seq(0, 0.3, length.out = 10)
-b_gradient <- seq(1, .3, length.out = 10)
+b_gradient <- seq(1, 0.2, length.out = 10)
 gradient_2d <- run_2d_gradient(
   y = "g",
   gradienty = g_gradient,
   x = "b",
   gradientx = b_gradient,
   model_spec = two_facilitation_model(),
-  param = c(protection_type = list("linear"), gamma1 = 0.1, n = 1),
+  param = c(protection_type = list("first_protect"), gamma1 = 0.05, u = 0),
   time_seq = c(from = 0, to = 3000, by = 1),
   nb_cores = 4,
-  solver_type = NULL#steady_state
+  solver_type = NULL
   )
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
 plot_diagram(averaged_runs, param = c(x = "b", y = "g"))
-#ggsave("diag_aridity_grazing_first_protect_u=5.png")
+ggsave("inst/figs/four_states/diag_aridity_grazing_first_protect_u=0.png")
 
+###############################
+#  Bifurcation state diagram  #
+###############################
 
+bifurc <- run_bifurcation(
+  gradientx = seq(0.2, 1, by = 0.1),
+  gradienty = c(0.4, 0.01),
+  model_spec = two_facilitation_model(),
+  param = c(
+    g = .17, gamma1 = .1,
+    protection_type = list("first_protect"), #list("first_protect")
+    u = 0
+    )
+  )
+
+averaged_runs <- avg_runs(bifurc, cut_row = 1)
+plotnp(averaged_runs, alpha = 0.65)
+#ggsave("inst/figs/four_states/bifurc_first_protect_u=10_g=.17_gamma1=.1.png")

@@ -21,7 +21,8 @@ plotnp.odeModel <- function(obj, ...) {
   g <- ggplot2::ggplot(o, aes(time, rho)) +
     geom_line(aes(colour = factor(species)))
   g + scale_colour_manual(values = cols) +
-    axis_labels
+    axis_labels +
+    ylim(0, 1)
 
 }
 plotnp.bifurcation <- function(data, threshold = 10^-3, debug_mode = FALSE, alpha = .15) {
