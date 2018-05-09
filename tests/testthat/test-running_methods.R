@@ -96,3 +96,10 @@ test_that("run_bifurcation works well", {
   expect_output(str(bifurc_sim2), "data.frame")
 
   })
+
+#Scenarii
+test_that("scenarii are well specified", {
+  expect_output(str(init_scenarii()), "List of 1")
+  expect_output(str(init_scenarii(type = "all")), "List of 3")
+  })
+

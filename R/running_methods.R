@@ -21,7 +21,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   model_spec = indirect_facilitation_model(),
   run_type = run_2d_model,
   time_seq = c(from = 0, to = 1000, by = 1),
-  param = NULL, nb_cores = NULL, solver_type = NULL) {
+  param = NULL, nb_cores = NULL, solver_type = NULL, inits = NULL) {
 
   if (is.null(gradientx)) {
     gradientx <- gradienty
@@ -30,8 +30,8 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   gradient <- expand.grid(y = gradienty, x = gradientx) %>%
     tibble::as.tibble(.)
   colnames(gradient) <- c(y, x)
-  # Prepare the model:
   model <- model_spec
+  # Define parameters:
   simecol::times(model) <- time_seq
   if (!is.null(param)) {
     simecol::parms(model)[names(param)] <- param
@@ -40,6 +40,11 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   if (!is.null(solver_type)) {
     simecol::solver(model) <- solver_type
   }
+  # Define the initial densities
+  if (!is.null(inits)) {
+    simecol::init(model) <- inits
+  }
+
   # Run the model
   if (is.null(nb_cores)) {
     output <- gradient %>%
@@ -82,7 +87,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   return(
     structure(
       list(
-	param = parms(model)[which(!names(parms(model)) %in% c(x, y))],
+	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in% c(x, y))],
 	run = output
 	),
     class = c("list", "gradient"))
@@ -91,7 +96,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   return(
     structure(
       list(
-	param = parms(model)[which(!names(parms(model)) %in% c(x, y))],
+	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in% c(x, y))],
 	run = output
 	),
     class = c("list", "bifurcation"))
@@ -118,6 +123,73 @@ run_bifurcation <- function(y = "init", x = "b", gradienty = c(.05, .4),
   time_seq,
   param, nb_cores, solver_type)
 
+}
+
+#' Run simulation over different initial scenarii
+#'
+#' A wrapper of run_2d_gradient which takes a list of initial values
+#'
+#' @inheritParams run_2d_gradient
+#' @param scenarii a list of vector. A vector contains initial values of the
+#' model  
+#'
+#' @export
+run_scenarii_gradient <- function (y = "g", x = "b",
+  gradienty = seq(0, .3, by = .1), gradientx = seq(0, 1, by = 0.1),
+  model_spec = two_facilitation_model(),
+  time_seq = c(from = 0, to = 1000, by = 1),
+  param = NULL, nb_cores = NULL, solver_type = NULL,
+  scenarii = init_scenarii()){
+
+  output <- tibble::tibble(scenario = scenarii) %>%
+    mutate(gradient = map(scenario, ~ run_2d_gradient(y, x,
+	  gradienty, gradientx,
+	  model_spec,
+	  run_2d_model,
+	  time_seq,
+	  param, nb_cores, solver_type, inits = .x))
+      )
+  return(output)
+
+}
+#' TODO: Document function
+init_scenarii <- function (type = "together",
+  model = two_facilitation_model(),
+  ini_cover = .8) {
+
+  stopifnot(type %in% c("N", "P", "together", "all"))
+
+  # three or four states model ?
+  variables <- names(simecol::init(model))
+  if (all(c("N", "P", "D", "ND", "NN", "PP", "NP", "PD", "DD") %in% variables)){
+    # four states
+    nurse_only <- c(N = ini_cover, P = 0, D = .1,
+      NP = 0, PP = 0, NN = ini_cover * ini_cover,
+      DD = .1 * .1, PD = 0, ND = ini_cover * .1)
+    protegee_only <- c(N = 0, P = ini_cover, D = .1,
+      NP = 0, PP = ini_cover * ini_cover, NN = 0,
+      DD = .1 * .1, PD = ini_cover * .1, ND = 0)
+
+    mi_cover <- ini_cover / 2
+    together <- c(N = mi_cover, P = mi_cover, D = .1,
+      NP = mi_cover * mi_cover, PP = mi_cover * mi_cover, NN = mi_cover * mi_cover,
+      DD = .1 * .1, PD = mi_cover * .1, ND = mi_cover * .1)
+
+    if (type == "together") {
+      return(list("together" = together))
+    } else if (type == "N") {
+      return(list("nurse_only" = nurse_only))
+    } else if (type == "P") {
+      return(list("protegee_only" = protegee_only))
+    } else if (type == "all") {
+      return(list("protegee_only" = protegee_only,
+	  "nurse_only" = nurse_only,
+	  "together" = together))
+    }
+
+  } else {
+    message("Only the four state model is specified")
+  }
 }
 
 #' Run the model by specifying two parameters  
