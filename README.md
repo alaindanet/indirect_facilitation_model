@@ -4,21 +4,23 @@
 
 - [ ] Stability analysis:
     1. [ ] Desert stability
+	1. [ ] Nurse seule
+	2. [ ] Protégé seule
+	3. [ ] Both species  
     2. [ ] Community stability
 	1. [ ] Nurse seule
 	2. [ ] Protégé seule
 	3. [ ] Both species  
+	4. [ ] P + 1 peu de N
+	5. [ ] N + 1 peu de P
+	6. [ ] 1 peu de P + 1 peu de N 
 - [ ] Co-occurence analysis: f(b,g)
 - [ ] Comparison pair-approx to mean field: f(b,g)
 - [x] Test functions
-    - [ ] Compare new simulations to master's one
     - [x] Test probability transitions
     - [ ] Test facilitate function
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
-    - [ ] Add a class "gradient" with appropriate methods 
-	- [x] Build `run_bifurcation` (`run_2d_gradient` wrapper)
-	- [x] Build `plot_np` method for bifurcation class
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 

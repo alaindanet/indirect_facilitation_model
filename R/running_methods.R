@@ -141,15 +141,25 @@ run_scenarii_gradient <- function (y = "g", x = "b",
   param = NULL, nb_cores = NULL, solver_type = NULL,
   scenarii = init_scenarii()){
 
-  output <- tibble::tibble(scenario = scenarii) %>%
-    mutate(gradient = map(scenario, ~ run_2d_gradient(y, x,
+  output <- tibble::tibble(
+    scenario = names(scenarii),
+    inits = scenarii) %>%
+    mutate(gradient = map(inits, ~ run_2d_gradient(y, x,
 	  gradienty, gradientx,
 	  model_spec,
 	  run_2d_model,
 	  time_seq,
 	  param, nb_cores, solver_type, inits = .x))
       )
-  return(output)
+
+  model <- model_spec
+  return(
+    structure(
+      list(
+	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in%
+	  c(x, y))], run = output),
+    class = c("list", "scenarii"))
+    )
 
 }
 #' TODO: Document function
@@ -285,6 +295,32 @@ avg_runs.gradient <- function(run, cut_row = 100) {
       list(param = param,
       run = run),
     class = c("list", "gradient")
+    )
+    )
+}
+avg_runs.scenarii <- function(scenarii, cut_row = 100) {
+
+  param <- scenarii$param #TODO: clean this weird assignation
+  avg <- scenarii[["run"]] %>%
+    dplyr::mutate(
+      density = purrr::map(gradient, avg_runs.gradient, cut_row),
+      density = purrr::map(density,
+	function(x){
+	  if("PARTITION_ID" %in% names(x$run)) {
+	    x$run %>% dplyr::select(-runs, -PARTITION_ID)
+	  } else {
+	    x$run %>% dplyr::select(-runs)
+	  }
+	}
+	)
+      ) %>%
+  unnest(density)
+
+  return(
+    structure(
+      list(param = param,
+      run = avg),
+    class = c("list", "scenarii")
     )
     )
 }

@@ -159,8 +159,9 @@ averaged_runs <- avg_runs(bifurc, cut_row = 1)
 plotnp(averaged_runs, alpha = 0.65)
 #ggsave("inst/figs/four_states/bifurc_first_protect_u=10_g=.17_gamma1=.1.png")
 
-g_gradient <- seq(0, 0.3, length.out = 10)
-b_gradient <- seq(1, 0.2, length.out = 10)
+g_gradient <- seq(0, 0.3, length.out = 2)
+b_gradient <- seq(1, 0.2, length.out = 2)
+
 test <- run_scenarii_gradient(
   y = "g",
   gradienty = g_gradient,
@@ -171,13 +172,12 @@ test <- run_scenarii_gradient(
   time_seq = c(from = 0, to = 3000, by = 1),
   nb_cores = 4,
   solver_type = NULL,
-  scenarii = init_scenarii(type = "N", ini_cover = .8)
+  scenarii = init_scenarii(type = "all", ini_cover = .8)
   )
 
-test$scenario[[1]]
-test$gradient[[1]]$run[9, ]$runs[[1]][1:10, ]
-test$gradient[[1]]$run[1, ]$runs[[1]][1:10, ]
-test2 <- avg_runs(test$gradient[[1]])
+test2 <- avg_runs(test)
+
+init_scenarii(type = "all")
 test2$param
 plot_diagram(test2, param = c(x = "b", y = "g"))
 
