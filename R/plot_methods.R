@@ -129,3 +129,36 @@ plot_diagram.gradient <- function (
     return(g)
   }
 }
+plot_diagram.scenarii <- function (
+  data,
+  param = c(x = "gamma1", y = "g", type = "scenario"),
+  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
+  col_states = c("orange", "green", "black", "yellow", "grey"),
+  debug_mode = FALSE, ...) {
+  #TODO: separate ploting and state definition in plot_diagram function (cleaner
+  #code for both scenarii and bifurcation) -> create an intermediary function
+
+  g <- plot_diagram.gradient(
+    data,
+  param = param,
+  possible_states = possible_states,
+  col_states = col_states,
+  debug_mode = TRUE, ...
+    )
+
+  g  <- mutate(g, scenario = as.factor(scenario))
+
+  if(debug_mode) {
+    return(g)
+  } else {
+    g <- ggplot2::ggplot(g,
+      aes_string(x = param["x"], y = param["y"], fill = "state")) +
+    ggplot2::geom_raster() +
+    ggplot2::scale_fill_manual(
+      values = col_states,
+      limits = possible_states
+      ) + facet_grid(. ~ scenario)
+    return(g)
+  }
+
+}
