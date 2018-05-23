@@ -8,9 +8,9 @@
 	2. [x] Protégé seule
 	3. [x] Both species  
     2. [ ] Community stability
-	1. [ ] Nurse seule
-	2. [ ] Protégé seule
-	3. [ ] Both species  
+	1. [x] Nurse seule
+	2. [x] Protégé seule
+	3. [x] Both species  
 	4. [ ] P + 1 peu de N
 	5. [ ] N + 1 peu de P
 	6. [ ] 1 peu de P + 1 peu de N 
@@ -29,6 +29,7 @@
 	    - [ ] Put an annotate method
 	- [ ] Factorise plot_diagram (.gradient and .diagram): extract_state
 	  function
+    - [ ] Diagram and gradient object: keep gradient_param (named vectors) 
 
 ## Objectives
 

@@ -4,7 +4,7 @@
 \alias{Pcolonize}
 \title{Colonization function for the nurse pair approximation}
 \usage{
-Pcolonize(P, N, NE, PE, E, z, del, b, c, g, n, nbs)
+Pcolonize(P, N, NE, PE, E, z, del, b, c, g, nbs, p_fun, n, tau)
 }
 \arguments{
 \item{nbs}{}

@@ -4,17 +4,17 @@
 \alias{avg_runs}
 \title{Extract the average density of the last timesteps}
 \usage{
-avg_runs(run, cut_row = 100)
+avg_runs(x, ...)
 }
 \arguments{
 \item{run}{a dataframe. It contains the variable time and the density of the
 of the state variable.}
 
-\item{n}{a integer. Define at how many timesteps from the last one should be
+\item{cut_row}{a integer. Define at how many timesteps from the last one should be
 selected to average density}
 }
 \value{
-a dataframe. It contains
+a dataframe.
 }
 \description{
 This function extracts the density of the last timesteps and average it.

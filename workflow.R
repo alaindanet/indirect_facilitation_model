@@ -159,8 +159,12 @@ averaged_runs <- avg_runs(bifurc, cut_row = 1)
 plotnp(averaged_runs, alpha = 0.65)
 #ggsave("inst/figs/four_states/bifurc_first_protect_u=10_g=.17_gamma1=.1.png")
 
-g_gradient <- seq(0, 0.3, length.out = 10)
-b_gradient <- seq(1, 0.2, length.out = 10)
+##############
+#  Scenarii  #
+##############
+
+g_gradient <- seq(0, 0.3, length.out = 5)
+b_gradient <- seq(1, 0.2, length.out = 5)
 
 scenar <- run_scenarii_gradient(
   y = "g",
@@ -169,14 +173,23 @@ scenar <- run_scenarii_gradient(
   gradientx = b_gradient,
   model_spec = two_facilitation_model(),
   param = c(protection_type = list("first_protect"), gamma1 = 0.05, u = 10),
-  time_seq = c(from = 0, to = 3000, by = 1),
+  time_seq = c(from = 0, to = 1500, by = 1),
   nb_cores = 4,
   solver_type = NULL,
-  scenarii = init_scenarii(type = "all", ini_cover = .8)
+  scenarii = init_scenarii(type = "all", ini_cover = .8, low_cover = .02)
   )
 
 scenar_avg <- avg_runs(scenar)
 g <- plot_diagram(scenar_avg, param = c(x = "b", y = "g", type = "scenario"),
   debug_mode = FALSE)
 g
-ggsave("inst/figs/four_states/scenar_aridity_grazing_first_protect_u=10.png")
+
+test <- compute_states(scenar_avg, param = c(x = "b", y = "g", type = "scenario"))
+test %>%
+  spread(scenario, state)
+
+
+ggsave("inst/figs/four_states/scenar_aridity_grazing_first_protect_u=10_test.png")
+load(file = "./inst/scenar_all_u=0.RData")
+save(scenar, file = "./inst/scenar_all_u=10_test.RData")
+

@@ -163,11 +163,28 @@ run_scenarii_gradient <- function (y = "g", x = "b",
 
 }
 #' TODO: Document function
+
+#' Initialize starting values of state variables
+#' 
+#' Compute initial values of states variable according to a scenario
+#' 
+#' @param type character. the scenario
+#' @param ini_cover numeric initial cover for high starting cover
+#'
+#' @details when type = "all", all the scenarii are returned. High cover
+#' scenarii set the total cover to ini_cover. It is divided by 2 in together. In
+#' low_P or low_N scenarii, the cover of the rare species is of low_cover
+#' divided by 2.
+#'
+#' @return A named list. Each element contains a numeric vector of initial
+#' values of the state variables.
+#' 
+#' @export
 init_scenarii <- function (type = "together",
   model = two_facilitation_model(),
-  ini_cover = .8) {
+  ini_cover = .8, low_cover = .05) {
 
-  stopifnot(type %in% c("N", "P", "together", "all"))
+  stopifnot(type %in% c("N", "P", "together", "all", "low_N", "low_P", "low_together"))
 
   # three or four states model ?
   variables <- names(simecol::init(model))
@@ -181,20 +198,54 @@ init_scenarii <- function (type = "together",
       DD = .1 * .1, PD = ini_cover * .1, ND = 0)
 
     mi_cover <- ini_cover / 2
+    mi_low_cover <-  low_cover / 2
+    high_cover <- ini_cover - mi_low_cover
+
+    low_N <- c(N = mi_low_cover, P = high_cover, D = .1,
+      NP = high_cover * mi_low_cover, PP = high_cover * high_cover,
+      NN = mi_low_cover * mi_low_cover, DD = .1 * .1,
+      PD = high_cover * .1, ND = mi_low_cover * .1)
+    low_P <- c(N = high_cover, P = mi_low_cover, D = .1,
+      NP = high_cover * mi_low_cover, PP = mi_low_cover * mi_low_cover,
+      NN = high_cover * high_cover, DD = .1 * .1,
+      PD = mi_low_cover * .1, ND = high_cover * .1)
+
+    low_together <- c(N = mi_low_cover, P = mi_low_cover, D = .1,
+      NP = mi_low_cover * mi_low_cover, PP = mi_low_cover * mi_low_cover,
+      NN = mi_low_cover * mi_low_cover, DD = .1 * .1,
+      PD = mi_low_cover * .1, ND = mi_low_cover * .1)
+
     together <- c(N = mi_cover, P = mi_cover, D = .1,
-      NP = mi_cover * mi_cover, PP = mi_cover * mi_cover, NN = mi_cover * mi_cover,
-      DD = .1 * .1, PD = mi_cover * .1, ND = mi_cover * .1)
+      NP = mi_cover * mi_cover, PP = mi_cover * mi_cover,
+      NN = mi_cover * mi_cover, DD = .1 * .1,
+      PD = mi_cover * .1, ND = mi_cover * .1)
+
+
+    # TODO: Reframe this: build the list with all init vectors and subset it 
+    # according to the option provided
 
     if (type == "together") {
       return(list("together" = together))
+    } else if (type == "low_together") {
+      return(list("low_together" = low_together))
     } else if (type == "N") {
       return(list("nurse_only" = nurse_only))
+    } else if (type == "low_N") {
+      return(list("low_nurse" = low_N))
     } else if (type == "P") {
       return(list("protegee_only" = protegee_only))
+    } else if (type == "low_P") {
+      return(list("low_protegee" = low_P))
     } else if (type == "all") {
-      return(list("protegee_only" = protegee_only,
+      return(list(
+	  "protegee_only" = protegee_only,
 	  "nurse_only" = nurse_only,
-	  "together" = together))
+	  "together" = together,
+	  "low_N" = low_N,
+	  "low_P" = low_P,
+	  "low_together" = low_together
+	  )
+	)
     }
 
   } else {
@@ -342,7 +393,7 @@ avg_runs.bifurcation <- function(x, cut_row = 10) {
 #' @return a chr vector of length 1
 #' @export
 def_state <- function (nurse, protegee, sim_status,
-  threshold = 10 ^ - 3) {
+  threshold = 10 ^ - 3, multi = FALSE) {
 
   if (!sim_status) {
     return("warning")
@@ -355,4 +406,55 @@ def_state <- function (nurse, protegee, sim_status,
   } else if (nurse > threshold && protegee > threshold) {
     return("coexistence")
   }
+}
+
+def_multi_states <- function(solo, together, sim_status,
+  threshold = 10 ^ - 3, multi = FALSE) {
+  #TODO: To finish
+
+
+    if (!sim_status) {
+      return("warning")
+    } else if (nurse <= threshold && protegee > threshold) {
+      return("protégée")
+    } else if (nurse > threshold && protegee <= threshold) {
+      return("nurse")
+    } else if (nurse <= threshold && protegee <= threshold) {
+      return("extinct")
+    } else if (nurse > threshold && protegee > threshold) {
+      return("coexistence")
+    }
+  }
+}
+
+#' Compute the state result of a range of simulation 
+#' 
+#' @param data a gradient object
+#' @param param
+#' @param possibles_states 
+#'
+#' @export 
+compute_states <- function(x, ...) UseMethod("compute_states")
+compute_states.gradient <- function (
+  data,
+  param, 
+  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning")) {
+
+  data %<>% .[["run"]]
+
+  var_to_drop <- names(data)[!(names(data) %in% c(param))]
+
+  data %<>%
+    dplyr::mutate(
+      state = purrr::pmap_chr(
+	list(nurse = N, protegee = P, sim_status = status),
+	def_state)) %>%
+  purrr::modify_at(var_to_drop, ~NULL) %>%
+  dplyr::mutate(state = factor(state, levels = possible_states))
+
+return(data)
+
+}
+compute_states.scenarii <- function (data, param, possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning")) {
+  compute_states.gradient(data, param, possible_states)
 }

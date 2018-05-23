@@ -100,17 +100,7 @@ plot_diagram.gradient <- function (
   debug_mode = FALSE, ...) {
 
   params <- data[["param"]]
-  data %<>% .[["run"]]
-
-  var_to_drop <- names(data)[!(names(data) %in% c(param))]
-
-  data %<>%
-    dplyr::mutate(
-      state = purrr::pmap_chr(
-	list(nurse = N, protegee = P, sim_status = status),
-	def_state)) %>%
-    purrr::modify_at(var_to_drop, ~NULL) %>%
-    dplyr::mutate(state = factor(state, levels = possible_states))
+  compute_states(data, param, possible_states)
 
   cols <- col_states
   names(cols) <- possible_states
@@ -135,23 +125,14 @@ plot_diagram.scenarii <- function (
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
   debug_mode = FALSE, ...) {
-  #TODO: separate ploting and state definition in plot_diagram function (cleaner
-  #code for both scenarii and bifurcation) -> create an intermediary function
 
-  g <- plot_diagram.gradient(
-    data,
-  param = param,
-  possible_states = possible_states,
-  col_states = col_states,
-  debug_mode = TRUE, ...
-    )
-
-  g  <- mutate(g, scenario = as.factor(scenario))
+  states <- compute_states(data, param, possible_states) %>%
+    mutate(scenario = as.factor(scenario))
 
   if(debug_mode) {
-    return(g)
+    return(states)
   } else {
-    g <- ggplot2::ggplot(g,
+    g <- ggplot2::ggplot(states,
       aes_string(x = param["x"], y = param["y"], fill = "state")) +
     ggplot2::geom_raster() +
     ggplot2::scale_fill_manual(
