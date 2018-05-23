@@ -3,10 +3,10 @@
 ## TODO  
 
 - [ ] Stability analysis:
-    1. [ ] Desert stability
-	1. [ ] Nurse seule
-	2. [ ] Protégé seule
-	3. [ ] Both species  
+    1. [x] Desert stability
+	1. [x] Nurse seule
+	2. [x] Protégé seule
+	3. [x] Both species  
     2. [ ] Community stability
 	1. [ ] Nurse seule
 	2. [ ] Protégé seule
@@ -24,10 +24,11 @@
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
-    - [x] Define a plot method 
+    - [x] Plot method 
 	- [ ] print parameters of the simulations in the plot 
 	    - [ ] Put an annotate method
-	    - [x] Keep the parameters values in the simulation Framework
+	- [ ] Factorise plot_diagram (.gradient and .diagram): extract_state
+	  function
 
 ## Objectives
 

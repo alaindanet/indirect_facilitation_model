@@ -179,9 +179,4 @@ scenar_avg <- avg_runs(scenar)
 g <- plot_diagram(scenar_avg, param = c(x = "b", y = "g", type = "scenario"),
   debug_mode = FALSE)
 g
-
-
-class(test2$param)
-
-plot_diagram(test2, param = c(x = "b", y = "g"))
-
+ggsave("inst/figs/four_states/scenar_aridity_grazing_first_protect_u=10.png")
