@@ -122,15 +122,15 @@ ggsave("inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png")
 #  Grazing and aridity gradient  #
 ##################################
 
-g_gradient <- seq(0, 0.3, length.out = 10)
-b_gradient <- seq(1, 0.2, length.out = 10)
+g_gradient <- seq(0, 0.3, length.out = 30)
+b_gradient <- seq(1, 0.2, length.out = 30)
 gradient_2d <- run_2d_gradient(
   y = "g",
   gradienty = g_gradient,
   x = "b",
   gradientx = b_gradient,
   model_spec = two_facilitation_model(),
-  param = c(protection_type = list("first_protect"), gamma1 = 0.05, u = 0),
+  param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 5),
   time_seq = c(from = 0, to = 3000, by = 1),
   nb_cores = 4,
   solver_type = NULL
@@ -138,48 +138,59 @@ gradient_2d <- run_2d_gradient(
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
 plot_diagram(averaged_runs, param = c(x = "b", y = "g"))
-ggsave("inst/figs/four_states/diag_aridity_grazing_first_protect_u=0.png")
+#save(gradient_2d, file = "diag_aridity_grazing_first_protect_u=5.RData" )
+ggsave("inst/figs/four_states/diag_aridity_grazing_first_protect_u=5.pdf",
+  scale = .8)
 
 ###############################
 #  Bifurcation state diagram  #
 ###############################
 
 bifurc <- run_bifurcation(
-  gradientx = seq(0.2, 1, by = 0.1),
+  gradientx = seq(0.2, 1, length.out = 30),
   gradienty = c(0.4, 0.01),
   model_spec = two_facilitation_model(),
+  time_seq = c(from = 0, to = 3000, by = 1),
   param = c(
-    g = .17, gamma1 = .1,
+    g = .3, gamma1 = .1,
     protection_type = list("first_protect"), #list("first_protect")
-    u = 0
+    u = 5
     )
   )
 
 averaged_runs <- avg_runs(bifurc, cut_row = 1)
 plotnp(averaged_runs, alpha = 0.65)
-#ggsave("inst/figs/four_states/bifurc_first_protect_u=10_g=.17_gamma1=.1.png")
+ggsave("inst/figs/four_states/bifurc_first_protect_u=0_g=.25_gamma1=.1.png")
 
 ##############
 #  Scenarii  #
 ##############
 
-g_gradient <- seq(0, 0.3, length.out = 5)
-b_gradient <- seq(1, 0.2, length.out = 5)
+g_gradient <- seq(0, 0.3, length.out = 30)
+b_gradient <- seq(1, 0.2, length.out = 30)
 
-scenar <- run_scenarii_gradient(
-  y = "g",
-  gradienty = g_gradient,
-  x = "b",
-  gradientx = b_gradient,
-  model_spec = two_facilitation_model(),
-  param = c(protection_type = list("first_protect"), gamma1 = 0.05, u = 10),
-  time_seq = c(from = 0, to = 1500, by = 1),
-  nb_cores = 4,
-  solver_type = NULL,
-  scenarii = init_scenarii(type = "all", ini_cover = .8, low_cover = .02)
-  )
+u_test <- c(0, 5)
+output <- vector(mode = "list", length = 3)
+names(output) <- sapply(u_test, function (x){paste("u", x, sep = "") })
+
+for (i in seq_along(u_test)) {
+  output[[i]] <- run_scenarii_gradient(
+    y = "g",
+    gradienty = g_gradient,
+    x = "b",
+    gradientx = b_gradient,
+    model_spec = two_facilitation_model(),
+    param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = u_test[i]),
+    time_seq = c(from = 0, to = 3000, by = 1),
+    nb_cores = 3,
+    solver_type = NULL,
+    scenarii = init_scenarii(type = "bifurcation", ini_cover = .8, low_cover = .01)
+    )
+}
+save(output, file = "./inst/scenar_bifurc_u=0_5_gamma1_.1.Rdata")
 
 scenar_avg <- avg_runs(scenar)
+
 g <- plot_diagram(scenar_avg, param = c(x = "b", y = "g", type = "scenario"),
   debug_mode = FALSE)
 g
@@ -189,7 +200,87 @@ test %>%
   spread(scenario, state)
 
 
-ggsave("inst/figs/four_states/scenar_aridity_grazing_first_protect_u=10_test.png")
-load(file = "./inst/scenar_all_u=0.RData")
-save(scenar, file = "./inst/scenar_all_u=10_test.RData")
+plotnp(scenar_avg)
+ggsave("inst/figs/four_states/scenar_bifurc_first_protect_u=0_test.png")
+
+names(output)
+
+test <- avg_runs(output$u10)
+plot_diagram(test)
+
+##############
+#  Figure 1  #
+##############
+library('stringr')
+
+load(file = "./inst/scenar_bifurc_u=0_10_15_gamma1_.1.Rdata")
+test <- lapply(output, FUN = avg_runs)
+test2 <- lapply(test, FUN = compute_states, param = c(x = "b", y = "g", type = "scenario"))
+
+test3 <- list()
+for (i in seq_along(names(test2))) {
+  test3[[i]] <- test2[[names(test2)[i]]] %>%
+    dplyr::mutate(
+      u = as.numeric(substr(names(test2)[i], 2, 10)),
+      state = stringr::str_replace(state, "warning", "extinct")
+      )
+}
+allu <- bind_rows(test3)
+
+# À gauche 
+u0 <- allu %>%
+  filter(scenario == "together", u == 0, b >= 0.5)
+class(u0) <- c("tibble", "data.frame", "states")
+plot_diagram(u0, param = c(x = "b", y = "g"))
+ggsave("inst/figs/four_states/diag_u=0.pdf", width = 7, height = 5, units =
+  "cm")
+
+# À droite 
+load("diag_aridity_grazing_first_protect_u=5.RData" )
+u5 <- avg_runs(gradient_2d)
+states_u5 <- compute_states(u5, param = c(x = "b", y = "g")) %>%
+  filter(b >= 0.5)
+class(states_u5) <- c("tibble", "data.frame", "states")
+plot_diagram(states_u5, param = c(x = "b", y = "g"))
+ggsave("inst/figs/four_states/diag_u=5.pdf", width = 7, height = 5, units = "cm")
+
+
+# Bonus
+u10 <- allu %>%
+  filter(scenario == "together", u == 10)
+class(u10) <- c("tibble", "data.frame", "states")
+plot_diagram(u10, param = c(x = "b", y = "g"))
+ggsave("inst/figs/four_states/diag_u=10.pdf", scale = .8)
+
+##############
+#  Figure 2  #
+##############
+
+#u_grad <- c(0, 5)
+u_grad <- c(0)
+#g_grad <- c(0, .05, .1, .2, .3)
+g_grad <- c(.09)
+
+for(u in seq_along(u_grad)){
+  for(g in seq_along(g_grad)) {
+  
+    bifurc <- run_bifurcation(
+      gradientx = seq(0.2, 1, length.out = 30),
+      gradienty = c(0.4, 0.01),
+      model_spec = two_facilitation_model(),
+      time_seq = c(from = 0, to = 3000, by = 1),
+      param = c(
+	g = g_grad[g], gamma1 = .1,
+	protection_type = list("first_protect"),
+	u = u_grad[u]
+	)
+      )
+
+    averaged_runs <- avg_runs(bifurc, cut_row = 1)
+    plotnp(averaged_runs, alpha = 0.65)
+    plot_name <- paste("inst/figs/four_states/bifurc_first_protect_u=",
+      u_grad[u], "_g=", g_grad[g], "_gamma1=.1.pdf", sep = "")
+    ggsave(plot_name, width = 7, height = 5, units = "cm")
+  }
+}
 

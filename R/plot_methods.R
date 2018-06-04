@@ -46,9 +46,14 @@ plotnp.bifurcation <- function(data, threshold = 10^-3, debug_mode = FALSE, alph
     warning("NaNs produced in simulations have been replaced by 0")
   }
 
-  g <- ggplot(data,
+  g <- ggplot2::ggplot(data,
     aes(y = rho, x = b, color = species, linetype = init)) +
-  geom_line(alpha = alpha) + theme_minimal()
+  ggplot2::scale_linetype_manual(values = c("dotted", "solid")) +
+  ggplot2::scale_colour_manual(values = c("green", "black")) +
+  ggplot2::ylim(0,1) +
+  theme_diagram() +
+  ggplot2::geom_line(alpha = alpha, size = .5)
+
 
   if (debug_mode) {
     return(data)
@@ -57,6 +62,45 @@ plotnp.bifurcation <- function(data, threshold = 10^-3, debug_mode = FALSE, alph
   }
 
 }
+plotnp.scenarii <- function(data, threshold = 10^-3, debug_mode = FALSE, alpha = .45) {
+  #TODO: generalise for other parameters than b
+
+  params <- data[["param"]]
+  data %<>% .[["run"]]
+
+  #Replace low values by 0
+  var_to_drop <- c("NP", "NN", "PP", "status")
+  data %<>%
+    purrr::modify_at(var_to_drop, ~NULL) %>%
+    gather(species, rho, N, P) %>%
+    mutate(
+      rho = replace(rho, rho < threshold, 0)
+      ) %>%
+    purrr::modify_at(c("scenario", "species"), as.factor)
+
+  if (any(is.nan(data$rho))) {
+    data %<>% mutate(rho = replace(rho, is.nan(rho), 0))
+    warning("NaNs produced in simulations have been replaced by 0")
+  }
+
+  g <- ggplot(data,
+    aes(y = rho, x = b, color = species, linetype = scenario)) +
+  scale_linetype_manual(values = c("dotted", "solid")) +
+  scale_colour_manual(values = c("green", "black")) +
+  geom_line(alpha = alpha, size = 3) +
+  theme_diagram() +
+  ylim(0, 1) +
+  facet_wrap(~ g)
+
+
+  if (debug_mode) {
+    return(data)
+  } else {
+    return(g)
+  }
+
+}
+
 
 #' Plot density over a gradient 
 #'
@@ -92,6 +136,27 @@ plotnp_gradient <- function(data, state_var = c("N", "P"), param = c("gamma1", "
 #' @export
 plot_diagram <- function(x, ...) UseMethod("plot_diagram")
 plot_diagram.default <- function(x) "Unknown class"
+plot_diagram.states <- function(
+  data,
+  param = c(x = "gamma1", y = "g"),
+  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
+  col_states = c("orange", "green", "black", "yellow", "grey"),
+  debug_mode = FALSE, ...) {
+
+  cols <- col_states
+  names(cols) <- possible_states
+
+  g <- ggplot2::ggplot(data,
+    aes_string(x = param["x"], y = param["y"], fill = "state")) +
+  ggplot2::geom_raster() +
+  theme_diagram() +
+  ggplot2::scale_fill_manual(
+    values = col_states,
+    limits = possible_states
+    )
+
+  return(g)
+}
 plot_diagram.gradient <- function (
   data,
   param = c(x = "gamma1", y = "g"),
@@ -100,7 +165,7 @@ plot_diagram.gradient <- function (
   debug_mode = FALSE, ...) {
 
   params <- data[["param"]]
-  compute_states(data, param, possible_states)
+  data <- compute_states(data, param, possible_states)
 
   cols <- col_states
   names(cols) <- possible_states
@@ -108,6 +173,7 @@ plot_diagram.gradient <- function (
   g <- ggplot2::ggplot(data,
     aes_string(x = param["x"], y = param["y"], fill = "state")) +
   ggplot2::geom_raster() +
+  theme_diagram() +
   ggplot2::scale_fill_manual(
     values = col_states,
     limits = possible_states
@@ -121,13 +187,13 @@ plot_diagram.gradient <- function (
 }
 plot_diagram.scenarii <- function (
   data,
-  param = c(x = "gamma1", y = "g", type = "scenario"),
+  param = c(x = "b", y = "g", type = "scenario"),
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
   debug_mode = FALSE, ...) {
 
   states <- compute_states(data, param, possible_states) %>%
-    mutate(scenario = as.factor(scenario))
+    dplyr::mutate(scenario = as.factor(scenario))
 
   if(debug_mode) {
     return(states)
@@ -135,6 +201,7 @@ plot_diagram.scenarii <- function (
     g <- ggplot2::ggplot(states,
       aes_string(x = param["x"], y = param["y"], fill = "state")) +
     ggplot2::geom_raster() +
+    theme_diagram() +
     ggplot2::scale_fill_manual(
       values = col_states,
       limits = possible_states
@@ -142,4 +209,19 @@ plot_diagram.scenarii <- function (
     return(g)
   }
 
+}
+theme_diagram <- function(base_size = 4, base_family = "Helvetica"){
+  theme_minimal(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      #line = element_line(colour="black"),
+      #text = element_text(colour="black"),
+      axis.title = element_text(size = 4),
+      #axis.text = element_text(colour="black", size=8),
+      #strip.text = element_text(size=12),
+      legend.key=element_rect(colour=NA, fill =NA),
+      panel.grid = element_blank(),   
+      panel.border = element_rect(fill = NA, colour = "black", size=1),
+      panel.background = element_rect(fill = "white", colour = "black"),
+      strip.background = element_rect(fill = NA)
+      )
 }

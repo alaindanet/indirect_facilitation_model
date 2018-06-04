@@ -144,20 +144,26 @@ run_scenarii_gradient <- function (y = "g", x = "b",
   output <- tibble::tibble(
     scenario = names(scenarii),
     inits = scenarii) %>%
-    mutate(gradient = map(inits, ~ run_2d_gradient(y, x,
-	  gradienty, gradientx,
-	  model_spec,
-	  run_2d_model,
-	  time_seq,
-	  param, nb_cores, solver_type, inits = .x))
-      )
+  mutate(gradient = map(inits, ~ run_2d_gradient(y, x,
+	gradienty, gradientx,
+	model_spec,
+	run_2d_model,
+	time_seq,
+	param, nb_cores, solver_type, inits = .x))
+    )
 
   model <- model_spec
+  basis_param <- simecol::parms(model)[which(!names(simecol::parms(model)) %in%
+    c(x, y))]
+  if (!is.null(param)) {
+    basis_param[names(param)] <- param
+  }
+
+
   return(
     structure(
       list(
-	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in%
-	  c(x, y))], run = output),
+	param = param, run = output),
     class = c("list", "scenarii"))
     )
 
@@ -184,7 +190,7 @@ init_scenarii <- function (type = "together",
   model = two_facilitation_model(),
   ini_cover = .8, low_cover = .05) {
 
-  stopifnot(type %in% c("N", "P", "together", "all", "low_N", "low_P", "low_together"))
+  stopifnot(type %in% c("nurse", "protegee", "together", "low_N", "low_P", "low_together", "all", "bifurcation"))
 
   # three or four states model ?
   variables <- names(simecol::init(model))
@@ -221,33 +227,24 @@ init_scenarii <- function (type = "together",
       PD = mi_cover * .1, ND = mi_cover * .1)
 
 
-    # TODO: Reframe this: build the list with all init vectors and subset it 
+    # TODO: Reframe this: build the list with all init vectors and subset it
     # according to the option provided
 
-    if (type == "together") {
-      return(list("together" = together))
-    } else if (type == "low_together") {
-      return(list("low_together" = low_together))
-    } else if (type == "N") {
-      return(list("nurse_only" = nurse_only))
-    } else if (type == "low_N") {
-      return(list("low_nurse" = low_N))
-    } else if (type == "P") {
-      return(list("protegee_only" = protegee_only))
-    } else if (type == "low_P") {
-      return(list("low_protegee" = low_P))
-    } else if (type == "all") {
-      return(list(
-	  "protegee_only" = protegee_only,
-	  "nurse_only" = nurse_only,
-	  "together" = together,
-	  "low_N" = low_N,
-	  "low_P" = low_P,
-	  "low_together" = low_together
-	  )
-	)
+    all_inits <- list(
+      "protegee_only" = protegee_only,
+      "nurse_only" = nurse_only,
+      "together" = together,
+      "low_N" = low_N,
+      "low_P" = low_P,
+      "low_together" = low_together
+      )
+    if(all(type == "all")) {
+      return(all_inits)
+    } else if (all(type == "bifurcation")) {
+      return(all_inits[c("low_together", "together")])
+    } else {
+      return(all_inits[type])
     }
-
   } else {
     message("Only the four state model is specified")
   }
@@ -407,24 +404,21 @@ def_state <- function (nurse, protegee, sim_status,
     return("coexistence")
   }
 }
-
 def_multi_states <- function(solo, together, sim_status,
   threshold = 10 ^ - 3, multi = FALSE) {
   #TODO: To finish
 
-
     if (!sim_status) {
       return("warning")
-    } else if (nurse <= threshold && protegee > threshold) {
-      return("protégée")
-    } else if (nurse > threshold && protegee <= threshold) {
+    } else if (solo == "nurse" && together == "nurse") {
       return("nurse")
-    } else if (nurse <= threshold && protegee <= threshold) {
-      return("extinct")
-    } else if (nurse > threshold && protegee > threshold) {
-      return("coexistence")
+    } else if (solo == "nurse" && together == "protégée") {
+      return("nurse_protégé")
+    } else if (solo == "nurse" && together == "coexistence") {
+      return("nurse_coexistence")
+    } else if (solo == "nurse" && together == "desert") {
+      return("nurse_desert")
     }
-  }
 }
 
 #' Compute the state result of a range of simulation 
