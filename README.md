@@ -3,22 +3,18 @@
 ## TODO  
 
 - [ ] Stability analysis:
-    1. [x] Desert stability
-	1. [x] Nurse seule
-	2. [x] Protégé seule
-	3. [x] Both species  
-    2. [ ] Community stability
-	1. [x] Nurse seule
-	2. [x] Protégé seule
-	3. [x] Both species  
-	4. [ ] P + 1 peu de N
-	5. [ ] N + 1 peu de P
-	6. [ ] 1 peu de P + 1 peu de N 
+    - [ ] bifurcation diagram
+	- [ ] beautiful colors
+	- [ ] nice manuscript quality plots 
+    - [ ] run_scenarii_gradient():
+	- [x] Fix parameter saving
+	- [ ] add a third gradient for u values
+	- [ ] make parallel computing efficient
+	    - [ ] replace totally run_2d_gradient by run_scenarii_gradient() or
+	      put nb_cores to null for run_2d_gradient and set up parallel
+	      computing for scenarii
 - [ ] Co-occurence analysis: f(b,g)
 - [ ] Comparison pair-approx to mean field: f(b,g)
-- [x] Test functions
-    - [x] Test probability transitions
-    - [ ] Test facilitate function
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
     - [ ] Check if simulations have reached stability
@@ -27,7 +23,7 @@
     - [x] Plot method 
 	- [ ] print parameters of the simulations in the plot 
 	    - [ ] Put an annotate method
-	- [ ] Factorise plot_diagram (.gradient and .diagram): extract_state
+	- [ ] Factorise plot_diagram (.gradient and .diagram): compute_state
 	  function
     - [ ] Diagram and gradient object: keep gradient_param (named vectors) 
 

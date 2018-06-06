@@ -196,7 +196,8 @@ g <- plot_diagram(scenar_avg, param = c(x = "b", y = "g", type = "scenario"),
 g
 
 test <- compute_states(scenar_avg, param = c(x = "b", y = "g", type = "scenario"))
-test %>%
+test
+test$run %>%
   spread(scenario, state)
 
 
@@ -211,10 +212,11 @@ plot_diagram(test)
 ##############
 #  Figure 1  #
 ##############
-library('stringr')
+library("stringr")
 
+convert2scenarii.
 load(file = "./inst/scenar_bifurc_u=0_10_15_gamma1_.1.Rdata")
-test <- lapply(output, FUN = avg_runs)
+test <- lapply(output, FUN = avg_runs, nb_cores = 2)
 test2 <- lapply(test, FUN = compute_states, param = c(x = "b", y = "g", type = "scenario"))
 
 test3 <- list()
@@ -236,8 +238,10 @@ ggsave("inst/figs/four_states/diag_u=0.pdf", width = 7, height = 5, units =
   "cm")
 
 # À droite 
-load("diag_aridity_grazing_first_protect_u=5.RData" )
-u5 <- avg_runs(gradient_2d)
+load("diag_aridity_grazing_first_protect_u=5.RData") # gradient_2d
+
+system.time(u5 <- avg_runs(gradient_2d))
+
 states_u5 <- compute_states(u5, param = c(x = "b", y = "g")) %>%
   filter(b >= 0.5)
 class(states_u5) <- c("tibble", "data.frame", "states")
@@ -284,3 +288,19 @@ for(u in seq_along(u_grad)){
   }
 }
 
+
+letter <- c("a" = 1, "b" = 2, "c" = 3, "d" = 4)
+name <- c("g" = 0, "b" = .3)
+letter[which(!names(letter) %in% c(name))]
+
+load("./inst/scenar_all_u=0.RData")
+load("./diag_aridity_grazing_first_protect_u=5.RData")
+u1 <- avg_runs(scenar)
+u1$param["u"] <- 1
+
+test <- bind_scenar(list(u1, u2, u3, u4), var_name = c("u")) # c("u", "z")
+test
+test$output
+
+u2$run[,"u"] <- rep(1,300)
+u2$run %<>% select(-u)

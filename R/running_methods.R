@@ -141,10 +141,11 @@ run_scenarii_gradient <- function (y = "g", x = "b",
   param = NULL, nb_cores = NULL, solver_type = NULL,
   scenarii = init_scenarii()){
 
+  # Run the simulations
   output <- tibble::tibble(
     scenario = names(scenarii),
     inits = scenarii) %>%
-  mutate(gradient = map(inits, ~ run_2d_gradient(y, x,
+  dplyr::mutate(gradient = purrr::map(inits, ~ run_2d_gradient(y, x,
 	gradienty, gradientx,
 	model_spec,
 	run_2d_model,
@@ -152,6 +153,7 @@ run_scenarii_gradient <- function (y = "g", x = "b",
 	param, nb_cores, solver_type, inits = .x))
     )
 
+  # Save model parameters
   model <- model_spec
   basis_param <- simecol::parms(model)[which(!names(simecol::parms(model)) %in%
     c(x, y))]
@@ -159,11 +161,10 @@ run_scenarii_gradient <- function (y = "g", x = "b",
     basis_param[names(param)] <- param
   }
 
-
   return(
     structure(
       list(
-	param = param, run = output),
+	param = basis_param, run = output),
     class = c("list", "scenarii"))
     )
 
@@ -318,7 +319,7 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
   } else {
 
   out <- run %>%
-    dplyr::slice( (n() - cut_row) : n()) %>% # Keep the last 100
+    dplyr::slice( (n() - cut_row) : n()) %>% # Keep the last simulation
     tidyr::gather(species, rho) %>%
     dplyr::group_by(species) %>%
     dplyr::summarise(rho = mean(rho, na.rm = TRUE)) %>%
@@ -330,13 +331,41 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
 
   return(out)
 }
-avg_runs.gradient <- function(run, cut_row = 100) {
+avg_runs.gradient <- function(run, cut_row = 10, nb_cores = NULL) {
 
   param <- run[["param"]]
   run %<>% .[["run"]]
-  run %<>% dplyr::mutate(
-    avg = purrr::map(runs, avg_runs, cut_row = cut_row)) %>%
+
+  if (is.null(nb_cores)) {
+    run %<>% dplyr::mutate(
+      avg = purrr::map(runs, avg_runs, cut_row = cut_row)
+      ) %>%
     tidyr::unnest(avg)
+
+  } else {
+    cluster <- multidplyr::create_cluster(nb_cores)
+    f_to_load <- c("avg_runs.data.frame", "is_run_normal")
+    lapply(f_to_load, function(x) {
+      multidplyr::cluster_assign_value(cluster, x, get(x))
+      })
+    # Export arguments of the functions
+    multidplyr::cluster_copy(cluster, cut_row)
+    multidplyr::cluster_copy(cluster, run)
+
+    multidplyr::set_default_cluster(cluster)
+    multidplyr::cluster_library(cluster, c("magrittr", "purrr", "tidyr", "dplyr"))
+    # Run the model
+    run %<>% multidplyr::partition() %>%
+      dplyr::mutate(
+	avg = purrr::map(runs, avg_runs.data.frame, cut_row = cut_row),
+	avg = purrr::map(avg, clean_run)
+	) %>%
+    dplyr::collect() %>%
+    dplyr::ungroup() %>%
+    tidyr::unnest(avg)
+  }
+
+  run %<>% clean_run(.)
 
   return(
     structure(
@@ -346,28 +375,20 @@ avg_runs.gradient <- function(run, cut_row = 100) {
     )
     )
 }
-avg_runs.scenarii <- function(scenarii, cut_row = 100) {
+avg_runs.scenarii <- function(scenarii, cut_row = 10, nb_cores = NULL) {
 
-  param <- scenarii$param #TODO: clean this weird assignation
-  avg <- scenarii[["run"]] %>%
+  param <- scenarii$param
+  run <- scenarii[["run"]] %>%
     dplyr::mutate(
-      density = purrr::map(gradient, avg_runs.gradient, cut_row),
-      density = purrr::map(density,
-	function(x){
-	  if("PARTITION_ID" %in% names(x$run)) {
-	    x$run %>% dplyr::select(-runs, -PARTITION_ID)
-	  } else {
-	    x$run %>% dplyr::select(-runs)
-	  }
-	}
-	)
+      avg = purrr::map(gradient, avg_runs.gradient, cut_row, nb_cores),
+      avg = purrr::map(avg, function(x) x$run)# Keep only the runs
       ) %>%
-  unnest(density)
+  unnest(avg)
 
   return(
     structure(
       list(param = param,
-      run = avg),
+      run = run),
     class = c("list", "scenarii")
     )
     )
@@ -377,6 +398,82 @@ avg_runs.bifurcation <- function(x, cut_row = 10) {
   class(output) <- c("bifurcation", "list")
   return(output)
 }
+
+#' Convert a gradient object to a scenarii one
+#'
+#' @param x a gradient object
+#' @param scenario a character vector of length one. See @details   
+#' @param 
+#' @details The scenario should describe one of init density values defined in
+#' init_scenarii 
+#' @seealso init_scenarii
+#' @export
+convert2scenarii <- function (x, scenario) {
+
+  basis_param <- x$param
+
+  output <- x$run %>%
+    dplyr::mutate(
+      scenario = scenario,
+      inits = map(scenario, init_scenarii)
+      )
+
+  return(
+    structure(
+      list(
+	param = basis_param, run = output),
+      class = c("list", "scenarii"))
+    )
+
+}
+
+#' Bind scenarii object together 
+#' 
+#' Combine a list of scenarii in one
+#'
+#' @param l a list of scenarii object  
+#' @param var_name a character vector. Names of the parameters which are different
+#' between scenarii
+#' @param 
+#' @details The scenario should describe one of init density values defined in
+#' init_scenarii 
+#' @seealso init_scenarii
+#' @export
+bind_scenar <- function(x, ...) UseMethod("bind_scenar")
+bind_scenar.default <- function(x) "Unknown class"
+bind_scenar.list <- function (l, var_name = "u") {
+
+  # Parameters
+  param <- lapply(l, function(x) x$param)
+  common_param <- param[[1]][which(!names(param[[1]]) %in% var_name)]
+  varing_param <- sapply(param, function(param)
+    param[which(names(param) %in% var_name)])
+
+  if(!all(sapply(varing_param, function(x){ length(x) > 0 })) ){
+    warning(paste("There was a problem.", var_name, "was not found to be a varing
+	parameter across scenarii."))
+  }
+
+  output <- mapply(
+  function(param, var_name, scenar) {
+    run <- scenar$run
+    columns <- lapply(param, function(x) {rep(x, nrow(run))})
+    names(columns) <- var_name
+    test <- cbind(run, columns)
+    return(as.tibble(test))
+    },
+    varing_param, names(varing_param), l, USE.NAMES = FALSE, SIMPLIFY = FALSE)
+  output <- do.call(rbind,
+    lapply(output, as.tibble, stringsAsFactors=FALSE)
+    )
+
+  return(list(
+      param = common_param,
+      run = output)
+    )
+
+}
+
 
 #' Define the state result of a simulation 
 #'
@@ -434,6 +531,7 @@ compute_states.gradient <- function (
   param, 
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning")) {
 
+  param <- data$param
   data %<>% .[["run"]]
 
   var_to_drop <- names(data)[!(names(data) %in% c(param))]
@@ -446,7 +544,7 @@ compute_states.gradient <- function (
   purrr::modify_at(var_to_drop, ~NULL) %>%
   dplyr::mutate(state = factor(state, levels = possible_states))
 
-return(data)
+return(list(param = param, run = data))
 
 }
 compute_states.scenarii <- function (data, param, possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning")) {

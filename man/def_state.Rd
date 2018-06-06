@@ -4,7 +4,7 @@
 \alias{def_state}
 \title{Define the state result of a simulation}
 \usage{
-def_state(nurse, protegee, sim_status, threshold = 10^-3)
+def_state(nurse, protegee, sim_status, threshold = 10^-3, multi = FALSE)
 }
 \arguments{
 \item{nurse}{a dbl of length 1. The density of the nurse at the steady

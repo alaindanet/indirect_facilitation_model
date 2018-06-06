@@ -67,3 +67,17 @@ is_run_normal <- function (df) {
     TRUE)
   return(check)
 }
+
+#' Clean averaged simulation runs 
+#' 
+#' Suppress simulation runs and spurious information
+#' @param run a tibble or a data.frame
+#' @return a tibble or a data.frame
+#' @export
+clean_run <- function(x){
+  if("PARTITION_ID" %in% names(x)) {
+	    x %>% dplyr::select(-runs, -PARTITION_ID)
+	  } else {
+	    x %>% dplyr::select(-runs)
+	  }
+}
