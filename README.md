@@ -10,9 +10,6 @@
 	- [x] Fix parameter saving
 	- [ ] add a third gradient for u values
 	- [ ] make parallel computing efficient
-	    - [ ] replace totally run_2d_gradient by run_scenarii_gradient() or
-	      put nb_cores to null for run_2d_gradient and set up parallel
-	      computing for scenarii
 - [ ] Co-occurence analysis: f(b,g)
 - [ ] Comparison pair-approx to mean field: f(b,g)
 - [ ] Document functions
@@ -25,7 +22,7 @@
 	    - [ ] Put an annotate method
 	- [ ] Factorise plot_diagram (.gradient and .diagram): compute_state
 	  function
-    - [ ] Diagram and gradient object: keep gradient_param (named vectors) 
+	- [ ] Diagram and gradient object: keep gradient_param (named vectors) 
 
 ## Objectives
 
