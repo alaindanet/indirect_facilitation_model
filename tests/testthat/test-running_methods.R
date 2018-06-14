@@ -80,7 +80,7 @@ test_that("Avg_runs returns a list", {
 # Bifurcation
 test_that("run_bifurc_model runs", {
 bifurc_sim <- run_bifurc_model(
-  x = 0.1, y = c(.1, .3),
+  x = 0.1, scenario = "together",
   name_x = "b",
   model = indirect_facilitation_model()
   )
@@ -88,18 +88,10 @@ expect_output(str(bifurc_sim), "data.frame")
 
   })
 
-test_that("run_bifurcation works well", {
-  bifurc_sim2 <- run_bifurcation(
-    gradientx = .9,
-    time_seq = c(from = 0, to = 5, by = 1)
-    )
-  expect_output(str(bifurc_sim2), "data.frame")
-
-  })
 
 #Scenarii
 test_that("scenarii are well specified", {
   expect_output(str(init_scenarii()), "List of 1")
-  expect_output(str(init_scenarii(type = "all")), "List of 3")
+  expect_output(str(init_scenarii(type = "all")), "List of 6")
   })
 

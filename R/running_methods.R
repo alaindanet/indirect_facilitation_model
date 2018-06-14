@@ -104,27 +104,6 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   }
 }
 
-#' Run bifurcation over a gradient
-#'
-#' A wrapper of run_2d_gradient 
-#'
-#' @inheritParams run_2d_gradient
-#'
-#' @export
-run_bifurcation <- function(y = "init", x = "b", gradienty = c(.05, .4),
-  gradientx = seq(0, 1, by = 0.1), model_spec = indirect_facilitation_model(),
-  time_seq = c(from = 0, to = 1000, by = 1), param = NULL, nb_cores = NULL,
-  solver_type = NULL) {
-
-  run_2d_gradient(y, x,
-  gradienty, gradientx,
-  model_spec,
-  run_bifurc_model,
-  time_seq,
-  param, nb_cores, solver_type)
-
-}
-
 #' Run simulation over different initial scenarii
 #'
 #' A wrapper of run_2d_gradient which takes a list of initial values
@@ -193,9 +172,14 @@ init_scenarii <- function (type = "together",
 
   stopifnot(type %in% c("nurse", "protegee", "together", "low_N", "low_P", "low_together", "all", "bifurcation"))
 
+    # Specify the final cover 
+    mi_cover <- ini_cover / 2
+    mi_low_cover <-  low_cover / 2
+    high_cover <- ini_cover - mi_low_cover #For low_P and low_N 
+
   # three or four states model ?
   variables <- names(simecol::init(model))
-  if (all(c("N", "P", "D", "ND", "NN", "PP", "NP", "PD", "DD") %in% variables)){
+  if (all(names(init(two_facilitation_model())) %in% variables)){
     # four states
     nurse_only <- c(N = ini_cover, P = 0, D = .1,
       NP = 0, PP = 0, NN = ini_cover * ini_cover,
@@ -204,9 +188,6 @@ init_scenarii <- function (type = "together",
       NP = 0, PP = ini_cover * ini_cover, NN = 0,
       DD = .1 * .1, PD = ini_cover * .1, ND = 0)
 
-    mi_cover <- ini_cover / 2
-    mi_low_cover <-  low_cover / 2
-    high_cover <- ini_cover - mi_low_cover
 
     low_N <- c(N = mi_low_cover, P = high_cover, D = .1,
       NP = high_cover * mi_low_cover, PP = high_cover * high_cover,
@@ -227,6 +208,32 @@ init_scenarii <- function (type = "together",
       NN = mi_cover * mi_cover, DD = .1 * .1,
       PD = mi_cover * .1, ND = mi_cover * .1)
 
+    # The three state model
+  } else if (all(names(init(indirect_facilitation_model())) %in% variables)) {
+
+    nurse_only <- c(N = ini_cover, P = 0,
+      NP = 0, PP = 0, NN = ini_cover * ini_cover)
+    protegee_only <- c(N = 0, P = ini_cover,
+      NP = 0, PP = ini_cover * ini_cover, NN = 0)
+
+    low_N <- c(N = mi_low_cover, P = high_cover,
+      NP = high_cover * mi_low_cover, PP = high_cover * high_cover,
+      NN = mi_low_cover * mi_low_cover)
+    low_P <- c(N = high_cover, P = mi_low_cover,
+      NP = high_cover * mi_low_cover, PP = mi_low_cover * mi_low_cover,
+      NN = high_cover * high_cover)
+
+    low_together <- c(N = mi_low_cover, P = mi_low_cover,
+      NP = mi_low_cover * mi_low_cover, PP = mi_low_cover * mi_low_cover,
+      NN = mi_low_cover * mi_low_cover)
+
+    together <- c(N = mi_cover, P = mi_cover,
+      NP = mi_cover * mi_cover, PP = mi_cover * mi_cover, NN = mi_cover *
+	mi_cover)
+
+  } else {
+    stop("The model has not been recognized :/ \n A spelling mistake ?")
+  }
 
     # TODO: Reframe this: build the list with all init vectors and subset it
     # according to the option provided
@@ -246,9 +253,6 @@ init_scenarii <- function (type = "together",
     } else {
       return(all_inits[type])
     }
-  } else {
-    message("Only the four state model is specified")
-  }
 }
 
 #' Run the model by specifying two parameters  
@@ -281,15 +285,19 @@ run_2d_model <- function(x, y, name_x, name_y, model) {
 #' @details The densities of species pairs are defined as
 #' 
 #' @inheritParams run_2d_model
+#' @seealso init_scenarii
 #' @export
-run_bifurc_model <- function(x, y, name_x, name_y, model) {
+run_bifurc_model <- function(x, scenario = "together", name_x, name_y, model) {
+
+  if(any(length(scenario) != 1, !is.character(scenario), scenario == "all")){
+    stop("scenario have to be a character vector of length 1")
+  }
 
   simecol::parms(model)[name_x] <- x
-  simecol::init(model)[c("N", "P")] <- y
+  simecol::init(model) <- unlist(
+    init_scenarii(type = scenario, model = model)
+    )
 
-  pair_names <- ! names(simecol::init(model)) %in% c("N", "P")
-
-  simecol::init(model)[pair_names] <- y * .25
   run <- simecol::sim(model)
   output <- simecol::out(run) %>%
     dplyr::select(-time)

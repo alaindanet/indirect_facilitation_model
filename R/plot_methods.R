@@ -187,25 +187,32 @@ plot_diagram.gradient <- function (
 }
 plot_diagram.scenarii <- function (
   data,
-  param = c(x = "b", y = "g", type = "scenario"),
+  param = c(x = "b", y = "g"),
   possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
-  debug_mode = FALSE, ...) {
+  debug_mode = FALSE, type = "single", ...) {
 
-  states <- compute_states(data, param, possible_states) %>%
-    dplyr::mutate(scenario = as.factor(scenario))
+  states <- compute_states(data,
+    param = c(param),
+    type = type)
 
   if(debug_mode) {
     return(states)
   } else {
-    g <- ggplot2::ggplot(states,
+    g <- ggplot2::ggplot(states$run,
       aes_string(x = param["x"], y = param["y"], fill = "state")) +
     ggplot2::geom_raster() +
     theme_diagram() +
     ggplot2::scale_fill_manual(
       values = col_states,
       limits = possible_states
-      ) + facet_grid(. ~ scenario)
+      )
+
+    if (type == "single"){
+    g + facet_grid(. ~ scenario)
+    } else if (type == "double") {
+      # do not facet
+    }
     return(g)
   }
 

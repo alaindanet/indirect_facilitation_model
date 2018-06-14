@@ -290,12 +290,4 @@ for(u in seq_along(u_grad)){
   }
 }
 
-#
-load(file = "./inst/scenar_bifurc_u=0_10_15_gamma1_.1.Rdata")
-test <- lapply(output, FUN = avg_runs)
-rm(output)
-scenar_avg  <- bind_scenar(test)
 
-## Cool
-u10 <- test[[1]]
-good <- compute_states(u10, param = c("b", "g"), type = "double")

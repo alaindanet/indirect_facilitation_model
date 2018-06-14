@@ -6,10 +6,6 @@
     - [ ] bifurcation diagram
 	- [ ] beautiful colors
 	- [ ] nice manuscript quality plots 
-    - [ ] run_scenarii_gradient():
-	- [x] Fix parameter saving
-	- [ ] add a third gradient for u values
-	- [ ] make parallel computing efficient
 - [ ] Co-occurence analysis: f(b,g)
 - [ ] Comparison pair-approx to mean field: f(b,g)
 - [ ] Document functions
@@ -17,11 +13,10 @@
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
+    - [ ] Keep model name (infer parameters present)
+    - [ ] Put the number of gradient parameters that we want 
     - [x] Plot method 
-	- [ ] print parameters of the simulations in the plot 
-	    - [ ] Put an annotate method
-	- [ ] Factorise plot_diagram (.gradient and .diagram): compute_state
-	  function
+	- [ ] Define interesting states for bistable plot
 	- [ ] Diagram and gradient object: keep gradient_param (named vectors) 
 
 ## Objectives

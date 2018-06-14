@@ -230,9 +230,11 @@ def_multi_state <- function(scenar_one, scenar_two, sim_status,
 #' Compute the state result of a range of simulation 
 #' 
 #' @param data a gradient object
-#' @param param
-#' @param type   
-#' @param possibles_states 
+#' @param param parameters of the gradient
+#' @param type  
+#' @param possibles_states. The different states that can take a simulation.
+#' Details in def_state
+#' @seealso def_state
 #'
 #' @export 
 compute_states <- function(x, ...) UseMethod("compute_states")
@@ -240,7 +242,6 @@ compute_states.gradient <- function (
   data,
   param,
   var_to_keep = NULL,
-  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   type = "single") {
 
   common_param <- data$param
@@ -248,14 +249,13 @@ compute_states.gradient <- function (
 
   var_to_drop <- names(data)[!(names(data) %in% c(param, var_to_keep))]
 
-
     data %<>%
       dplyr::mutate(
 	state = purrr::pmap_chr(
 	  list(nurse = N, protegee = P, sim_status = status),
 	  def_state)) %>%
     purrr::modify_at(var_to_drop, ~NULL) %>%
-    dplyr::mutate(state = factor(state, levels = possible_states))
+    dplyr::mutate(state = as.factor(state))
 
   if (type == "single") {
 
@@ -264,7 +264,7 @@ compute_states.gradient <- function (
 
     data %<>%
       tidyr::spread(scenario, state) %>%
-      tidyr::unite(states, -param)
+      tidyr::unite(state, -param)
 
   }
 
@@ -272,16 +272,14 @@ return(
   list(param = common_param, run = data)
   )
 }
-
 compute_states.scenarii <- function (data, param, var_to_keep = "scenario",
-  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
   type = "single") {
 
   compute_states.gradient(
     data,
     param = c(param),
     var_to_keep = var_to_keep,
-    possible_states,
     type = type)
 
 }
+
