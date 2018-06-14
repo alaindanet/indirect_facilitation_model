@@ -9,16 +9,17 @@
 #' gradient of y. 
 #' @param gradientx A vector. Optional. Same as gradienty but for the second
 #' parameter. If ommited, the function uses the same gradient than for y.   
-#' @param model_spec A SimObj. A model of the object class defined in the
-#' simecol package.
+#' @param model_spec A character string. This is the name of the model function
+#' to use, which calls a SimObj. It can take the values "two_facilitation_model"
+#' or "indirect_facilitation_model"
 #' @param time_seq A vector. A vector containing the timestep values at which
 #' the model will be evaluated.
-#' @return A data.frame of tibble data.frame containing the output of the mod#' el    
+#' @return A data.frame of tibble data.frame containing the output of the model    
 #'
 #' @export
 run_2d_gradient <- function(y = "g", x = "gamma1",
   gradienty = seq(0, 0.2, length.out = 5), gradientx = NULL,
-  model_spec = indirect_facilitation_model(),
+  model_spec = "indirect_facilitation_model",
   run_type = run_2d_model,
   time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL, inits = NULL) {
@@ -30,7 +31,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   gradient <- expand.grid(y = gradienty, x = gradientx) %>%
     tibble::as.tibble(.)
   colnames(gradient) <- c(y, x)
-  model <- model_spec
+  model <- eval(call(model_spec))
   # Define parameters:
   simecol::times(model) <- time_seq
   if (!is.null(param)) {
@@ -87,6 +88,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
   return(
     structure(
       list(
+	model = model_spec,
 	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in% c(x, y))],
 	run = output
 	),
@@ -115,7 +117,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 #' @export
 run_scenarii_gradient <- function (y = "g", x = "b",
   gradienty = seq(0, .3, by = .1), gradientx = seq(0, 1, by = 0.1),
-  model_spec = two_facilitation_model(),
+  model_spec = "two_facilitation_model",
   time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL,
   scenarii = init_scenarii()){
@@ -133,7 +135,7 @@ run_scenarii_gradient <- function (y = "g", x = "b",
     )
 
   # Save model parameters
-  model <- model_spec
+  model <- eval(call(model_spec))
   basis_param <- simecol::parms(model)[which(!names(simecol::parms(model)) %in%
     c(x, y))]
   if (!is.null(param)) {
@@ -143,7 +145,9 @@ run_scenarii_gradient <- function (y = "g", x = "b",
   return(
     structure(
       list(
-	param = basis_param, run = output),
+	model = model_spec,
+	param = basis_param,
+	run = output),
     class = c("list", "scenarii"))
     )
 
@@ -179,7 +183,7 @@ init_scenarii <- function (type = "together",
 
   # three or four states model ?
   variables <- names(simecol::init(model))
-  if (all(names(init(two_facilitation_model())) %in% variables)){
+  if (all(names(simecol::init(two_facilitation_model())) %in% variables)){
     # four states
     nurse_only <- c(N = ini_cover, P = 0, D = .1,
       NP = 0, PP = 0, NN = ini_cover * ini_cover,
@@ -209,7 +213,7 @@ init_scenarii <- function (type = "together",
       PD = mi_cover * .1, ND = mi_cover * .1)
 
     # The three state model
-  } else if (all(names(init(indirect_facilitation_model())) %in% variables)) {
+  } else if (all(names(simecol::init(indirect_facilitation_model())) %in% variables)) {
 
     nurse_only <- c(N = ini_cover, P = 0,
       NP = 0, PP = 0, NN = ini_cover * ini_cover)

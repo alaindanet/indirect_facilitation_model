@@ -20,8 +20,9 @@ gradient of y.}
 \item{gradientx}{A vector. Optional. Same as gradienty but for the second
 parameter. If ommited, the function uses the same gradient than for y.}
 
-\item{model_spec}{A SimObj. A model of the object class defined in the
-simecol package.}
+\item{model_spec}{A character string. This is the name of the model function
+to use, which calls a SimObj. It can take the values "two_facilitation_model"
+or "indirect_facilitation_model"}
 
 \item{time_seq}{A vector. A vector containing the timestep values at which
 the model will be evaluated.}

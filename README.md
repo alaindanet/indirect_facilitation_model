@@ -13,11 +13,11 @@
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
-    - [ ] Keep model name (infer parameters present)
-    - [ ] Put the number of gradient parameters that we want 
+    - [ ] Put the number of gradient parameters that we want
     - [x] Plot method 
-	- [ ] Define interesting states for bistable plot
-	- [ ] Diagram and gradient object: keep gradient_param (named vectors) 
+	- [ ] Define interesting states for bistable plot (single states color
+	  for state1_state1, cool color for interesting one, flashy colors for
+q  unknown combination, low intensity colour for uninteresting ones)
 
 ## Objectives
 

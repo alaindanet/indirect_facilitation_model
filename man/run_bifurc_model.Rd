@@ -4,12 +4,10 @@
 \alias{run_bifurc_model}
 \title{Bifurcation state diagram}
 \usage{
-run_bifurc_model(x, y, name_x, name_y, model)
+run_bifurc_model(x, scenario = "together", name_x, name_y, model)
 }
 \arguments{
 \item{x}{First variable.}
-
-\item{y}{Second variable.}
 
 \item{name_x}{A character vector.}
 
@@ -21,4 +19,7 @@ definition of the parameter(s).
 }
 \details{
 The densities of species pairs are defined as
+}
+\seealso{
+init_scenarii
 }

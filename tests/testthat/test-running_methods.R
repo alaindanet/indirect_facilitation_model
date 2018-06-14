@@ -65,13 +65,15 @@ test_that("the good states are returned", {
   })
 
 two_d_sim <- run_2d_gradient(gradienty = 0.1,
-  time_seq = c(from = 0, to = 10, by = 1))
+  time_seq = c(from = 0, to = 1, by = 1))
+
 test_that("Run_2d_gradient returns a list", {
   expect_is(two_d_sim, "list")
   expect_is(two_d_sim[["param"]], "list")
+  expect_output(str(two_d_sim), "List of 3")
   })
 test_that("Avg_runs returns a list", {
-  avg_two_d_sim <- avg_runs(two_d_sim)
+  avg_two_d_sim <- avg_runs(two_d_sim, cut_row = 1)
 
   expect_is(avg_two_d_sim, "list")
   expect_is(avg_two_d_sim[["param"]], "list")

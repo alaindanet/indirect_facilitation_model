@@ -107,10 +107,10 @@ gradient_2d <- run_2d_gradient(
   gradienty = g_gradient,
   x = "u",
   gradientx = u_gradient,
-  model_spec = two_facilitation_model(),
+  model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1),
   time_seq = c(from = 0, to = 3000, by = 1),
-  nb_cores = 4,
+   nb_cores = 4,
   solver_type = NULL
   )
 
@@ -129,7 +129,7 @@ gradient_2d <- run_2d_gradient(
   gradienty = g_gradient,
   x = "b",
   gradientx = b_gradient,
-  model_spec = two_facilitation_model(),
+  model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 5),
   time_seq = c(from = 0, to = 3000, by = 1),
   nb_cores = 4,
@@ -149,7 +149,7 @@ ggsave("inst/figs/four_states/diag_aridity_grazing_first_protect_u=5.pdf",
 bifurc <- run_bifurcation(
   gradientx = seq(0.2, 1, length.out = 30),
   gradienty = c(0.4, 0.01),
-  model_spec = two_facilitation_model(),
+  model_spec = "two_facilitation_model",
   time_seq = c(from = 0, to = 3000, by = 1),
   param = c(
     g = .3, gamma1 = .1,
@@ -179,7 +179,7 @@ for (i in seq_along(u_test)) {
     gradienty = g_gradient,
     x = "b",
     gradientx = b_gradient,
-    model_spec = two_facilitation_model(),
+    model_spec = "two_facilitation_model",
     param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = u_test[i]),
     time_seq = c(from = 0, to = 3000, by = 1),
     nb_cores = 3,
@@ -273,7 +273,7 @@ for(u in seq_along(u_grad)){
     bifurc <- run_bifurcation(
       gradientx = seq(0.2, 1, length.out = 30),
       gradienty = c(0.4, 0.01),
-      model_spec = two_facilitation_model(),
+      model_spec = "two_facilitation_model",
       time_seq = c(from = 0, to = 3000, by = 1),
       param = c(
 	g = g_grad[g], gamma1 = .1,
@@ -289,5 +289,4 @@ for(u in seq_along(u_grad)){
     ggsave(plot_name, width = 7, height = 5, units = "cm")
   }
 }
-
 
