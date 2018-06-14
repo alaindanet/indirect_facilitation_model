@@ -37,6 +37,7 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
 avg_runs.gradient <- function(run, cut_row = 10, nb_cores = NULL) {
 
   param <- run[["param"]]
+  model <- run[["model"]]
   run %<>% .[["run"]]
 
   if (is.null(nb_cores)) {
@@ -72,15 +73,19 @@ avg_runs.gradient <- function(run, cut_row = 10, nb_cores = NULL) {
 
   return(
     structure(
-      list(param = param,
-      run = run),
+      list(
+	model = model,
+	param = param,
+	run = run
+	),
     class = c("list", "gradient")
     )
     )
 }
 avg_runs.scenarii <- function(scenarii, cut_row = 10, nb_cores = NULL) {
 
-  param <- scenarii$param
+  param <- scenarii[["param"]]
+  model <- scenarii[["model"]]
   run <- scenarii[["run"]] %>%
     dplyr::mutate(
       avg = purrr::map(gradient, avg_runs.gradient, cut_row, nb_cores),
@@ -90,8 +95,11 @@ avg_runs.scenarii <- function(scenarii, cut_row = 10, nb_cores = NULL) {
 
   return(
     structure(
-      list(param = param,
-      run = run),
+      list(
+	model = model,
+	param = param,
+	run = run
+      ),
     class = c("list", "scenarii")
     )
     )
@@ -199,11 +207,11 @@ def_state <- function (nurse, protegee, sim_status,
   if (!sim_status) {
     return("warning")
   } else if (nurse <= threshold && protegee > threshold) {
-    return("protégée")
+    return("protegee")
   } else if (nurse > threshold && protegee <= threshold) {
     return("nurse")
   } else if (nurse <= threshold && protegee <= threshold) {
-    return("extinct")
+    return("desert")
   } else if (nurse > threshold && protegee > threshold) {
     return("coexistence")
   }
@@ -245,6 +253,7 @@ compute_states.gradient <- function (
   type = "single") {
 
   common_param <- data$param
+  model <- data$model
   data %<>% .[["run"]]
 
   var_to_drop <- names(data)[!(names(data) %in% c(param, var_to_keep))]
@@ -269,7 +278,11 @@ compute_states.gradient <- function (
   }
 
 return(
-  list(param = common_param, run = data)
+  list(
+    model = model,
+    param = common_param,
+    run = data
+    )
   )
 }
 compute_states.scenarii <- function (data, param, var_to_keep = "scenario",

@@ -57,9 +57,9 @@ test_that("the good states are returned", {
   expect_match(def_state(nurse = .3, protegee = .3, sim_status = FALSE),
     "warning")
   expect_match(def_state(nurse = 3.84e-06, protegee = .3, sim_status = TRUE),
-    "protégée")
+    "protegee")
   expect_match(def_state(nurse = .001, protegee = .001, sim_status = TRUE),
-    "extinct")
+    "desert")
   expect_match(def_state(nurse = .01, protegee = .001, sim_status = TRUE),
     "nurse")
   })
@@ -72,12 +72,15 @@ test_that("Run_2d_gradient returns a list", {
   expect_is(two_d_sim[["param"]], "list")
   expect_output(str(two_d_sim), "List of 3")
   })
+
+avg_two_d_sim <- avg_runs(two_d_sim, cut_row = 1)
 test_that("Avg_runs returns a list", {
-  avg_two_d_sim <- avg_runs(two_d_sim, cut_row = 1)
 
   expect_is(avg_two_d_sim, "list")
   expect_is(avg_two_d_sim[["param"]], "list")
   })
+
+# Compute state
 
 # Bifurcation
 test_that("run_bifurc_model runs", {
@@ -90,10 +93,10 @@ expect_output(str(bifurc_sim), "data.frame")
 
   })
 
-
 #Scenarii
 test_that("scenarii are well specified", {
   expect_output(str(init_scenarii()), "List of 1")
   expect_output(str(init_scenarii(type = "all")), "List of 6")
   })
+
 

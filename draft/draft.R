@@ -1,6 +1,6 @@
 ## Cool
 load(file = "./inst/scenar_test_u=10.Rdata")
-u10 <- test[[1]]
+
 
 compute_states(u10, param = c("b", "g"), type = "double")
 
