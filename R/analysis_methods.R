@@ -239,9 +239,12 @@ def_multi_state <- function(scenar_one, scenar_two, sim_status,
 #' 
 #' @param data a gradient object
 #' @param param parameters of the gradient
-#' @param type  
-#' @param possibles_states. The different states that can take a simulation.
-#' Details in def_state
+#' @param var_to_keep variable name that you want to keep, e.g. scenario for
+#' scenarii object (set by default) 
+#' @param type character string. The type of state to be computed, either
+#' "single" or "double" for see bistable areas 
+#' @param warning_as_desert TRUE by default. Convert anormal simulation to
+#' desert (convenient for plotting)
 #' @seealso def_state
 #'
 #' @export 
@@ -250,7 +253,7 @@ compute_states.gradient <- function (
   data,
   param,
   var_to_keep = NULL,
-  type = "single") {
+  type = "single", warning_as_desert = TRUE) {
 
   common_param <- data$param
   model <- data$model
@@ -258,22 +261,38 @@ compute_states.gradient <- function (
 
   var_to_drop <- names(data)[!(names(data) %in% c(param, var_to_keep))]
 
+  data %<>%
+    dplyr::mutate(
+      state = purrr::pmap_chr(
+	list(nurse = N, protegee = P, sim_status = status),
+	def_state)) %>%
+  purrr::modify_at(var_to_drop, ~NULL) %>%
+    dplyr::mutate(state = as.factor(state))
+
+  if (warning_as_desert) {
     data %<>%
       dplyr::mutate(
-	state = purrr::pmap_chr(
-	  list(nurse = N, protegee = P, sim_status = status),
-	  def_state)) %>%
-    purrr::modify_at(var_to_drop, ~NULL) %>%
-    dplyr::mutate(state = as.factor(state))
+	state = stringr::str_replace(state, "warning", "desert"),
+	state = as.factor(state)
+	)
+    message("warning state has been silently replaced by desert")
+
+
+  }
 
   if (type == "single") {
 
-
   } else if (type == "double") {
 
+    #TODO: to generalize to any scenario
     data %<>%
+      dplyr::mutate( state = as.character(state)) %>%
       tidyr::spread(scenario, state) %>%
-      tidyr::unite(state, -param)
+      dplyr::mutate(
+	state = purrr::map2_chr(low_together, together, define_double_state)
+	) %>%
+      dplyr::select(-low_together, -together)
+      #tidyr::unite(state, -param)
 
   }
 
@@ -293,6 +312,31 @@ compute_states.scenarii <- function (data, param, var_to_keep = "scenario",
     param = c(param),
     var_to_keep = var_to_keep,
     type = type)
+
+}
+
+#' Define bistable states 
+#'
+#' @param scenar1 a character string. It is the name the first scenario   
+#' @param scenar2 a character string. It is the name the second scenario   
+#'
+#' @seealso
+#' @export
+define_double_state <- function (scenar1, scenar2) {
+
+  if (scenar1 == scenar2){
+    return(scenar1)
+  } else if (all(scenar1 %in% c("protegee", "desert"), scenar2 %in% c("protegee", "desert"))) {
+    return("protegee_desert")
+  } else if (all(scenar1 %in% c("nurse", "desert"), scenar2 %in% c("nurse", "desert"))) {
+    return("nurse_desert")
+  } else if (all(scenar1 %in% c("coexistence", "desert"), scenar2 %in% c("coexistence", "desert"))) {
+    return("coexistence_desert")
+  } else if (all(scenar1 %in% c("protegee", "nurse"), scenar2 %in% c("protegee", "nurse"))) {
+    return("protegee_nurse")
+  } else {
+    return("unknown")
+  }
 
 }
 
