@@ -2,22 +2,19 @@
 
 ## TODO  
 
-- [ ] Stability analysis:
-    - [ ] bifurcation diagram
-	- [ ] beautiful colors
-	- [ ] nice manuscript quality plots 
-- [ ] Co-occurence analysis: f(b,g)
 - [ ] Comparison pair-approx to mean field: f(b,g)
+- [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
+    - [ ] gradient argument: a list of **named** vectors
+    - [ ] scenarii arg: NULL (default init values, scenario = "default"), a vector
+      of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
+    - [ ] control for plot diagram, check how many param variables there is
+- [ ] Update vignette
 - [ ] Document functions
 - [ ] Framework to build simulation diagrams
     - [ ] Check if simulations have reached stability
 	- [x] Implementation of a custom solver ("lsodar")
 	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
     - [ ] Put the number of gradient parameters that we want
-    - [x] Plot method 
-	- [ ] Define interesting states for bistable plot (single states color
-	  for state1_state1, cool color for interesting one, flashy colors for
-q  unknown combination, low intensity colour for uninteresting ones)
 
 ## Objectives
 

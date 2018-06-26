@@ -217,17 +217,39 @@ plot_diagram.scenarii <- function (
   }
 
 }
-theme_diagram <- function(base_size = 4, base_family = "Helvetica"){
+
+plot_diagram.species_density <- function (
+  data,
+  param = c(x = "b", y = "g"),
+  debug_mode = FALSE,
+  fill = "N",
+  ...
+  ) {
+
+    g <- ggplot2::ggplot(data$run,
+      aes_string(x = param["x"], y = param["y"], fill = fill)) +
+    ggplot2::geom_raster() +
+    ggplot2::scale_fill_gradient2(low = "blue", high = "red", limits = c(0, 1.5), midpoint = 1) +
+    theme_diagram()
+
+  if (debug_mode) {
+    return(data)
+  } else {
+    return(g)
+  }
+}
+
+theme_diagram <- function(base_size = 12, base_family = "Helvetica"){
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
     theme(
       #line = element_line(colour="black"),
       #text = element_text(colour="black"),
-      axis.title = element_text(size = 4),
+      axis.title = element_text(size = base_size),
       #axis.text = element_text(colour="black", size=8),
       #strip.text = element_text(size=12),
       legend.key=element_rect(colour=NA, fill =NA),
       panel.grid = element_blank(),   
-      panel.border = element_rect(fill = NA, colour = "black", size=1),
+      panel.border = element_rect(fill = NA, colour = "black", size = 1),
       panel.background = element_rect(fill = "white", colour = "black"),
       strip.background = element_rect(fill = NA)
       )

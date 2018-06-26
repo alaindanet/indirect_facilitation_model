@@ -1,17 +1,8 @@
 ## Cool
-load(file = "./inst/scenar_test_u=0.Rdata")
+load(file = "./inst/scenar_test_u=10.Rdata")
+u10 <- compute_occurences(u10)
 
-double_states<- c("coexistence", "nurse", "protegee", "desert",
-  "protegee_desert", "nurse_desert", "coexistence_desert", "protegee_nurse",
-  "unkown")
-my_colours <- c(coexistence = "orange", nurse = "green", protegee = "black",
-  desert = "#C19A6B", protegee_desert = "gray60", 
-  nurse_desert = "green2", coexistence_desert = "orange2", protegee_nurse =
-    "darkgreen", unkown = "gray")
+plot_diagram(u10, fill = "cnp", debug_mode = FALSE)
+u10$run
 
-plot_diagram(u0,
-  param = c(x = "b", y = "g"),
-  possible_states = double_states,
-  col_states = my_colours,
-  debug_mode = FALSE, type = "double")
 #TODO: make a plot of multiple states

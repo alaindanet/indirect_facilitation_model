@@ -269,7 +269,7 @@ g_grad <- c(.09)
 
 for(u in seq_along(u_grad)){
   for(g in seq_along(g_grad)) {
-  
+
     bifurc <- run_bifurcation(
       gradientx = seq(0.2, 1, length.out = 30),
       gradienty = c(0.4, 0.01),
@@ -289,4 +289,35 @@ for(u in seq_along(u_grad)){
     ggsave(plot_name, width = 7, height = 5, units = "cm")
   }
 }
+
+#######################
+#  Figure 2 improved  #
+#######################
+
+load(file = "./inst/scenar_test_u=10.Rdata")
+double_states <- c("coexistence", "nurse", "protegee", "desert",
+  "protegee_desert", "nurse_desert", "coexistence_desert", "protegee_nurse",
+  "unkown")
+my_colours <- c(coexistence = "orange", nurse = "green", protegee = "black",
+  desert = "#C19A6B", protegee_desert = "gray60",
+  nurse_desert = "green2", coexistence_desert = "orange2", protegee_nurse =
+    "darkgreen", unkown = "white")
+
+plot_diagram(u10,
+  param = c(x = "b", y = "g"),
+  possible_states = double_states,
+  col_states = my_colours,
+  debug_mode = FALSE, type = "double")
+ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
+
+###########################################
+#  Plot species densities and clustering  #
+###########################################
+
+load(file = "./inst/scenar_test_u=10.Rdata")
+load("diag_aridity_grazing_first_protect_u=5.RData") # gradient_2d
+u5 <- avg_runs(gradient_2d)
+u5 <- compute_occurences(u5)
+
+plot_diagram(u5, fill = "cnp", debug_mode = FALSE)
 

@@ -110,6 +110,39 @@ avg_runs.bifurcation <- function(x, cut_row = 10) {
   return(output)
 }
 
+#' Compute the co-occurences between nurse and protegee 
+#'
+#' This function computes the density of cooccuring species.
+#' It should be after avg_runs
+#' 
+#' @param data a dataframe. 
+#' @return a dataframe.
+#' @export
+compute_occurences <- function(x, ...) UseMethod("compute_occurences")
+compute_occurences.gradient <- function(data, ...) {
+  compute_occurences.scenarii(data, ...)
+
+}
+compute_occurences.scenarii <- function(data, ...) {
+
+  common_param <- data$param
+  model <- data$model
+  old_class <- class(data)
+  data %<>% .[["run"]] %>%
+    dplyr::mutate(cnp = NP / N)
+
+  return(
+    structure(
+    list( model = model,
+      param = common_param,
+      run = data
+      ),
+    class = c("species_density") #, old_class
+      )
+    )
+}
+
+
 #' Convert a gradient object to a scenarii one
 #'
 #' @param x a gradient object
