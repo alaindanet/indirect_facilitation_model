@@ -3,6 +3,8 @@
 ## TODO  
 
 - [ ] Comparison pair-approx to mean field: f(b,g)
+- [ ] No positive co-occurrence in the model: space is the key ? (cf Alex model
+  results)
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
     - [ ] gradient argument: a list of **named** vectors
     - [ ] scenarii arg: NULL (default init values, scenario = "default"), a vector

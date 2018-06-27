@@ -92,7 +92,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in% c(x, y))],
 	run = output
 	),
-    class = c("list", "gradient"))
+    class = c("gradient", "list"))
     )
   } else if (identical(run_type, run_bifurc_model, ignore.bytecode = FALSE)){
   return(
@@ -101,7 +101,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 	param = simecol::parms(model)[which(!names(simecol::parms(model)) %in% c(x, y))],
 	run = output
 	),
-    class = c("list", "bifurcation"))
+    class = c("bifurcation", "list"))
     )
   }
 }
@@ -148,7 +148,7 @@ run_scenarii_gradient <- function (y = "g", x = "b",
 	model = model_spec,
 	param = basis_param,
 	run = output),
-    class = c("list", "scenarii"))
+    class = c("scenarii", "list"))
     )
 
 }
