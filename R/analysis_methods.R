@@ -120,7 +120,14 @@ avg_runs.bifurcation <- function(x, cut_row = 10) {
 #' @export
 compute_occurences <- function(x, ...) UseMethod("compute_occurences")
 compute_occurences.gradient <- function(data, ...) {
-  compute_occurences.scenarii(data, ...)
+  data <- compute_occurences.scenarii(data, ...)
+
+  return(
+    structure(
+      data,
+      class = c("scenarii", "list") #, old_class
+      )
+    )
 
 }
 compute_occurences.scenarii <- function(data, ...) {
@@ -137,11 +144,10 @@ compute_occurences.scenarii <- function(data, ...) {
       param = common_param,
       run = data
       ),
-    class = c("species_density") #, old_class
+    class = c("scenarii", "list") #, old_class
       )
     )
 }
-
 
 #' Convert a gradient object to a scenarii one
 #'
@@ -221,7 +227,6 @@ bind_scenar.list <- function (l, var_name = "u") {
     )
 
 }
-
 
 #' Define the state result of a simulation 
 #'

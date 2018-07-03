@@ -303,7 +303,7 @@ my_colours <- c(coexistence = "orange", nurse = "green", protegee = "black",
   nurse_desert = "green2", coexistence_desert = "orange2", protegee_nurse =
     "darkgreen", unkown = "white")
 
-plot_diagram(u10,
+plot_diagram(u0,
   param = c(x = "b", y = "g"),
   possible_states = double_states,
   col_states = my_colours,
@@ -314,10 +314,9 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 #  Plot species densities and clustering  #
 ###########################################
 
-load(file = "./inst/scenar_test_u=10.Rdata")
-load("diag_aridity_grazing_first_protect_u=5.RData") # gradient_2d
-u5 <- avg_runs(gradient_2d)
-u5 <- compute_occurences(u5)
+load(file = "./inst/scenar_test_u=0.Rdata")
+load(file = "./inst/diag_aridity_grazing_first_protect_u=5.RData")
 
-plot_diagram(u5, fill = "cnp", debug_mode = FALSE)
-
+u5 <- convert2scenarii(u5, scenario = "together")
+plot_diagram(u5, debug_mode = FALSE, fill = "cnp")
+plot_diagram(u10, debug_mode = FALSE, fill = "N")

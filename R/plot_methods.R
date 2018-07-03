@@ -159,18 +159,18 @@ plot_diagram.states <- function(
 }
 plot_diagram.gradient <- function (
   data,
-  param = c(x = "gamma1", y = "g"),
-  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
+  param = c(x = "b", y = "g"),
+  possible_states = c("coexistence", "nurse", "protegee", "desert", "warning"),
   col_states = c("orange", "green", "black", "yellow", "grey"),
   debug_mode = FALSE, ...) {
 
   params <- data[["param"]]
-  data <- compute_states(data, param, possible_states)
+  data <- compute_states(data, param, type = "single")
 
   cols <- col_states
   names(cols) <- possible_states
 
-  g <- ggplot2::ggplot(data,
+  g <- ggplot2::ggplot(data$run,
     aes_string(x = param["x"], y = param["y"], fill = "state")) +
   ggplot2::geom_raster() +
   theme_diagram() +
@@ -188,18 +188,16 @@ plot_diagram.gradient <- function (
 plot_diagram.scenarii <- function (
   data,
   param = c(x = "b", y = "g"),
-  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
-  col_states = c("orange", "green", "black", "yellow", "grey"),
-  debug_mode = FALSE, type = "single", ...) {
+  possible_states = c("coexistence", "nurse", "protegee", "desert", "warning"),
+  col_states = c(coexistence = "orange", nurse = "green", protegee = "black",
+  desert = "#C19A6B", unkown = "white"),
+  debug_mode = FALSE, fill = "single", ...) {
+  if (fill %in% c("single", "double_states")) {
+    data <- compute_states(data,
+      param = param,
+      fill = fill)
 
-  states <- compute_states(data,
-    param = c(param),
-    type = type)
-
-  if(debug_mode) {
-    return(states)
-  } else {
-    g <- ggplot2::ggplot(states$run,
+    g <- ggplot2::ggplot(data$run,
       aes_string(x = param["x"], y = param["y"], fill = "state")) +
     ggplot2::geom_raster() +
     theme_diagram() +
@@ -208,37 +206,27 @@ plot_diagram.scenarii <- function (
       limits = possible_states
       )
 
-    if (type == "single"){
-    g + facet_grid(. ~ scenario)
-    } else if (type == "double") {
-      # do not facet
+    if (fill == "single"){
+     g <- g + facet_grid(. ~ scenario)
     }
-    return(g)
-  }
-
-}
-
-plot_diagram.species_density <- function (
-  data,
-  param = c(x = "b", y = "g"),
-  debug_mode = FALSE,
-  fill = "N",
-  ...
-  ) {
+  } else {
+    if (fill == "cnp") {
+      data %<>% compute_occurences(.)
+    }
 
     g <- ggplot2::ggplot(data$run,
       aes_string(x = param["x"], y = param["y"], fill = fill)) +
     ggplot2::geom_raster() +
-    ggplot2::scale_fill_gradient2(low = "blue", high = "red", limits = c(0, 1.5), midpoint = 1) +
+    ggplot2::scale_fill_gradient2(
+      low = "blue", high = "red", limits = c(0, 1.5), midpoint = 1
+      ) +
     theme_diagram()
-
+  }
   if (debug_mode) {
     return(data)
-  } else {
-    return(g)
   }
+  return(g)
 }
-
 theme_diagram <- function(base_size = 12, base_family = "Helvetica"){
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
     theme(

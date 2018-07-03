@@ -133,3 +133,11 @@ $$
 
 ![u = 15](../inst/figs/four_states/diag_aridity_grazing_first_protect_u=15.png){ width=9in }\
 
+### Indirect facilitation and  bistability
+
+```{r}
+
+
+```
+
+

@@ -6,7 +6,8 @@
 - [ ] No positive co-occurrence in the model: space is the key ? (cf Alex model
   results)
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
-    - [ ] gradient argument: a list of **named** vectors
+    - [ ] gradient argument: a list of **named** vectors (+
+      check_param(model_spec, names(gradient)))
     - [ ] scenarii arg: NULL (default init values, scenario = "default"), a vector
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
     - [ ] control for plot diagram, check how many param variables there is
