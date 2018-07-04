@@ -79,9 +79,6 @@ test_that("Avg_runs returns a list", {
   expect_is(avg_two_d_sim, "list")
   expect_is(avg_two_d_sim[["param"]], "list")
   })
-
-# Compute state
-
 # Bifurcation
 test_that("run_bifurc_model runs", {
 bifurc_sim <- run_bifurc_model(
@@ -92,11 +89,45 @@ bifurc_sim <- run_bifurc_model(
 expect_output(str(bifurc_sim), "data.frame")
 
   })
-
 #Scenarii
 test_that("scenarii are well specified", {
   expect_output(str(init_scenarii()), "List of 1")
   expect_output(str(init_scenarii(type = "all")), "List of 6")
+  expect_is(names(init_scenarii(type = "all")), "character")
+
   })
+test_that("run_simecol works", {
+  gradient <- list(b = c(.8,.2), c = .2)
+  scenarii <- init_scenarii(type = "together")
+  gradient$scenario <- names(scenarii)
+  scenar_gradient <- gradient
 
+  comb <- expand.grid(scenar_gradient) %>%
+    dplyr::mutate(
+      inits = purrr::map(scenario, function(x) scenarii[[x]])
+      )
+  param_combination <- dplyr::select(comb, -scenario, -inits) %>% df2list(.)
 
+  run <- Map(run_simecol,
+    inits = comb[["inits"]],
+    param = param_combination,
+    MoreArgs = list(model = two_facilitation_model())
+    )
+  # Problem in the full function, at Map(), see print()
+  expect_is(run, "list")
+  expect_length(run, 2)
+  })
+test_that("run_scenarii_gradient run", {
+
+  u0 <- run_scenarii_gradient(
+    gradient = list(g = 0.1, b = 1),
+    model_spec = "two_facilitation_model",
+    time_seq = c(from = 0, to = 1, by = 1),
+    nb_cores = NULL,
+    solver_type = NULL
+    )
+
+  expect_is(u0, "scenarii")
+  expect_length(u0, 5)
+
+  })

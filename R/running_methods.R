@@ -28,8 +28,7 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
     gradientx <- gradienty
   }
   # Prepare the combination of parameters
-  gradient <- expand.grid(y = gradienty, x = gradientx) %>%
-    tibble::as.tibble(.)
+  gradient <- expand.grid(y = gradienty, x = gradientx) %>% tibble::as.tibble(.)
   colnames(gradient) <- c(y, x)
   model <- eval(call(model_spec))
   # Define parameters:
@@ -115,42 +114,81 @@ run_2d_gradient <- function(y = "g", x = "gamma1",
 #' model  
 #'
 #' @export
-run_scenarii_gradient <- function (y = "g", x = "b",
-  gradienty = seq(0, .3, by = .1), gradientx = seq(0, 1, by = 0.1),
+run_scenarii_gradient <- function (
+  gradient = list(g = seq(0, .3, length.out = 1),
+    b = seq(0, 1, length.out = 1)),
   model_spec = "two_facilitation_model",
   time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL,
-  scenarii = init_scenarii()){
+  scenarii = NULL){
 
+  if (is.null(gradient)) {
+    stop("Please provide a gradient")
+  }
+
+  model <- eval(call(model_spec))
+  # Define parameters:
+  simecol::times(model) <- time_seq
+  if (!is.null(param)) {
+    simecol::parms(model)[names(param)] <- param
+  }
+  # Define the solver type: see simecol::solver()
+  if (!is.null(solver_type)) {
+    simecol::solver(model) <- solver_type
+  }
+  if (is.null(scenarii)) {
+    scenarii  <- list(default = simecol::init(model))
+  }
+
+  # Define the combination of parameters
+  gradient$scenario <- names(scenarii)
+  scenar_gradient <- gradient
+  comb <- expand.grid(scenar_gradient) %>%
+    dplyr::mutate(
+      inits = purrr::map(scenario, function(x) scenarii[[x]])
+      )
+  param_combination <- dplyr::select(comb, -scenario, -inits) %>%
+    df2list()
+
+   run <- Map(
+     run_simecol,
+     inits = comb[["inits"]],
+     param = param_combination,
+     MoreArgs = list(model = model)
+     )
   # Run the simulations
-  output <- tibble::tibble(
-    scenario = names(scenarii),
-    inits = scenarii) %>%
-  dplyr::mutate(gradient = purrr::map(inits, ~ run_2d_gradient(y, x,
-	gradienty, gradientx,
-	model_spec,
-	run_2d_model,
-	time_seq,
-	param, nb_cores, solver_type, inits = .x))
+  #cat(str(run), str(param_combination), str(comb[["inits"]]),
+    #sep = "\n")
+  output <- comb %>%
+    dplyr::mutate(
+    scenario = comb[, "scenario"],
+    run = run
     )
+  #%>%
+    #dplyr::select(scenario, everything()) %>%
+    #dplyr::select(-run, everything())
+
+
 
   # Save model parameters
   model <- eval(call(model_spec))
   basis_param <- simecol::parms(model)[which(!names(simecol::parms(model)) %in%
-    c(x, y))]
+    names(gradient))]
   if (!is.null(param)) {
     basis_param[names(param)] <- param
   }
+
 
   return(
     structure(
       list(
 	model = model_spec,
+	inits = scenarii,
 	param = basis_param,
+	gradient = gradient,
 	run = output),
     class = c("scenarii", "list"))
     )
-
 }
 #' TODO: Document function
 
@@ -278,6 +316,28 @@ run_2d_model <- function(x, y, name_x, name_y, model) {
   run <- simecol::sim(model)
   output <- simecol::out(run) %>%
     dplyr::select(-time)
+  return(output)
+}
+
+#' Run the model by specifying initial values, parameters and the model  
+#' 
+#' Run the model over multidimensional gradient and initial values.
+#' 
+#' @param inits a vector of initial values. See simecole::init 
+#' @param params a named vector of length one
+#' @param model a function containing a odeModel
+#'
+#' @return a data.frame 
+#' @export
+run_simecol <- function(inits, params, model) {
+
+  simecol::parms(model)[names(params)] <- params
+  simecol::init(model) <- inits
+
+  run <- simecol::sim(model)
+  output <- simecol::out(run) %>%
+    dplyr::select(-time)
+
   return(output)
 }
 
