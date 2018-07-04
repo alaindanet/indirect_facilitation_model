@@ -6,18 +6,20 @@
 - [ ] No positive co-occurrence in the model: space is the key ? (cf Alex model
   results)
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
-    - [ ] gradient argument: a list of **named** vectors (+
+    - [x] gradient argument: a list of **named** vectors (+
       check_param(model_spec, names(gradient)))
-    - [ ] scenarii arg: NULL (default init values, scenario = "default"), a vector
+    - [ ] Add check for argument conformity (check_param, check_inits)
+    - [x] Add parallel computing 
+    - [x] scenarii arg: NULL (default init values, scenario = "default"), a vector
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
+    - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
+      https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
     - [ ] control for plot diagram, check how many param variables there is
 - [ ] Update vignette
 - [ ] Document functions
-- [ ] Framework to build simulation diagrams
-    - [ ] Check if simulations have reached stability
-	- [x] Implementation of a custom solver ("lsodar")
-	- [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
-    - [ ] Put the number of gradient parameters that we want
+- [ ] Check if simulations have reached stability
+    - [x] Implementation of a custom solver ("lsodar")
+    - [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
 
 ## Objectives
 

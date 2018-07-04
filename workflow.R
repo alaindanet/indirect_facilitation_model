@@ -1,6 +1,7 @@
 library(simecol)
 library(tidyverse)
 library(magrittr)
+options(mc.cores = 4)
 
 devtools::document()
 #devtools::use_vignette("three_states_model")

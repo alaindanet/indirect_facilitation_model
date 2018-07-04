@@ -34,80 +34,26 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
 
   return(out)
 }
-avg_runs.gradient <- function(run, cut_row = 10, nb_cores = NULL) {
+avg_runs.scenarii <- function(scenarii, cut_row = 10) {
 
-  param <- run[["param"]]
-  model <- run[["model"]]
-  run %<>% .[["run"]]
-
-  if (is.null(nb_cores)) {
-    run %<>% dplyr::mutate(
-      avg = purrr::map(runs, avg_runs, cut_row = cut_row)
-      ) %>%
-    tidyr::unnest(avg)
-
-  } else {
-    cluster <- multidplyr::create_cluster(nb_cores)
-    f_to_load <- c("avg_runs.data.frame", "is_run_normal")
-    lapply(f_to_load, function(x) {
-      multidplyr::cluster_assign_value(cluster, x, get(x))
-      })
-    # Export arguments of the functions
-    multidplyr::cluster_copy(cluster, cut_row)
-    multidplyr::cluster_copy(cluster, run)
-
-    multidplyr::set_default_cluster(cluster)
-    multidplyr::cluster_library(cluster, c("magrittr", "purrr", "tidyr", "dplyr"))
-    # Run the model
-    run %<>% multidplyr::partition() %>%
-      dplyr::mutate(
-	avg = purrr::map(runs, avg_runs.data.frame, cut_row = cut_row),
-	avg = purrr::map(avg, clean_run)
-	) %>%
-    dplyr::collect() %>%
-    dplyr::ungroup() %>%
-    tidyr::unnest(avg)
-  }
-
-  run %<>% clean_run(.)
-
-  return(
-    structure(
-      list(
-	model = model,
-	param = param,
-	run = run
-	),
-    class = c("list", "gradient")
-    )
-    )
-}
-avg_runs.scenarii <- function(scenarii, cut_row = 10, nb_cores = NULL) {
-
-  param <- scenarii[["param"]]
-  model <- scenarii[["model"]]
   run <- scenarii[["run"]] %>%
     dplyr::mutate(
-      avg = purrr::map(gradient, avg_runs.gradient, cut_row, nb_cores),
-      avg = purrr::map(avg, function(x) x$run)# Keep only the runs
+      avg = parallel::mclapply(run, avg_runs, cut_row = cut_row)
       ) %>%
-  unnest(avg)
+  tidyr::unnest(avg)
 
   return(
     structure(
       list(
-	model = model,
-	param = param,
+	model = scenarii$model,
+	inits = scenarii$inits,
+	param = scenarii$param,
+	gradient = scenarii$gradient,
 	run = run
       ),
     class = c("list", "scenarii")
     )
     )
-}
-avg_runs.bifurcation <- function(x, cut_row = 10) {
-  output <- avg_runs.gradient(x, cut_row)
-  class(output) <- c("bifurcation", "list")
-  return(output)
 }
 
 #' Compute the co-occurences between nurse and protegee 

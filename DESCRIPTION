@@ -10,7 +10,8 @@ LazyData: true
 Imports: simecol,
     ggplot2,
     magrittr,
-    dplyr
+    dplyr,
+    parallel
 Suggests: testthat,
     knitr,
     rmarkdown

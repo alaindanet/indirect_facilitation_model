@@ -7,32 +7,23 @@ u10$run
 
 #TODO: make a plot of multiple states
 
+system.time(parallel::mclapply(1:24, function(i) Sys.sleep(1), mc.cores=24))
+system.time(parallel::mclapply(1:24, function(i) Sys.sleep(1)))
 
 run_scenarii_gradient()
 
-run_scenarii_gradient(
-  gradient = list(g = 1, b = 1),
+u0 <- run_scenarii_gradient(
+  gradient = list(g = seq(0, .3, length.out = 5), b = 1),
   model_spec = "two_facilitation_model",
+  param = c(u = 0),
   time_seq = c(from = 0, to = 1, by = 1),
   solver_type = NULL
   )
-split(t(param_combination)[[1]], f = names(param_combination))
+avg_runs(u0)
 
-switch_list <- function (l) {
-  apply(l, 1, function(x){})
-  
-}
-
-
-df2list(param_combination)
-
-
-Map(dummy, comb[["inits"]],
-  param_combination,
-  MoreArgs = list(z = "two_facilitation_model"))
-param_test <- list(c(b = 1, c = 0.2))
-
-Map(dummy, comb[["inits"]][1],
-  param_test,
-  MoreArgs = list(z = "two_facilitation_model"))
-
+cut_row = 2
+u0
+u0[["run"]] %>%
+  dplyr::mutate(
+    avg = parallel::mclapply(run, avg_runs, cut_row = cut_row)
+    )
