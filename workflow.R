@@ -1,7 +1,7 @@
 library(simecol)
 library(tidyverse)
 library(magrittr)
-options(mc.cores = 4)
+options(mc.cores = 2)
 
 devtools::document()
 #devtools::use_vignette("three_states_model")
@@ -14,7 +14,7 @@ parms(mod)["protection_type"] <- list("first_protect")
 parms(mod)["protection_type"] <- list("linear")
 times(mod) <- c(from = 0, to = 3000, by = 1)
 mod_run <- sim(mod)
-tail(out(mod_run), 40)
+tail(out(mod_run), 10)
 plotnp(mod_run)
 
 ################################
@@ -22,17 +22,16 @@ plotnp(mod_run)
 ################################
 
 # Run_gradient g and gamma1
-g_gradient <- seq(0, 0.3, length.out = 10)
-gamma_gradient <- seq(0, 0.3, length.out = 10)
-gradient_2d <- run_2d_gradient(
-  y = "g",
-  gradienty = g_gradient,
-  x = "gamma1",
-  gradientx = gamma_gradient,
+gradient <- list(
+  g = seq(0, 0.3, length.out = 10),
+  gamma1 = seq(0, 0.3, length.out = 10)
+  )
+gradient_2d <- run_scenarii_gradient(
+  gradient = gradient,
   param = c(b = 0.8, u = 0, tau_n = 0, protection_type = list("linear")),
   time_seq = c(from = 0, to = 3000, by = 1),
-  nb_cores = 4,
-  solver_type = NULL#steady_state
+  solver_type = NULL,
+  scenarii = init_scenarii(type = "together")
   )
 
 gradient_2d
@@ -46,17 +45,15 @@ plot_diagram(averaged_runs, debug_mode = TRUE)
 #  Grazing and aridity gradient  #
 ##################################
 
-g_gradient <- seq(0, 0.3, length.out = 10)
-b_gradient <- seq(1, 0, length.out = 10)
-gradient_2d <- run_2d_gradient(
-  y = "g",
-  gradienty = g_gradient,
-  x = "b",
-  gradientx = b_gradient,
+gradient <- list(
+  g = seq(0, 0.3, length.out = 10),
+  b = seq(1, 0.5, length.out = 10)
+  )
+gradient_2d <- run_scenarii_gradient(
+  gradient = gradient,
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 0),
   time_seq = c(from = 0, to = 5000, by = 1),
-  nb_cores = 4,
-  solver_type = NULL#steady_state
+  scenarii = init_scenarii(type = "together")
   )
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
@@ -80,7 +77,6 @@ bifurc <- run_bifurcation(
 averaged_runs <- avg_runs(bifurc, cut_row = 1)
 plotnp(averaged_runs, alpha = 0.65)
 
-
 ################################################################################
 #                              Four states model                               #
 ################################################################################
@@ -101,18 +97,17 @@ plotnp(mod_run)
 #  Grazing and grazing protection strength  #
 #############################################
 
-g_gradient <- seq(0, 0.3, length.out = 10)
-u_gradient <- seq(0, 20, length.out = 10)
-gradient_2d <- run_2d_gradient(
-  y = "g",
-  gradienty = g_gradient,
-  x = "u",
-  gradientx = u_gradient,
+gradient <- list(
+  g = seq(0, 0.3, length.out = 10),
+  u = seq(0, 20, length.out = 10)
+  )
+
+gradient_2d <- run_scenarii_gradient(
+  gradient = gradient,
   model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1),
   time_seq = c(from = 0, to = 3000, by = 1),
-   nb_cores = 4,
-  solver_type = NULL
+  scenarii = init_scenarii(type = "together")
   )
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
@@ -123,18 +118,16 @@ ggsave("inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png")
 #  Grazing and aridity gradient  #
 ##################################
 
-g_gradient <- seq(0, 0.3, length.out = 30)
-b_gradient <- seq(1, 0.2, length.out = 30)
-gradient_2d <- run_2d_gradient(
-  y = "g",
-  gradienty = g_gradient,
-  x = "b",
-  gradientx = b_gradient,
+gradient <- list(
+  g = seq(0, 0.3, length.out = 30),
+  b = seq(1, .5, length.out = 30)
+  )
+gradient_2d <- run_scenarii_gradient(
+  gradient = gradient,
   model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 5),
   time_seq = c(from = 0, to = 3000, by = 1),
-  nb_cores = 4,
-  solver_type = NULL
+  scenarii = init_scenarii(type = "together")
   )
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
@@ -167,30 +160,22 @@ ggsave("inst/figs/four_states/bifurc_first_protect_u=0_g=.25_gamma1=.1.png")
 #  Scenarii  #
 ##############
 
-g_gradient <- seq(0, 0.3, length.out = 30)
-b_gradient <- seq(1, 0.2, length.out = 30)
+gradient <- list(
+  g = seq(0, 0.3, length.out = 30),
+  b = seq(1, .5, length.out = 30)
+  u = c(0, 5)
+  )
+output <- run_scenarii_gradient(
+  gradient = gradient,
+  model_spec = "two_facilitation_model",
+  param = c(protection_type = list("first_protect"), gamma1 = 0.1),
+  time_seq = c(from = 0, to = 3000, by = 1),
+  scenarii = init_scenarii(type = "bifurcation", ini_cover = .8, low_cover = .01)
+  )
 
-u_test <- c(0, 5)
-output <- vector(mode = "list", length = 3)
-names(output) <- sapply(u_test, function (x){paste("u", x, sep = "") })
-
-for (i in seq_along(u_test)) {
-  output[[i]] <- run_scenarii_gradient(
-    y = "g",
-    gradienty = g_gradient,
-    x = "b",
-    gradientx = b_gradient,
-    model_spec = "two_facilitation_model",
-    param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = u_test[i]),
-    time_seq = c(from = 0, to = 3000, by = 1),
-    nb_cores = 3,
-    solver_type = NULL,
-    scenarii = init_scenarii(type = "bifurcation", ini_cover = .8, low_cover = .01)
-    )
-}
 save(output, file = "./inst/scenar_bifurc_u=0_5_gamma1_.1.Rdata")
-
-scenar_avg <- avg_runs(scenar)
+scenar_avg <- avg_runs(output)
+save(scenar_avg, file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
 g <- plot_diagram(scenar_avg, param = c(x = "b", y = "g", type = "scenario"),
   debug_mode = FALSE)
@@ -200,7 +185,6 @@ test <- compute_states(scenar_avg, param = c(x = "b", y = "g", type = "scenario"
 test
 test$run %>%
   spread(scenario, state)
-
 
 plotnp(scenar_avg)
 ggsave("inst/figs/four_states/scenar_bifurc_first_protect_u=0_test.png")

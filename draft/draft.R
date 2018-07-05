@@ -7,19 +7,23 @@ u10$run
 
 #TODO: make a plot of multiple states
 
-system.time(parallel::mclapply(1:24, function(i) Sys.sleep(1), mc.cores=24))
-system.time(parallel::mclapply(1:24, function(i) Sys.sleep(1)))
+system.time(parallel::mclapply(1:3, function(i) Sys.sleep(1), mc.cores = 3))
+system.time(parallel::mclapply(1:3, function(i) Sys.sleep(1)))
 
 run_scenarii_gradient()
 
 u0 <- run_scenarii_gradient(
-  gradient = list(g = seq(0, .3, length.out = 5), b = 1),
+  gradient = list(
+    g = 0,
+    b = seq(1, .5, length.out = 10)
+    ),
   model_spec = "two_facilitation_model",
   param = c(u = 0),
-  time_seq = c(from = 0, to = 20, by = 1),
-  solver_type = NULL
+  time_seq = c(from = 0, to = 3000, by = 1),
+  scenarii = init_scenarii(type = "bifurcation")
   )
-avg_runs(u0)
+u0_avg <- avg_runs(u0)
 
+plotnp(u0_avg)
 dplyr::filter
 methods("filter")
