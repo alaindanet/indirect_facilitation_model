@@ -219,7 +219,17 @@ avg_runs.bifurcation <- function(x, cut_row = 10) {
   class(output) <- c("bifurcation", "list")
   return(output)
 }
+compute_occurences.gradient <- function(data, ...) {
+  data <- compute_occurences.scenarii(data, ...)
 
+  return(
+    structure(
+      data,
+      class = c("scenarii", "list") #, old_class
+      )
+    )
+
+}
 
 ##################
 #  Plot methods  #

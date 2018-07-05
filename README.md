@@ -14,6 +14,7 @@
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
     - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
+    - [x] Add methods: subset.scenarii (S3 methodsq
     - [ ] control for plot diagram, check how many param variables there is
 - [ ] Update vignette
 - [ ] Document functions

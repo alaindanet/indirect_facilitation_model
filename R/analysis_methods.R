@@ -40,7 +40,8 @@ avg_runs.scenarii <- function(scenarii, cut_row = 10) {
     dplyr::mutate(
       avg = parallel::mclapply(run, avg_runs, cut_row = cut_row)
       ) %>%
-  tidyr::unnest(avg)
+  tidyr::unnest(avg) %>%
+  dplyr::select(-run)
 
   return(
     structure(
@@ -51,7 +52,7 @@ avg_runs.scenarii <- function(scenarii, cut_row = 10) {
 	gradient = scenarii$gradient,
 	run = run
       ),
-    class = c("list", "scenarii")
+    class = c("avg_scenarii","scenarii", "list")
     )
     )
 }
@@ -65,17 +66,6 @@ avg_runs.scenarii <- function(scenarii, cut_row = 10) {
 #' @return a dataframe.
 #' @export
 compute_occurences <- function(x, ...) UseMethod("compute_occurences")
-compute_occurences.gradient <- function(data, ...) {
-  data <- compute_occurences.scenarii(data, ...)
-
-  return(
-    structure(
-      data,
-      class = c("scenarii", "list") #, old_class
-      )
-    )
-
-}
 compute_occurences.scenarii <- function(data, ...) {
 
   common_param <- data$param
@@ -322,5 +312,38 @@ define_double_state <- function (scenar1, scenar2) {
     return("unknown")
   }
 
+}
+
+#' Subset runs
+#'
+#' @param data a scenarii object
+#' @param ... filtering rules
+#' @details https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
+#' @return a scenarii object
+filter <- function(x, ...) UseMethod("filter")
+filter.scenarii <- function (data, ...) {
+  run <- data[["run"]]
+  filter_set <- rlang::quos(...)
+
+  run %<>% dplyr::filter(., !!! filter_set)
+
+  data[["run"]] <- run
+  # We need to update the gradient slot
+  data[["gradient"]] <- data[["run"]] %>%
+    .[, names(.) %in% names(data[["gradient"]])] %>%
+    as.list(.)
+
+  if (any(class(data) %in% "avg_scenarii")) {
+    class_returned <- c("avg_scenarii","scenarii", "list")
+  } else {
+    class_returned <- c("scenarii", "list")
+  }
+
+  return(
+    structure(
+      data,
+      class = class_returned
+      )
+    )
 }
 

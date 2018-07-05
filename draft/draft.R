@@ -16,14 +16,10 @@ u0 <- run_scenarii_gradient(
   gradient = list(g = seq(0, .3, length.out = 5), b = 1),
   model_spec = "two_facilitation_model",
   param = c(u = 0),
-  time_seq = c(from = 0, to = 1, by = 1),
+  time_seq = c(from = 0, to = 20, by = 1),
   solver_type = NULL
   )
 avg_runs(u0)
 
-cut_row = 2
-u0
-u0[["run"]] %>%
-  dplyr::mutate(
-    avg = parallel::mclapply(run, avg_runs, cut_row = cut_row)
-    )
+dplyr::filter
+methods("filter")

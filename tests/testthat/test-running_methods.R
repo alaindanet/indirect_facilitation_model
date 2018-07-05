@@ -117,17 +117,32 @@ test_that("run_simecol works", {
   expect_is(run, "list")
   expect_length(run, 2)
   })
-test_that("run_scenarii_gradient run", {
 
   u0 <- run_scenarii_gradient(
-    gradient = list(g = 0.1, b = 1),
+    gradient = list(g = c(0, 0.1), b = 1),
     model_spec = "two_facilitation_model",
     time_seq = c(from = 0, to = 1, by = 1),
     nb_cores = NULL,
     solver_type = NULL
     )
-
+test_that("run_scenarii_gradient run", {
   expect_is(u0, "scenarii")
   expect_length(u0, 5)
+  })
+test_that("the filter of runs works", {
+  u0_filtered <- filter(u0, g == 0)
+
+  expect_is(u0_filtered, "scenarii")
+  expect_equal(unique(u0_filtered$run$g), 0)
+
+  expect_is(u0_filtered$gradient, "list")
+  expect_equal(u0_filtered$gradient$g, 0)
+  expect_length(u0_filtered, 5)
+
+  u0_avg <- avg_runs(u0)
+  u0_avg_filtered <- filter(u0_avg, g == 0)
+  expect_is(u0_filtered$gradient, "list")
+  expect_equal(u0_filtered$gradient$g, 0)
+  expect_length(u0_filtered, 5)
 
   })
