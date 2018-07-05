@@ -320,7 +320,7 @@ define_double_state <- function (scenar1, scenar2) {
 #' @param ... filtering rules
 #' @details https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
 #' @return a scenarii object
-filter <- function(x, ...) UseMethod("filter")
+#' @export
 filter.scenarii <- function (data, ...) {
   run <- data[["run"]]
   filter_set <- rlang::quos(...)

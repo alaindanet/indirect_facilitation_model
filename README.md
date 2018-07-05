@@ -6,15 +6,14 @@
 - [ ] No positive co-occurrence in the model: space is the key ? (cf Alex model
   results)
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
-    - [x] gradient argument: a list of **named** vectors (+
-      check_param(model_spec, names(gradient)))
+    - [ ] check_param(model_spec, names(gradient)))
     - [ ] Add check for argument conformity (check_param, check_inits)
-    - [x] Add parallel computing 
-    - [x] scenarii arg: NULL (default init values, scenario = "default"), a vector
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
     - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
-    - [x] Add methods: subset.scenarii (S3 methodsq
+    - [ ] plot: export data_preparation (e.g. mutate.avg_scenarii,
+      select.avg_scenarii)
+    - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
     - [ ] control for plot diagram, check how many param variables there is
 - [ ] Update vignette
 - [ ] Document functions

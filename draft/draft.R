@@ -24,6 +24,8 @@ u0 <- run_scenarii_gradient(
   )
 u0_avg <- avg_runs(u0)
 
-plotnp(u0_avg)
-dplyr::filter
-methods("filter")
+plotnp(u0_avg, b, threshold = 10^-3, debug_mode = FALSE, N, P)
+filter(u0_avg$run, N > 0)
+filter(u0_avg, N > 0)
+
+names(u0_avg$inits[[1]])

@@ -25,38 +25,44 @@ plotnp.odeModel <- function(obj, ...) {
     ylim(0, 1)
 
 }
-plotnp.bifurcation <- function(data, threshold = 10^-3, debug_mode = FALSE, alpha = .15) {
-  #TODO: generalise for other parameters than b
+plotnp.avg_scenarii <- function(data, x = b, threshold = 10^-3, debug_mode = FALSE, ...) {
+
+  #var <- enquo(var)
+  var <- quos(...)
 
   params <- data[["param"]]
-  data %<>% .[["run"]]
+  inits <- data[["inits"]]
+  total_var  <- names(inits[[1]])
+
+  run <- data[["run"]]
 
   #Replace low values by 0
-  var_to_drop <- c("runs", "NP", "NN", "PP", "status")
-  data %<>%
-    purrr::modify_at(var_to_drop, ~NULL) %>%
-    gather(species, rho, N, P) %>%
-    mutate(
+  run %<>%
+    tidyr::gather(species, rho, total_var) %>%
+    dplyr::mutate(
       rho = replace(rho, rho < threshold, 0)
       ) %>%
-    purrr::modify_at(c("init", "species"), as.factor)
+    purrr::modify_at("species", as.factor)
 
-  if (any(is.nan(data$rho))) {
-    data %<>% mutate(rho = replace(rho, is.nan(rho), 0))
+  if (any(is.nan(run$rho))) {
+    run %<>% dplyr::mutate(rho = replace(rho, is.nan(rho), 0))
     warning("NaNs produced in simulations have been replaced by 0")
   }
 
-  g <- ggplot2::ggplot(data,
-    aes(y = rho, x = b, color = species, linetype = init)) +
+  run %<>% tidyr::spread(species, rho) %>%
+    tidyr::gather(species, rho, !!! var) %>%
+    purrr::modify_at("species", as.factor)
+
+  g <- ggplot2::ggplot(run,
+    aes_(y = ~rho, x = substitute(x), color = ~species, linetype = ~scenario)) +
   ggplot2::scale_linetype_manual(values = c("dotted", "solid")) +
   ggplot2::scale_colour_manual(values = c("green", "black")) +
   ggplot2::ylim(0,1) +
-  theme_diagram() +
-  ggplot2::geom_line(alpha = alpha, size = .5)
-
+  theme_diagram() + # Provide a bifurcation theme 
+  ggplot2::geom_line(alpha = .15, size = 3)
 
   if (debug_mode) {
-    return(data)
+    return(run)
   } else {
     return(g)
   }
