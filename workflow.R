@@ -1,7 +1,7 @@
 library(simecol)
 library(tidyverse)
 library(magrittr)
-options(mc.cores = 2)
+options(mc.cores = 4)
 
 devtools::document()
 #devtools::use_vignette("three_states_model")
@@ -52,7 +52,7 @@ gradient <- list(
 gradient_2d <- run_scenarii_gradient(
   gradient = gradient,
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 0),
-  time_seq = c(from = 0, to = 5000, by = 1),
+  time_seq = c(from = 0, to = 3000, by = 1),
   scenarii = init_scenarii(type = "together")
   )
 

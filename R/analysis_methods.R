@@ -347,3 +347,37 @@ filter.scenarii <- function (data, ...) {
     )
 }
 
+#' Select variables of runs
+#'
+#' @param data a scenarii object
+#' @param ... variables selected
+#' @details https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
+#' @return a scenarii object
+#' @seealso a scenarii object
+#' @export
+select.scenarii <- function (data, ...) {
+  run <- data[["run"]]
+  set <- rlang::quos(...)
+
+  param_gradient <- names(data[["gradient"]])
+  run %<>% dplyr::select(., scenario, param_gradient,!!! set)
+
+  data[["run"]] <- run
+  data[["gradient"]] <- data[["run"]] %>%
+    .[, names(.) %in% names(data[["gradient"]])] %>%
+    as.list(.)
+
+  if (any(class(data) %in% "avg_scenarii")) {
+    class_returned <- c("avg_scenarii","scenarii", "list")
+  } else {
+    class_returned <- c("scenarii", "list")
+  }
+
+  return(
+    structure(
+      data,
+      class = class_returned
+      )
+    )
+}
+

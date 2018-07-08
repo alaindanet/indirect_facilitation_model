@@ -26,6 +26,13 @@ u0_avg <- avg_runs(u0)
 
 plotnp(u0_avg, b, threshold = 10^-3, debug_mode = FALSE, N, P)
 filter(u0_avg$run, N > 0)
-filter(u0_avg, N > 0)
+
+u0_to_plot <- select(u0_avg, N, P)
+u0_to_plot$run %<>%
+  mutate(tot = N + P)
+  
+## Fix: remove useless manipulations:
+plotnp(u0_to_plot, b, threshold = 10^-3, debug_mode = FALSE, tot)
+
 
 names(u0_avg$inits[[1]])
