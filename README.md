@@ -15,7 +15,7 @@
       select.avg_scenarii)
     - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
     - [ ] control for plot diagram, check how many param variables there is
-- [ ] Update vignette
+- [x] Update vignette
 - [ ] Document functions
 - [ ] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")

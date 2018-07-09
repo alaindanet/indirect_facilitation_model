@@ -1,7 +1,7 @@
 library(simecol)
 library(tidyverse)
 library(magrittr)
-options(mc.cores = 4)
+options(mc.cores = 3)
 
 devtools::document()
 #devtools::use_vignette("three_states_model")
@@ -304,4 +304,19 @@ load(file = "./inst/diag_aridity_grazing_first_protect_u=5.RData")
 
 u5 <- convert2scenarii(u5, scenario = "together")
 plot_diagram(u5, debug_mode = FALSE, fill = "cnp")
-plot_diagram(u10, debug_mode = FALSE, fill = "N")
+plot_diagram(u0, debug_mode = FALSE, fill = "cnp")
+
+#############
+#  New sim  #
+#############
+
+load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+unique(scenar_avg$gradient$g)
+
+scenar_avg$run$g %<>% round(., 3)
+u0 <- filter(scenar_avg, g %in% c(0, 0.104, 0.202))
+
+p <- plotnp(u0, b, threshold = 10^-3, debug_mode = FALSE, N, P)
+p + facet_grid(vars(g), vars(u)) 
+
+

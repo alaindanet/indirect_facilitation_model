@@ -59,8 +59,8 @@ run_scenarii_gradient <- function (
     run = run
     ) %>%
     dplyr::select(-inits) %>%
-    dplyr::select(scenario, everything()) %>%
-    dplyr::select(-run, everything())
+    dplyr::select(scenario, dplyr::everything()) %>%
+    dplyr::select(-run, dplyr::everything())
 
   # Save model parameters
   model <- eval(call(model_spec))

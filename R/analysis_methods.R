@@ -101,7 +101,7 @@ convert2scenarii <- function (x, scenario) {
   output <- x$run %>%
     dplyr::mutate(
       scenario = scenario,
-      inits = map(scenario, init_scenarii)
+      inits = purrr::map(scenario, init_scenarii)
       )
 
   return(
@@ -325,13 +325,15 @@ filter.scenarii <- function (data, ...) {
   run <- data[["run"]]
   filter_set <- rlang::quos(...)
 
-  run %<>% dplyr::filter(., !!! filter_set)
+   run %<>% dplyr::filter(., !!! filter_set)
 
   data[["run"]] <- run
   # We need to update the gradient slot
   data[["gradient"]] <- data[["run"]] %>%
     .[, names(.) %in% names(data[["gradient"]])] %>%
-    as.list(.)
+    as.list(.) %>%
+    lapply(., function(x) unique(x))
+
 
   if (any(class(data) %in% "avg_scenarii")) {
     class_returned <- c("avg_scenarii","scenarii", "list")

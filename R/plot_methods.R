@@ -25,7 +25,7 @@ plotnp.odeModel <- function(obj, ...) {
     ylim(0, 1)
 
 }
-plotnp.avg_scenarii <- function(data, x = b, threshold = 10^-3, debug_mode = FALSE, ...) {
+plotnp.avg_scenarii <- function(data, x, threshold = 10^-3, debug_mode = FALSE, ...) {
 
   #var <- enquo(var)
   var <- quos(...)

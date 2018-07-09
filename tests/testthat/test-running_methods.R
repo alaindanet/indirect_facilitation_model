@@ -119,10 +119,9 @@ test_that("run_simecol works", {
   })
 
   u0 <- run_scenarii_gradient(
-    gradient = list(g = c(0, 0.1), b = 1),
+    gradient = list(g = c(0, 0.1), b = c(.5, .8)),
     model_spec = "two_facilitation_model",
     time_seq = c(from = 0, to = 1, by = 1),
-    nb_cores = NULL,
     solver_type = NULL
     )
 test_that("run_scenarii_gradient run", {
