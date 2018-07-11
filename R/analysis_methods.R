@@ -223,19 +223,21 @@ def_multi_state <- function(scenar_one, scenar_two, sim_status,
 #'
 #' @export 
 compute_states <- function(x, ...) UseMethod("compute_states")
-compute_states.gradient <- function (
+compute_states.avg_scenarii <- function (
   data,
-  param,
-  var_to_keep = NULL,
+  var_to_keep = "scenario",
   type = "single", warning_as_desert = TRUE) {
 
+  stopifnot(type %in% c("single", "double"))
+
   common_param <- data$param
+  gradient_names <- names(data$gradient)
   model <- data$model
-  data %<>% .[["run"]]
+  run <- data[["run"]]
 
-  var_to_drop <- names(data)[!(names(data) %in% c(param, var_to_keep))]
+  var_to_drop <- names(run)[!(names(run) %in% c(gradient_names, var_to_keep))]
 
-  data %<>%
+  run %<>%
     dplyr::mutate(
       state = purrr::pmap_chr(
 	list(nurse = N, protegee = P, sim_status = status),
@@ -244,13 +246,12 @@ compute_states.gradient <- function (
     dplyr::mutate(state = as.factor(state))
 
   if (warning_as_desert) {
-    data %<>%
+    run %<>%
       dplyr::mutate(
 	state = stringr::str_replace(state, "warning", "desert"),
 	state = as.factor(state)
 	)
     message("warning state has been silently replaced by desert")
-
 
   }
 
@@ -259,8 +260,8 @@ compute_states.gradient <- function (
   } else if (type == "double") {
 
     #TODO: to generalize to any scenario
-    data %<>%
-      dplyr::mutate( state = as.character(state)) %>%
+    run %<>%
+      dplyr::mutate(state = as.character(state)) %>%
       tidyr::spread(scenario, state) %>%
       dplyr::mutate(
 	state = purrr::map2_chr(low_together, together, define_double_state)
@@ -270,13 +271,18 @@ compute_states.gradient <- function (
 
   }
 
-return(
-  list(
-    model = model,
-    param = common_param,
-    run = data
+  return(
+    structure(
+      list(
+	model = data$model,
+	inits = data$inits,
+	param = data$param,
+	gradient = data$gradient,
+	run = run
+      ),
+    class = c("states_scenarii","scenarii", "list")
     )
-  )
+    )
 }
 compute_states.scenarii <- function (data, param, var_to_keep = "scenario",
   type = "single") {
@@ -308,6 +314,10 @@ define_double_state <- function (scenar1, scenar2) {
     return("coexistence_desert")
   } else if (all(scenar1 %in% c("protegee", "nurse"), scenar2 %in% c("protegee", "nurse"))) {
     return("protegee_nurse")
+  } else if (all(scenar1 %in% c("coexistence", "nurse"), scenar2 %in% c("coexistence", "nurse"))) {
+    return("coexistence_nurse")
+  } else if (all(scenar1 %in% c("coexistence", "protegee"), scenar2 %in% c("coexistence", "protegee"))) {
+    return("coexistence_protegee")
   } else {
     return("unknown")
   }

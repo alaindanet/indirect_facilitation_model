@@ -154,7 +154,7 @@ plot_diagram.states <- function(
 
   g <- ggplot2::ggplot(data,
     aes_string(x = param["x"], y = param["y"], fill = "state")) +
-  ggplot2::geom_raster() +
+  ggplot2::geom_raster(interpolate = TRUE) +
   theme_diagram() +
   ggplot2::scale_fill_manual(
     values = col_states,
@@ -191,17 +191,13 @@ plot_diagram.gradient <- function (
     return(g)
   }
 }
-plot_diagram.scenarii <- function (
+plot_diagram.states_scenarii <- function (
   data,
   param = c(x = "b", y = "g"),
   possible_states = c("coexistence", "nurse", "protegee", "desert", "warning"),
   col_states = c(coexistence = "orange", nurse = "green", protegee = "black",
   desert = "#C19A6B", unkown = "white"),
   debug_mode = FALSE, fill = "single", ...) {
-  if (fill %in% c("single", "double_states")) {
-    data <- compute_states(data,
-      param = param,
-      fill = fill)
 
     g <- ggplot2::ggplot(data$run,
       aes_string(x = param["x"], y = param["y"], fill = "state")) +
@@ -212,22 +208,6 @@ plot_diagram.scenarii <- function (
       limits = possible_states
       )
 
-    if (fill == "single"){
-     g <- g + facet_grid(. ~ scenario)
-    }
-  } else {
-    if (fill == "cnp") {
-      data %<>% compute_occurences(.)
-    }
-
-    g <- ggplot2::ggplot(data$run,
-      aes_string(x = param["x"], y = param["y"], fill = fill)) +
-    ggplot2::geom_raster() +
-    ggplot2::scale_fill_gradient2(
-      low = "blue", high = "red", limits = c(0, 1.5), midpoint = 1
-      ) +
-    theme_diagram()
-  }
   if (debug_mode) {
     return(data)
   }
@@ -248,3 +228,57 @@ theme_diagram <- function(base_size = 12, base_family = "Helvetica"){
       strip.background = element_rect(fill = NA)
       )
 }
+
+#' Color blind palette 
+#'
+#' Paul tol palette light qualitative, it can be found at 
+#' https://personal.sron.nl/~pault/
+#' 
+#' @return a named vector of 9 colors
+#' @export
+compute_light_paul_palette <- function() {
+
+  c(
+    light_blue = "#77AADD",
+    light_cyan = "#99DDFF",
+    mint = "#44BB99",
+    pear = "#BBCC33",
+    olive = "#AAAA00",
+    light_yellow = "#EEDD88",
+    orange = "#EE8866",
+    pink = "#FFAABB",
+    pale_grey = "#DDDDDD",
+    dark_cyan = "#225555", # added
+    dark_blue = "#222255" # added
+    )
+
+}
+
+#' States colors 
+#'
+#' @return a named vector of 8 colors
+#' @seealso compute_light_paul_palette()
+#' @export
+color_states <- function() {
+
+  match_states_colors <- c(
+    coexistence = "mint",
+    nurse = "pear",
+    protegee = "light_cyan",
+    desert = "light_yellow",
+    protegee_desert = "light_blue",
+    nurse_desert = "olive",
+    coexistence_desert = "orange",
+    protegee_nurse = "pink",
+    coexistence_nurse = "dark_cyan",
+    coexistence_protegee = "dark_blue",
+    unknown = "pale_grey"
+    )
+
+  color <- compute_light_paul_palette() %>%
+    .[match_states_colors]
+  names(color) <- names(match_states_colors)
+
+  return(color)
+}
+

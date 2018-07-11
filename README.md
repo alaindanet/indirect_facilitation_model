@@ -2,9 +2,17 @@
 
 ## TODO  
 
-- [ ] Comparison pair-approx to mean field: f(b,g)
-- [ ] No positive co-occurrence in the model: space is the key ? (cf Alex model
-  results)
+### Paper 
+
+- Fig 1: methods
+- Fig 2: multi-states + bifurcation details
+- Fig 3:  
+
+### Implementation 
+
+- [ ] Add cellular automata
+- [ ] Multispecies implementation: cf Minus and Lion; need to implement the
+  rules 
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
     - [ ] check_param(model_spec, names(gradient)))
     - [ ] Add check for argument conformity (check_param, check_inits)
@@ -15,7 +23,6 @@
       select.avg_scenarii)
     - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
     - [ ] control for plot diagram, check how many param variables there is
-- [x] Update vignette
 - [ ] Document functions
 - [ ] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")

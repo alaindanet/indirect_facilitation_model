@@ -295,6 +295,25 @@ plot_diagram(u0,
   debug_mode = FALSE, type = "double")
 ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 
+
+######################
+#  Figure 2 new sim  #
+######################
+
+load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+
+u0 <- filter(scenar_avg, u == 0)
+u5 <- filter(scenar_avg, u == 5)
+names(u0$gradient)
+
+## TODO: check the computation of states
+states <- compute_states(scenar_avg, type = "double")
+
+plot_diagram(states, type = "double_states", debug_mode = FALSE) +
+    ggplot2::scale_fill_manual(
+      values = color_states()
+      ) + facet_grid(cols = vars(u))
+
 ###########################################
 #  Plot species densities and clustering  #
 ###########################################
@@ -314,6 +333,7 @@ load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 unique(scenar_avg$gradient$g)
 
 scenar_avg$run$g %<>% round(., 3)
+scenar_avg
 u0 <- filter(scenar_avg, g %in% c(0, 0.104, 0.202))
 
 p <- plotnp(u0, b, threshold = 10^-3, debug_mode = FALSE, N, P)
