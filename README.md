@@ -7,6 +7,7 @@
 - Fig 1: methods
 - Fig 2: multi-states + bifurcation details
 - Fig 3:  
+- Fig 4: cellular automata, spatial coexistence Cnp $f(\gamma, u)$ 
 
 ### Implementation 
 
@@ -17,12 +18,11 @@
     - [ ] check_param(model_spec, names(gradient)))
     - [ ] Add check for argument conformity (check_param, check_inits)
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
+    - [ ] control for plot diagram, check how many param variables there is  
+    - [ ] plotnp.avg_scenarii()
     - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
-    - [ ] plot: export data_preparation (e.g. mutate.avg_scenarii,
-      select.avg_scenarii)
     - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
-    - [ ] control for plot diagram, check how many param variables there is
 - [ ] Document functions
 - [ ] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")
