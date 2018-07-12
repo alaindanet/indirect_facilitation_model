@@ -135,6 +135,10 @@ test_that("run_scenarii_gradient run", {
     solver_type = NULL, set_tail = 5
     )
   expect_equal(nrow(u_tail$run$run[[1]]), 5)
+
+  u_tail_avg <- avg_runs(u_tail, cut_row = 5)
+  expect_equal(nrow(u_tail_avg$run), 2)
+
   })
 test_that("the filter of runs works", {
   u0_filtered <- filter(u0, g == 0)
