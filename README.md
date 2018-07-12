@@ -20,7 +20,7 @@
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
     - [ ] control for plot diagram, check how many param variables there is  
     - [ ] plotnp.avg_scenarii()
-    - [ ] For big simulation runs: add set_tail argument to
+    - [x] For big simulation runs: add set_tail argument to
       run_scenarii_gradient() to cut the simulations with tail(output, set_tail)
     - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function

@@ -14,7 +14,7 @@ run_scenarii_gradient <- function (
   model_spec = "two_facilitation_model",
   time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL,
-  scenarii = NULL) {
+  scenarii = NULL, set_tail = NULL) {
 
   if (is.null(gradient)) {
     stop("Please provide a gradient")
@@ -48,7 +48,7 @@ run_scenarii_gradient <- function (
      run_simecol,
      inits = comb[["inits"]],
      param = param_combination,
-     MoreArgs = list(model = model)
+     MoreArgs = list(model = model, set_tail = set_tail)
      )
   # Run the simulations
   #cat(str(run), str(param_combination), str(comb[["inits"]]),
@@ -198,14 +198,21 @@ init_scenarii <- function (type = "together",
 #'
 #' @return a data.frame 
 #' @export
-run_simecol <- function(inits, params, model) {
+run_simecol <- function(inits, params, model, set_tail = NULL) {
 
   simecol::parms(model)[names(params)] <- params
   simecol::init(model) <- inits
 
   run <- simecol::sim(model)
-  output <- simecol::out(run) %>%
-    dplyr::select(-time)
+
+  if(!is.null(set_tail)){ # For big simulations, keep only the last step 
+    output <- simecol::out(run) %>%
+      tail(., set_tail) %>%
+      dplyr::select(-time)
+  } else {
+    output <- simecol::out(run) %>%
+      dplyr::select(-time)
+  }
 
   return(output)
 }
