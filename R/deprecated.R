@@ -235,3 +235,52 @@ compute_occurences.gradient <- function(data, ...) {
 #  Plot methods  #
 ##################
 
+plot_diagram.gradient <- function (
+  data,
+  param = c(x = "b", y = "g"),
+  possible_states = c("coexistence", "nurse", "protegee", "desert", "warning"),
+  col_states = c("orange", "green", "black", "yellow", "grey"),
+  debug_mode = FALSE, ...) {
+
+  params <- data[["param"]]
+  data <- compute_states(data, param, type = "single")
+
+  cols <- col_states
+  names(cols) <- possible_states
+
+  g <- ggplot2::ggplot(data$run,
+    aes_string(x = param["x"], y = param["y"], fill = "state")) +
+  ggplot2::geom_raster() +
+  theme_diagram() +
+  ggplot2::scale_fill_manual(
+    values = col_states,
+    limits = possible_states
+    )
+
+  if (debug_mode) {
+    return(data)
+  } else {
+    return(g)
+  }
+}
+plot_diagram.states <- function(
+  data,
+  param = c(x = "gamma1", y = "g"),
+  possible_states = c("coexistence", "nurse", "protégée", "extinct", "warning"),
+  col_states = c("orange", "green", "black", "yellow", "grey"),
+  debug_mode = FALSE, ...) {
+
+  cols <- col_states
+  names(cols) <- possible_states
+
+  g <- ggplot2::ggplot(data,
+    aes_string(x = param["x"], y = param["y"], fill = "state")) +
+  ggplot2::geom_raster(interpolate = TRUE) +
+  theme_diagram() +
+  ggplot2::scale_fill_manual(
+    values = col_states,
+    limits = possible_states
+    )
+
+  return(g)
+}

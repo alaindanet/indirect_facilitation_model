@@ -309,21 +309,19 @@ names(u0$gradient)
 ## TODO: check the computation of states
 states <- compute_states(scenar_avg, type = "double")
 
-plot_diagram(states, type = "double_states", debug_mode = FALSE) +
-    ggplot2::scale_fill_manual(
-      values = color_states()
-      ) + facet_grid(cols = vars(u))
+plot_diagram(states, debug_mode = FALSE) +
+  facet_grid(cols = vars(u))
 
 ###########################################
 #  Plot species densities and clustering  #
 ###########################################
+load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
-load(file = "./inst/scenar_test_u=0.Rdata")
-load(file = "./inst/diag_aridity_grazing_first_protect_u=5.RData")
+plot_diagram(scenar_avg, debug_mode = FALSE, fill = "P")
 
-u5 <- convert2scenarii(u5, scenario = "together")
-plot_diagram(u5, debug_mode = FALSE, fill = "cnp")
-plot_diagram(u0, debug_mode = FALSE, fill = "cnp")
+occurenres <- compute_occurences(scenar_avg)
+plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
+plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
 
 #############
 #  New sim  #
