@@ -40,7 +40,6 @@ test_that("avg_run returns NA if simulations has stoped early", {
     N = runif(n = 3),
     P = runif(n = 3)
     )
-  expect_equal(length(which(is.na(avg_runs(short_run)))), 3)
   expect_true(avg_runs(short_run)$status)
 
   short_bad_run <- tibble(
@@ -48,7 +47,6 @@ test_that("avg_run returns NA if simulations has stoped early", {
     N = rep(NaN, n = 3),
     P = rep(NaN, n = 3)
     )
-  expect_equal(length(which(is.na(avg_runs(short_bad_run)))), 3)
   expect_false(avg_runs(short_bad_run)$status)
   })
 test_that("the good states are returned", {
@@ -138,6 +136,7 @@ test_that("run_scenarii_gradient run", {
 
   u_tail_avg <- avg_runs(u_tail, cut_row = 5)
   expect_equal(nrow(u_tail_avg$run), 2)
+  expect_equal(which(is.na(u_tail_avg$run)) %>% length(.), 0)
 
   })
 test_that("the filter of runs works", {

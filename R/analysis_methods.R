@@ -13,13 +13,12 @@ avg_runs <- function(x, ...) UseMethod("avg_runs")
 avg_runs.default <- function(x) "Unknown class"
 avg_runs.data.frame <- function(run, cut_row = 10) {
 
-  if (nrow(run) <= cut_row) {
+  if (nrow(run) < cut_row) {
     # Create a NA data.frame of length one
-    out <- lapply(vector("list", ncol(run)), function(x) return(NA))
-    names(out) <- names(run)
-    out %<>% as.data.frame(.)
-
-  } else {
+    warnings("cut_row is ", cut_row, "  and the number of row of the data.frame
+      is ", nrow(run), ". cut_row has been set to ", nrow(run), ".")
+    cut_row <- nrow(run)
+  }
 
   out <- run %>%
     dplyr::slice( (n() - cut_row) : n()) %>% # Keep the last simulation
@@ -28,7 +27,7 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
     dplyr::summarise(rho = mean(rho, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     tidyr::spread(species, rho)
-  }
+
   # check negative or NaN
   out$status <- is_run_normal(run)
 

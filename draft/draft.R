@@ -1,5 +1,7 @@
 ## Cool
-load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+load(file = "./inst/scenar_bifurc_u=0_5_gamma1_.1.Rdata")
+
+avg_runs(output, cut_row = 5)
 
 u0 <- filter(scenar_avg, u == 0)
 u5 <- filter(scenar_avg, u == 5)
