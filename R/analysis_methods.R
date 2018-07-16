@@ -66,14 +66,28 @@ avg_runs.scenarii <- function(scenarii, cut_row = 10) {
 #' @return a dataframe.
 #' @export
 compute_occurences <- function(x, ...) UseMethod("compute_occurences")
-compute_occurences.scenarii <- function(data, ...) {
+compute_occurences.default <- function(x) "Unknown class"
+compute_occurences.avg_scenarii <- function(data, ...) {
 
-  common_param <- data$param
-  model <- data$model
-  old_class <- class(data)
-  data %<>% .[["run"]] %>%
-    dplyr::mutate(cnp = NP / N)
+  run <- data[["run"]] %>%
+    dplyr::mutate(
+      cnp = NP / N * P, #qj|i = pij / pi
+      cnn = NN / N * N,
+      cpp = PP / P * P
+      )
 
+  return(
+    structure(
+      list(
+	model = data$model,
+	inits = data$inits,
+	param = data$param,
+	gradient = data$gradient,
+	run = run
+      ),
+    class = c("avg_scenarii","scenarii", "list")
+    )
+    )
   return(
     structure(
     list( model = model,
