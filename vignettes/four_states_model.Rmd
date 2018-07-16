@@ -9,6 +9,16 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.dim = c(10, 7) #width, height
+  
+  )
+
+```
+
+
 ## ODEs 
 
 * We have 4 states ($n$, $p$, $0$, $-$)
@@ -126,37 +136,31 @@ $$
 ![gamma = .1](../inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png){ width=9in }\
 
 
-### grazing and resources 
+### Indirect facilitation and  stability
 
-
-![u = 0](../inst/figs/four_states/diag_aridity_grazing_first_protect_u=0.png){ width=9in }\
-
-![u = 15](../inst/figs/four_states/diag_aridity_grazing_first_protect_u=15.png){ width=9in }\
-
-
-### Indirect facilitation and  bistability
-
-![u = 0](../inst/figs/four_states/diag_bistab_u=0_gamma1=.1.png){ width=9in }\
-
-![u = 10](../inst/figs/four_states/diag_bistab_u=10_gamma1=.1.png){ width=9in }\
-
-
-```{r, eval = FALSE, echo = FALSE}
+```{r, echo = FALSE}
 library(tidyverse)
 library(cowplot)
 library(magrittr)
-load(file = "./inst/scenar_test_u=0.Rdata")
-load(file = "./inst/scenar_test_u=10.Rdata")
 
-a <- plot_diagram(u0, debug_mode = FALSE, fill = "cnp")
-b <- plot_diagram(u10, debug_mode = FALSE, fill = "N")
+load(file = "../inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
 
-plot_grid(a, b, labels = "AUTO")
+states <- compute_states(scenar_avg, type = "double")
+
+plot_diagram(states) +
+  facet_grid(cols = vars(u))
 
 ```
 
-```{r, eval = FALSE}
-load(file = "./inst/diag_aridity_grazing_first_protect_u=5.RData")
-u5 <- convert2scenarii(u5, scenario = "together")
+```{r, echo = FALSE}
+
+occurenres <- compute_occurences(scenar_avg)
+p1 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
+p2 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
+p3 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
+
+plot_grid(p1, p2, p3, labels = "AUTO")
+
 ```
 
