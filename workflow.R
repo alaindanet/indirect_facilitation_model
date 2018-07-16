@@ -302,39 +302,31 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 
 load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
-u0 <- filter(scenar_avg, u == 0)
-u5 <- filter(scenar_avg, u == 5)
-names(u0$gradient)
+# Remove the white strips: https://stackoverflow.com/questions/49909579/white-stripes-in-geom-raster-with-date-variable
+scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
 
-## TODO: check the computation of states
 states <- compute_states(scenar_avg, type = "double")
 
-plot_diagram(states, debug_mode = FALSE) +
+plot_diagram(states) +
   facet_grid(cols = vars(u))
 
 ###########################################
 #  Plot species densities and clustering  #
 ###########################################
-load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
 plot_diagram(scenar_avg, debug_mode = FALSE, fill = "P")
 
 occurenres <- compute_occurences(scenar_avg)
 plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
 plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
+plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
 
-#############
-#  New sim  #
-#############
+######################
+#  Bifucation plots  #
+######################
 
-load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
-unique(scenar_avg$gradient$g)
 
-scenar_avg$run$g %<>% round(., 3)
-scenar_avg
-u0 <- filter(scenar_avg, g %in% c(0, 0.104, 0.202))
+extraction <- filter(scenar_avg, g %in% c(0, 0.1, 0.20, .3))
 
-p <- plotnp(u0, b, threshold = 10^-3, debug_mode = FALSE, N, P)
+p <- plotnp(extraction, b, threshold = 10^-3, debug_mode = FALSE, N, P)
 p + facet_grid(vars(g), vars(u)) 
-
-

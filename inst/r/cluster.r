@@ -10,8 +10,8 @@ options(mc.cores = 24)
 
 
 gradient <- list(
-  g = seq(0, 0.5, length.out = 100) %>% round(., 3),
-  b = seq(1, .5, length.out = 100) %>% round(., 3),
+  g = seq(0, 0.5, by = .005),
+  b = seq(1, .5, by = -.005),
   u = c(0, 5)
   )
 output <- run_scenarii_gradient(
@@ -23,6 +23,6 @@ output <- run_scenarii_gradient(
   set_tail = 10
   )
 
-save(output, file = "./inst/scenar_bifurc_u=0_5_gamma1_.1.Rdata")
+save(output, file = "scenar_bifurc_u=0_5_gamma1_.1.Rdata")
 scenar_avg <- avg_runs(output, cut_row = 10)
-save(scenar_avg, file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+save(scenar_avg, file = "scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
