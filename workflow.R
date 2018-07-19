@@ -302,9 +302,6 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 
 load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
-# Remove the white strips: https://stackoverflow.com/questions/49909579/white-stripes-in-geom-raster-with-date-variable
-scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
-
 states <- compute_states(scenar_avg, type = "double")
 
 plot_diagram(states) +
@@ -317,9 +314,11 @@ plot_diagram(states) +
 plot_diagram(scenar_avg, debug_mode = FALSE, fill = "P")
 
 occurenres <- compute_occurences(scenar_avg)
+summary(occurenres$run$c_veg3)
 plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
 plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
 plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
+plot_diagram(occurenres, debug_mode = FALSE, fill = "c_veg3")
 
 ######################
 #  Bifucation plots  #
@@ -330,3 +329,21 @@ extraction <- filter(scenar_avg, g %in% c(0, 0.1, 0.20, .3))
 
 p <- plotnp(extraction, b, threshold = 10^-3, debug_mode = FALSE, N, P)
 p + facet_grid(vars(g), vars(u)) 
+
+################################################################################
+#                              Cellular automata                               #
+################################################################################
+
+
+mod <- ca_two_facilitation_model()
+solver(mod) <- "myiteration"
+times(mod)["to"] <- c(to = 6000)
+parms(mod)
+mod_run <- sim(mod)
+#plot(mod_run)
+
+g1 <- out(mod_run) %>%
+  gather(state, rho, -times) %>%
+  ggplot(., aes(x = times, y = rho, color = state)) +
+  geom_line() + ylim(0, 1)
+g1

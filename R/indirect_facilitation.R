@@ -37,11 +37,24 @@ two_facilitation_model <- function() {
     times = c(from = 0, to = 100, by = 0.1),
     parms = c(z = 4, del = .1, b = .8, c = .2, g = .08, m = .2,
       gamma1 = .08, r = .01, f = .9, d = .1,
-      extinction_threshold = 1 * 10 ^ -3, protection_type = list("linear"),
+      extinction_threshold = 1 * 10 ^ -3, protection_type = list("first_protect"),
       u = 15, n = 1, tau_n = 15),
     init = c(N = .4, P = .4, D = .1,
       NP = .1, PP = .1, NN = .1,
       DD = .1, PD = .1, ND = .1),
     solver = "lsoda"
+    )
+}
+
+ca_two_facilitation_model <- function () {
+  new("gridModel",
+    main = four_states_ca,
+    times = c(from = 0, to = 100, by = 1),
+    parms = c(z = 4, del = .1, b = .8, c = .2, g = .1, m = .2,
+      gamma1 = .1, r = .01, f = .9, d = .1, protection_type = list("first_protect"),
+      u = 0),
+    init = matrix(sample.int(4, size = 100*100, replace = TRUE, prob = c(.4, .4, .1, .1)), nrow = 100, ncol = 100),
+    solver = "iteration"
+    
     )
 }
