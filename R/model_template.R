@@ -38,3 +38,13 @@ upca_model <- function() {
     solver = "lsoda"
     )
 }
+
+cellular_automata_model <- function() {
+  new("gridModel",
+    main = allelopathy_ca,
+    times = c(from = 0, to = 200, by = 0.1),
+    parms = list(b_s = 4, m_s = 1, m_p = 1, z = 4, gamma1 = 2, c1 = 0.5),
+    init = matrix(sample.int(3, size = 20*20, replace = TRUE, prob = c(.1, .8, .1)), ncol = 20),
+    solver = "myiteration_allelopathy"
+    )
+}
