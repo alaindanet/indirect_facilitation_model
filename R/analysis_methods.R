@@ -72,8 +72,12 @@ compute_occurences.avg_scenarii <- function(data, ...) {
     dplyr::mutate(
       cnp = NP / N * P, #qj|i = pij / pi
       cnn = NN / N * N,
-      cpp = PP / P * P
+      cpp = PP / P * P,
+      c_veg = (NP + NN + PP) / (N * P + N * N + P * P),
+      c_veg2 = (NP + NN + PP) / (N * N + 2 * N * P + P * P),
+      c_veg3 = cnp + cnn + cpp
       )
+  message("c_veg has a bad formula")
 
   return(
     structure(
