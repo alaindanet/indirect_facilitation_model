@@ -52,7 +52,7 @@ ca_two_facilitation_model <- function () {
     times = c(from = 0, to = 100, by = 1),
     parms = c(z = 4, del = .1, b = .8, c = .2, g = .1, m = .2,
       gamma1 = .1, r = .01, f = .9, d = .1, protection_type = list("first_protect"),
-      u = 0),
+      u = 0, skew_threshold = .5),
     init = matrix(sample.int(4, size = 100*100, replace = TRUE, prob = c(.4, .4, .1, .1)), nrow = 100, ncol = 100),
     solver = "iteration"
     
