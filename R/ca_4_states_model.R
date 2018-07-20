@@ -9,11 +9,8 @@ four_states_ca <- function(time, init, parms) {
   if(parms$z != 4) {
     stop("z should be equal to 4")
   }
-  neigh4 <- matrix(rep(0, 9), nrow = 3)
-  neigh4[c(2, 4, 6, 8)] <- 1
-  neigh_n <- simecol::neighbors(landscape, state = 1,  wdist = neigh4, bounds = 1)
-  neigh_p <- simecol::neighbors(landscape, state = 2,  wdist = neigh4, bounds = 1)
-
+  neigh_n <- fourneighbors(landscape, state = 1, bounds = 1)
+  neigh_p <- fourneighbors(landscape, state = 2, bounds = 1)
 
   # Compute the effect of a nurse (used if protection type if protection_type is
   # first_protect)
@@ -86,17 +83,31 @@ four_states_ca <- function(time, init, parms) {
 myiteration <- function(y, times=NULL, func=NULL, parms=NULL,
   animate=FALSE, ...) {
   observer <- function(landscape) {
-    # nurse, protegee, empty, degraded 
-    rho_nurse <- sum(landscape == 1) / length(landscape)
+    # nurse, protegee, empty, degraded
+    rho_nurse    <- sum(landscape == 1) / length(landscape)
     rho_protegee <- sum(landscape == 2) / length(landscape)
-    rho_empty <- sum(landscape == 3) / length(landscape)
+    rho_empty    <- sum(landscape == 3) / length(landscape)
     rho_degraded <- sum(landscape == 4) / length(landscape)
+    neigh_n      <- fourneighbors(landscape, state = 1, bounds = 1)
+    neigh_p      <- fourneighbors(landscape, state = 2, bounds = 1)
+    neigh_veg    <- neigh_n + neigh_p
+
+    qnp  <- mean(neigh_n[landscape == 2])
+    qpn  <- mean(neigh_p[landscape == 1])
+    qnn  <- mean(neigh_n[landscape == 1])
+    qpp  <- mean(neigh_p[landscape == 2])
+    qveg <- mean(neigh_veg[landscape %in% c(1, 2)])
 
     c(
-      nurse = rho_nurse,
+      nurse    = rho_nurse,
       protegee = rho_protegee,
-      empty = rho_empty,
-      degraded = rho_degraded
+      empty    = rho_empty,
+      degraded = rho_degraded,
+      qnp      = qnp,
+      qpn      = qpn,
+      qnn      = qnn,
+      qpp      = qpp,
+      qveg     = qveg
       )
   }
   init <- y@init
@@ -110,12 +121,26 @@ myiteration <- function(y, times=NULL, func=NULL, parms=NULL,
   parms$DELTAT <- 0
   res <- observer(init)
   out <- res
+  unstable <- TRUE
+  two_species <- TRUE
+  i <- 1
+  #while (i <= length(times) & unstable & two_species) {
+    #i <- i + 1
   for (i in 2:length(times)) {
     time <- times[i]
     parms$DELTAT <- times[i] - times[i-1]
     init <- func(time, init, parms)
     res <- observer(init)
     out <- rbind(out, res)
+    #if(i >= 300 & i %in% seq(length(times) %/% 300) * 300) {
+      #if(res$nurse != 0 | res$protegee != 0) {
+	#two_species <- TRUE
+      #} else {
+	#two_species <- FALSE
+      #}
+      ##parms$skew_threshold
+    
+    #}
   }
   row.names(out) <- NULL
   out <- cbind(times, out)
