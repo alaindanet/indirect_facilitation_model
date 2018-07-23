@@ -138,9 +138,6 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
     out[[i]] <- res
 
     # Conditions check  
-    if (any(res[c("nurse", "protegee")] == 0)) {
-      two_species <- FALSE
-    }
     if (i >= 300 & i %in% check_points) {
 
       nb_check <- nb_check + 1
@@ -155,15 +152,18 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
       }
       # Measurements:
       test <- sapply(as.data.frame(checked_data), moments::skewness)
-      if (all(!is.na(test)) ) {
-	if (all(test < .25)) {
+      if (all(test < .25)) {
 	unstable <- FALSE
-	}
       }
+      test <- sapply(as.data.frame(checked_data), function(x) all(x == 0))
+      if (any(test)){
+	two_species <- FALSE
+      }
+      
     }
   }
   out <- do.call(rbind, out[1:i])
   row.names(out) <- NULL
-  out <- cbind(times = times[1:i], out)
+  out <- cbind(time = times[1:i], out)
   as.data.frame(out)
 }

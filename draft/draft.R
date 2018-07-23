@@ -26,18 +26,15 @@ ggplot(g1, aes(x = cut_time, y = skewness, fill = state)) +
   geom_point()
 g1
 
-sapply(as.list(out(mod_run)[, c("nurse", "protegee")]), moments::skewness)
-
-while (x & i < 10 & i < 30 & y) {
-  i <- i + 1
-  print(i)
-  if(i == 5){ x <- FALSE; y  <- FALSE}
-}
- 
-
 mod <- ca_two_facilitation_model()
 times(mod)["to"] <- c(to = 6000)
 parms(mod)["g"]  <- c(.1)
-library(microbenchmark)
 
 
+u0 <- run_scenarii_gradient(
+    gradient = list(g = c(0, 0.1), b = c(.5, .8)),
+    model_spec = "ca_two_facilitation_model",
+    time_seq = c(from = 0, to = 1, by = 1),
+    solver_type = NULL, nrep = 3
+  )
+avg_runs(u0)

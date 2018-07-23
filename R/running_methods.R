@@ -14,7 +14,7 @@ run_scenarii_gradient <- function (
   model_spec = "two_facilitation_model",
   time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL,
-  scenarii = NULL, set_tail = NULL) {
+  scenarii = NULL, set_tail = NULL, nrep = NULL) {
 
   if (is.null(gradient)) {
     stop("Please provide a gradient")
@@ -35,6 +35,9 @@ run_scenarii_gradient <- function (
   }
 
   # Define the combination of parameters
+  if (!is.null(nrep)) {
+  gradient$rep <- seq.int(1, nrep)
+  }
   scenar_gradient <- gradient
   scenar_gradient$scenario <- names(scenarii)
   comb <- expand.grid(scenar_gradient) %>%

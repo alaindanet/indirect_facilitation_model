@@ -54,7 +54,7 @@ ca_two_facilitation_model <- function () {
       gamma1 = .1, r = .01, f = .9, d = .1, protection_type = list("first_protect"),
       u = 0, skew_threshold = .5),
     init = matrix(sample.int(4, size = 100*100, replace = TRUE, prob = c(.4, .4, .1, .1)), nrow = 100, ncol = 100),
-    solver = "iteration"
+    solver = "ca_solver"
     
     )
 }
