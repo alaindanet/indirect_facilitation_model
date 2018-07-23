@@ -121,28 +121,134 @@ myiteration <- function(y, times=NULL, func=NULL, parms=NULL,
   parms$DELTAT <- 0
   res <- observer(init)
   out <- res
+  # Check config
+  nb_check <- 0
+  check_points <- seq(length(times) %/% 300) * 300
   unstable <- TRUE
   two_species <- TRUE
   i <- 1
-  #while (i <= length(times) & unstable & two_species) {
-    #i <- i + 1
-  for (i in 2:length(times)) {
+  while (i < length(times) & unstable & two_species) {
+    # Loop:
+    i <- i + 1
     time <- times[i]
     parms$DELTAT <- times[i] - times[i-1]
     init <- func(time, init, parms)
     res <- observer(init)
     out <- rbind(out, res)
-    #if(i >= 300 & i %in% seq(length(times) %/% 300) * 300) {
-      #if(res$nurse != 0 | res$protegee != 0) {
-	#two_species <- TRUE
-      #} else {
-	#two_species <- FALSE
-      #}
-      ##parms$skew_threshold
-    
-    #}
+
+    # Conditions check  
+    if(any(res[c("nurse", "protegee")] == 0)) {
+      two_species <- FALSE
+    }
+    if (i >= 300 & i %in% check_points) {
+
+      nb_check <- nb_check + 1
+      # Select data:
+      test <- out
+      # HERE: to fix
+      if(nb_check == 1){
+	checked_data <- test[1:check_points[nb_check], c("nurse", "protegee")]
+      } else {
+	checked_data <- test[check_points[nb_check - 1]:check_points[nb_check], c("nurse", "protegee")]
+      }
+      # Measurements:
+      skew <- sapply(as.data.frame(checked_data), moments::skewness)
+      if (!any(is.na(skew))) {
+	if (all(skew < .25)) {
+	unstable <- FALSE
+	}
+      }
+    }
   }
   row.names(out) <- NULL
-  out <- cbind(times, out)
+  out <- cbind(times = times[1:i], out)
+  as.data.frame(out)
+}
+
+myiteration2 <- function(y, times=NULL, func=NULL, parms=NULL,
+  animate=FALSE, ...) {
+  observer <- function(landscape) {
+    # nurse, protegee, empty, degraded
+    rho_nurse    <- sum(landscape == 1) / length(landscape)
+    rho_protegee <- sum(landscape == 2) / length(landscape)
+    rho_empty    <- sum(landscape == 3) / length(landscape)
+    rho_degraded <- sum(landscape == 4) / length(landscape)
+    neigh_n      <- fourneighbors(landscape, state = 1, bounds = 1)
+    neigh_p      <- fourneighbors(landscape, state = 2, bounds = 1)
+    neigh_veg    <- neigh_n + neigh_p
+
+    qnp  <- mean(neigh_n[landscape == 2])
+    qpn  <- mean(neigh_p[landscape == 1])
+    qnn  <- mean(neigh_n[landscape == 1])
+    qpp  <- mean(neigh_p[landscape == 2])
+    qveg <- mean(neigh_veg[landscape %in% c(1, 2)])
+
+    c(
+      nurse    = rho_nurse,
+      protegee = rho_protegee,
+      empty    = rho_empty,
+      degraded = rho_degraded,
+      qnp      = qnp,
+      qpn      = qpn,
+      qnn      = qnn,
+      qpp      = qpp,
+      qveg     = qveg
+      )
+  }
+  init <- y@init
+  times <- fromtoby(y@times)
+  func <- y@main
+  parms <- y@parms
+  inputs <- y@inputs
+  equations <- y@equations
+  equations <- addtoenv(equations)
+  environment(func) <- environment()
+  parms$DELTAT <- 0
+  # Check config
+  unstable <- TRUE
+  two_species <- TRUE
+  nb_check <- 0
+  check_points <- seq(length(times) %/% 300) * 300
+  i <- 1
+  out <- as.list(seq_along(times))
+  res <- observer(init)
+  out[[i]] <- res
+  while (i < length(times) & unstable & two_species) {
+    # Loop:
+    i <- i + 1
+    time <- times[i]
+    parms$DELTAT <- times[i] - times[i-1]
+    init <- func(time, init, parms)
+    res <- observer(init)
+    out[[i]] <- res
+
+    # Conditions check  
+    if (any(res[c("nurse", "protegee")] == 0)) {
+      two_species <- FALSE
+    }
+    if (i >= 300 & i %in% check_points) {
+
+      nb_check <- nb_check + 1
+      # Select data:
+      test <- do.call(rbind, out)
+      if(nb_check == 1){
+	checked_data <- test[1:check_points[nb_check], c("nurse", "protegee")]
+      } else {
+	checked_data <- test[
+	  check_points[nb_check - 1]:check_points[nb_check],
+	  c("nurse", "protegee")]
+      }
+      # Measurements:
+      test <- sapply(as.data.frame(checked_data), moments::skewness)
+      if (all(!is.na(test)) ) {
+	if (all(test < .25)) {
+	unstable <- FALSE
+	}
+      }
+    }
+  }
+  out <- do.call(rbind, out[1:i])
+  row.names(out) <- NULL
+  out <- cbind(times = times[1:i], out)
   as.data.frame(out)
 }

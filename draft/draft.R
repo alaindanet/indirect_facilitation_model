@@ -1,19 +1,62 @@
 ## Cool
-load(file = "./inst/scenar_bifurc_u=0_5_gamma1_.1.Rdata")
+library('simecol')
 
 
-u0 <- filter(scenar_avg, u == 0)
-u5 <- filter(scenar_avg, u == 5)
-names(u0$gradient)
+mod <- ca_two_facilitation_model()
+solver(mod) <- "myiteration"
+times(mod)["to"] <- c(to = 1000)
+parms(mod)["g"]  <- c(.1)
+mod_run <- sim(mod)
+#plot(mod_run)
 
-## TODO: check the computation of states
-states <- compute_states(scenar_avg, type = "double")
-unique(states$run$state)
-which(is.na(states$run$state), arr.ind = TRUE)
+test <- out(mod_run)
+sapply(test, moments::skewness)
 
-plot_diagram(states) +
-    ggplot2::scale_fill_manual(
-      values = color_states()
-      ) + facet_grid(cols = vars(u))
+g1 <- as.tibble(out(mod_run)) %>%
+  mutate(
+    cut_time = c(0,sapply(seq(n() / 300), function(x) {
+      rep(x, 300)})),
+    cut_time = as.integer(cut_time)
+    ) %>%
+  gather(state, rho, nurse, protegee) %>%
+  filter(cut_time != 0) %>%
+  group_by(cut_time, state) %>%
+  summarise(skewness = moments::skewness(rho))
+ggplot(g1, aes(x = cut_time, y = skewness, fill = state)) +
+  geom_point()
+g1
 
+sapply(as.list(out(mod_run)[, c("nurse", "protegee")]), moments::skewness)
+
+while (x & i < 10 & i < 30 & y) {
+  i <- i + 1
+  print(i)
+  if(i == 5){ x <- FALSE; y  <- FALSE}
+}
+ 
+
+mod <- ca_two_facilitation_model()
+times(mod)["to"] <- c(to = 6000)
+parms(mod)["g"]  <- c(.1)
+library(microbenchmark)
+
+microbenchmark(
+  function() {solver(mod) <- "myiteration"; sim(mod)},
+  function() {solver(mod) <- "myiteration2"; sim(mod)}
+)
+
+set.seed(123)
+system.time({
+  parms(mod)["g"]  <- c(.2)
+  solver(mod) <- "myiteration2"
+  test <- sim(mod)
+})
+str(test)
+
+system.time({
+  parms(mod)["g"]  <- c(.2)
+  solver(mod) <- "myiteration"
+  test <- sim(mod)
+})
+test2 <- out(test)
 
