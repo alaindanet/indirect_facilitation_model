@@ -40,23 +40,4 @@ times(mod)["to"] <- c(to = 6000)
 parms(mod)["g"]  <- c(.1)
 library(microbenchmark)
 
-microbenchmark(
-  function() {solver(mod) <- "myiteration"; sim(mod)},
-  function() {solver(mod) <- "myiteration2"; sim(mod)}
-)
-
-set.seed(123)
-system.time({
-  parms(mod)["g"]  <- c(.2)
-  solver(mod) <- "myiteration2"
-  test <- sim(mod)
-})
-str(test)
-
-system.time({
-  parms(mod)["g"]  <- c(.2)
-  solver(mod) <- "myiteration"
-  test <- sim(mod)
-})
-test2 <- out(test)
 
