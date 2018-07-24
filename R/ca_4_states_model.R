@@ -99,10 +99,10 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
     qveg <- mean(neigh_veg[landscape %in% c(1, 2)])
 
     c(
-      nurse    = rho_nurse,
-      protegee = rho_protegee,
-      empty    = rho_empty,
-      degraded = rho_degraded,
+      N    = rho_nurse,
+      P = rho_protegee,
+      E    = rho_empty,
+      D = rho_degraded,
       qnp      = qnp,
       qpn      = qpn,
       qnn      = qnn,
@@ -144,11 +144,11 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
       # Select data:
       test <- do.call(rbind, out)
       if(nb_check == 1){
-	checked_data <- test[1:check_points[nb_check], c("nurse", "protegee")]
+	checked_data <- test[1:check_points[nb_check], c("N", "P")]
       } else {
 	checked_data <- test[
 	  check_points[nb_check - 1]:check_points[nb_check],
-	  c("nurse", "protegee")]
+	  c("N", "P")]
       }
       # Measurements:
       test <- sapply(as.data.frame(checked_data), moments::skewness)

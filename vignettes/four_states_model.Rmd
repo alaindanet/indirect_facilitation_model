@@ -144,7 +144,7 @@ library(cowplot)
 library(magrittr)
 
 load(file = "../inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
-scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
+#scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
 
 states <- compute_states(scenar_avg, type = "double")
 
@@ -156,11 +156,20 @@ plot_diagram(states) +
 ```{r, echo = FALSE}
 
 occurenres <- compute_occurences(scenar_avg)
+occurenres$run %<>% gather(var, rho, D:cveg) %>%
+  mutate(rho = ifelse(rho <= 10^-6, 0, rho)) %>%
+  spread(var, rho)
+
 p1 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
 p2 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
 p3 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
+p4 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cveg")
 
-plot_grid(p1, p2, p3, labels = "AUTO")
+hist(occurenres$run$cveg[occurenres$run$cveg < 1000])
+
+occurenres$run[which(occurenres$run$cveg > 1000), ]
+
+plot_grid(p1, p2, p3, p4, labels = "AUTO")
 
 ```
 

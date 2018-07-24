@@ -68,16 +68,25 @@ compute_occurences <- function(x, ...) UseMethod("compute_occurences")
 compute_occurences.default <- function(x) "Unknown class"
 compute_occurences.avg_scenarii <- function(data, ...) {
 
-  run <- data[["run"]] %>%
-    dplyr::mutate(
+  if (data$model != "ca_two_facilitation_model") {
+    run <- data[["run"]] %>%
+      dplyr::mutate(
       cnp = NP / N * P, #qj|i = pij / pi
       cnn = NN / N * N,
       cpp = PP / P * P,
-      c_veg = (NP + NN + PP) / (N * P + N * N + P * P),
-      c_veg2 = (NP + NN + PP) / (N * N + 2 * N * P + P * P),
-      c_veg3 = cnp + cnn + cpp
+      cveg = ((NP + NN) * P + (PP + NP) * N) / (N * P * (N + P))
       )
   message("c_veg has a bad formula")
+  } else {
+    run <- data[["run"]] %>%
+      dplyr::mutate(
+	cnp = qnp / N,
+	cpn = qpn / P,
+	cnn = qnn / N,
+	cpp = qpp / P,
+	cveg = qveg / (N + P)
+	)
+  }
 
   return(
     structure(
@@ -87,17 +96,8 @@ compute_occurences.avg_scenarii <- function(data, ...) {
 	param = data$param,
 	gradient = data$gradient,
 	run = run
-      ),
-    class = c("avg_scenarii","scenarii", "list")
-    )
-    )
-  return(
-    structure(
-    list( model = model,
-      param = common_param,
-      run = data
-      ),
-    class = c("scenarii", "list") #, old_class
+	),
+      class = c("avg_scenarii","scenarii", "list")
       )
     )
 }
@@ -206,7 +206,6 @@ def_state <- function (nurse, protegee, sim_status,
   } else if (nurse > threshold && protegee > threshold) {
     return("coexistence")
   }
-
 
 }
 def_multi_state <- function(scenar_one, scenar_two, sim_status,

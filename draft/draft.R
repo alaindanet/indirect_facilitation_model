@@ -30,11 +30,16 @@ mod <- ca_two_facilitation_model()
 times(mod)["to"] <- c(to = 6000)
 parms(mod)["g"]  <- c(.1)
 
-
 u0 <- run_scenarii_gradient(
-    gradient = list(g = c(0, 0.1), b = c(.5, .8)),
+    gradient = list(g = c(0.1), b = c(.5, .8)),
     model_spec = "ca_two_facilitation_model",
-    time_seq = c(from = 0, to = 1, by = 1),
-    solver_type = NULL, nrep = 3
+    time_seq = c(from = 0, to = 100, by = 1),
+    solver_type = NULL, nrep = 10
   )
-avg_runs(u0)
+scenar_avg <- avg_runs(u0)
+
+scenar_occurences <- compute_occurences(scenar_avg)$run %>%
+  gather(var, clustering, cnp, cpn, cnn, cpp, cveg) %>%
+  group_by(g, b, var) %>%
+  summarise(clustering = mean(clustering))
+
