@@ -9,6 +9,7 @@ devtools::load_all()
 options(mc.cores = 24)
 
 
+set.seed(123)
 gradient <- list(
   u = seq(0, 10, by = .1),
   del = seq(1, 0, by = -.01),
