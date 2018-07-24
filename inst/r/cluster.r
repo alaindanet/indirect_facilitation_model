@@ -20,9 +20,9 @@ output <- run_scenarii_gradient(
   model_spec = "ca_two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, b = .8),
   time_seq = c(from = 0, to = 6000, by = .5),
-  set_tail = 10, nrep = 10
+  set_tail = 300, nrep = 10
   )
 
 save(output, file = "scenar_ca_cooccurence.Rdata")
-scenar_avg <- avg_runs(output, cut_row = 10)
+scenar_avg <- avg_runs(output, cut_row = 300)
 save(scenar_avg, file = "scenar_avg_ca_cooccurence.Rdata")

@@ -1,10 +1,13 @@
 ## Cool
-library('simecol')
+library(simecol)
+library(tidyverse)
+library(magrittr)
+options(mc.cores = 3)
 
 
 mod <- ca_two_facilitation_model()
 times(mod)["to"] <- c(to = 1000)
-parms(mod)[c("g", "b")]  <- c(.1, .4)
+parms(mod)[c("g", "b", "del")]  <- c(.1, .4, 1)
 mod_run <- sim(mod)
 #plot(mod_run)
 
@@ -31,7 +34,7 @@ parms(mod)[c("g", "b")]  <- c(.1, .5)
 sim(mod)
 
 u0 <- run_scenarii_gradient(
-    gradient = list(g = c(0.1), b = c(.5, .8)),
+    gradient = list(g = c(0.1), b = c(.4, .8)),
     model_spec = "ca_two_facilitation_model",
     time_seq = c(from = 0, to = 1000, by = 1),
     solver_type = NULL, nrep = 1, set_tail = 20
