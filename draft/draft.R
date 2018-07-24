@@ -4,7 +4,7 @@ library('simecol')
 
 mod <- ca_two_facilitation_model()
 times(mod)["to"] <- c(to = 1000)
-parms(mod)["g"]  <- c(.1)
+parms(mod)[c("g", "b")]  <- c(.1, .4)
 mod_run <- sim(mod)
 #plot(mod_run)
 

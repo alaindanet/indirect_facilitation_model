@@ -151,17 +151,15 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
 	  c("N", "P")]
       }
       # Measurements:
-      cat(i,
-	sep = "\n",
-	summary(as.data.frame(checked_data))
-	)
       test <- sapply(as.data.frame(checked_data), function(x) all(x == 0))
       if (any(test)){
 	two_species <- FALSE
       }
-      test <- sapply(as.data.frame(checked_data), moments::skewness)
-      if (all(test < .25)) {
-	unstable <- FALSE
+      if (two_species) { # If one species is extinct, the skewness returns NaN
+	test <- sapply(as.data.frame(checked_data), moments::skewness)
+	if (all(test < .25)) {
+	  unstable <- FALSE
+	}
       }
       
     }
