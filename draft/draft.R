@@ -3,7 +3,6 @@ library('simecol')
 
 
 mod <- ca_two_facilitation_model()
-solver(mod) <- "myiteration"
 times(mod)["to"] <- c(to = 1000)
 parms(mod)["g"]  <- c(.1)
 mod_run <- sim(mod)
@@ -28,13 +27,14 @@ g1
 
 mod <- ca_two_facilitation_model()
 times(mod)["to"] <- c(to = 6000)
-parms(mod)["g"]  <- c(.1)
+parms(mod)[c("g", "b")]  <- c(.1, .5)
+sim(mod)
 
 u0 <- run_scenarii_gradient(
     gradient = list(g = c(0.1), b = c(.5, .8)),
     model_spec = "ca_two_facilitation_model",
-    time_seq = c(from = 0, to = 100, by = 1),
-    solver_type = NULL, nrep = 10
+    time_seq = c(from = 0, to = 1000, by = 1),
+    solver_type = NULL, nrep = 1, set_tail = 20
   )
 scenar_avg <- avg_runs(u0)
 

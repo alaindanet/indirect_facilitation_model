@@ -19,7 +19,7 @@ output <- run_scenarii_gradient(
   gradient = gradient,
   model_spec = "ca_two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1, b = .8),
-  time_seq = c(from = 0, to = 6000, by = 1),
+  time_seq = c(from = 0, to = 6000, by = .5),
   set_tail = 10, nrep = 10
   )
 
