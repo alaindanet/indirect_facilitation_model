@@ -128,39 +128,44 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
   out <- as.list(seq_along(times))
   res <- observer(init)
   out[[i]] <- res
+  # Average densities 
+  no_val <- rep(NA, length(check_points))
+  avg <- tibble::tibble(N = no_val, P = no_val)
+
+  # Loop:
   while (i < length(times) & unstable & two_species) {
-    # Loop:
     i <- i + 1
     time <- times[i]
     parms$DELTAT <- times[i] - times[i-1]
     init <- func(time, init, parms)
     res <- observer(init)
     out[[i]] <- res
-
+    
     # Conditions check  
     if (i >= 300 & i %in% check_points) {
 
       nb_check <- nb_check + 1
       # Select data:
       test <- do.call(rbind, out[1:i])
-      if(nb_check == 1){
-	checked_data <- test[1:check_points[nb_check], c("N", "P")]
+      if (nb_check == 1){
+	avg[check_points, c("N", "P")] <- sapply(test[1:check_points[nb_check], c("N", "P")], mean)
       } else {
-	checked_data <- test[
+	avg[check_points, c("N", "P")] <- sapply(test[
 	  check_points[nb_check - 1]:check_points[nb_check],
-	  c("N", "P")]
+	  c("N", "P")], mean)
+	# Test for stability
+	test <- sapply(avg, function(x) { abs(x[nb_check - 1] - x[nb_check]) / x[nb_check - 1]})
+	if (all(test < .005)) {
+	  unstable <- FALSE
+	}
+
       }
-      # Measurements:
-      test <- sapply(as.data.frame(checked_data), function(x) all(x == 0))
+      # Test for presence of the two species:
+      test <- sapply(as.data.frame(avg), function(x) any(x == 0))
       if (any(test)){
 	two_species <- FALSE
       }
-      if (two_species) { # If one species is extinct, the skewness returns NaN
-	test <- sapply(as.data.frame(checked_data), moments::skewness)
-	if (all(test < .25)) {
-	  unstable <- FALSE
-	}
-      }
+      
     }
   }
   out <- do.call(rbind, out[1:i])
