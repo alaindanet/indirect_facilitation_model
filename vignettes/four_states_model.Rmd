@@ -148,10 +148,27 @@ load(file = "../inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
 states <- compute_states(scenar_avg, type = "double")
 
-plot_diagram(states) +
-  facet_grid(cols = vars(u))
+
+plot_fig2(states)
 
 ```
+
+### Indirect facilitation and cooccurences
+
+- Clustering measurement:
+
+  $$
+  C_{np} = \frac{q_{n|p}}{\rho_{n} \times \rho_{p}} = \frac{q_{p|n}}{\rho_{n} \times \rho_{p}} \\
+  C_{np} = \frac{\frac{\rho_{np}}{\rho_n}}{\rho_n \times \rho_p} = \frac{\frac{\rho_{pn}}{\rho_p}}{\rho_n \times \rho_p} \\
+  C_{nn} = \frac{\frac{\rho_{nn}}{\rho_n}}{\rho_n^2} \\
+  C_{pp} = \frac{\frac{\rho_{pp}}{\rho_p}}{\rho_p^2} \\
+  $$
+
+- Clustering of total vegetation (does not work):
+
+  $$
+  C_{++} = \frac{q_{n|p} + q_{p|n} + q_{n|n} + q_{p|p}}{\rho_n \times \rho_p} \\
+  $$
 
 ```{r, echo = FALSE}
 
@@ -165,11 +182,39 @@ p2 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
 p3 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
 p4 <- plot_diagram(occurenres, debug_mode = FALSE, fill = "cveg")
 
-hist(occurenres$run$cveg[occurenres$run$cveg < 1000])
+cowplot::plot_grid(p1, p2, p3, p4, labels = "AUTO")
 
-occurenres$run[which(occurenres$run$cveg > 1000), ]
+```
 
-plot_grid(p1, p2, p3, p4, labels = "AUTO")
+## Cellular automata
+
+### cooccurences 
+
+```{r}
+load(file = "../inst/scenar_avg_ca_cooccurence.Rdata")
+scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
+
+occurences <- scenar_avg
+occurences$run <- compute_occurences(scenar_avg) %>%
+  .$run %>%
+  gather(clustering, value, cnp:cveg) %>%
+  group_by(u, del, g, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE) %>% log10(.)) %>%
+  spread(clustering, value)
+
+g_caption <- sapply(seq_along(scenar_avg$param), function(x) {
+  paste(names(scenar_avg$param)[x], " = ",scenar_avg$param[x], sep="")
+  })
+g_caption <- c("Parameters: ", g_caption)
+g_caption <- do.call( paste, list(as.list(g_caption), collapse = ", ")
+  )
+
+plot_fig3(occurences) +
+  labs(caption = g_caption)
+
+```
+
+```{r}
 
 ```
 

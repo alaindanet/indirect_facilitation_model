@@ -74,7 +74,9 @@ compute_occurences.avg_scenarii <- function(data, ...) {
       cnp = NP / N * P, #qj|i = pij / pi
       cnn = NN / N * N,
       cpp = PP / P * P,
-      cveg = ((NP + NN) * P + (PP + NP) * N) / (N * P * (N + P))
+      cveg = ((NP + NN) * P + (PP + NP) * N) / (N * P * (N + P)),
+      cveg2 = (NN * P + NP * P + N * NP + N * PP) / ((N + P)^2 * N * P)
+
       )
   message("c_veg has a bad formula")
   } else {
@@ -97,7 +99,7 @@ compute_occurences.avg_scenarii <- function(data, ...) {
 	gradient = data$gradient,
 	run = run
 	),
-      class = c("avg_scenarii","scenarii", "list")
+      class = c("avg_scenarii", "scenarii", "list")
       )
     )
 }

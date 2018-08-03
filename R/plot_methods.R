@@ -246,3 +246,52 @@ color_states <- function() {
   return(color)
 }
 
+##############
+#  Figure 2  #
+##############
+
+plot_fig2 <- function(states) {
+
+  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
+  u_appender <- as_labeller(c("0" = "Without indirect facilitation", "5" = "With indirect facilitation"))
+
+  g <- plot_diagram(states) +
+    xlab(expression(paste("Environmental quality (", b, ")"))) +
+    ylab(expression(paste("Grazing intensity (", g, ")"))) +
+    scale_fill_manual(
+      labels = c(
+	"Coexistence", "Coexistence / Desert", "Coexistence / Nurse",
+	"Desert", "Nurse", "Nurse / Desert", "Protegee", "Protegee / Desert"),
+      values = color_states(),
+      name = "Stable states"
+      ) +
+    facet_grid(cols = vars(u), labeller = u_appender)  +
+    hrbrthemes::theme_ipsum_rc()
+
+  g
+}
+
+plot_fig3 <- function(clustering) {
+
+  g_appender <- function(string, suffix = "g = ") { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
+    facet_grid(vars(g), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    labs(
+      x = expression(paste("Proportion of global dispersal (", delta, ")")),
+      y = expression(paste("Strength of grazing protection (", u, ")")),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    hrbrthemes::theme_ipsum_rc()
+
+
+  g
+}

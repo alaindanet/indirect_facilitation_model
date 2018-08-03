@@ -299,13 +299,13 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 ######################
 #  Figure 2 new sim  #
 ######################
-
 load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
 states <- compute_states(scenar_avg, type = "double")
 
-plot_diagram(states) +
-  facet_grid(cols = vars(u))
+plot_fig2(states)
+ggsave("./inst/figs/figure2.pdf", device = cairo_pdf)
+
 
 ###########################################
 #  Plot species densities and clustering  #
@@ -315,10 +315,10 @@ plot_diagram(scenar_avg, debug_mode = FALSE, fill = "P")
 
 occurenres <- compute_occurences(scenar_avg)
 summary(occurenres$run$c_veg3)
-plot_diagram(occurenres, debug_mode = FALSE, fill = "cnp")
-plot_diagram(occurenres, debug_mode = FALSE, fill = "cpp")
-plot_diagram(occurenres, debug_mode = FALSE, fill = "cnn")
-plot_diagram(occurenres, debug_mode = FALSE, fill = "c_veg3")
+plot_diagram(occurenres, fill = "cnp")
+plot_diagram(occurenres, fill = "cpp")
+plot_diagram(occurenres, fill = "cnn")
+plot_diagram(occurenres, fill = "c_veg3")
 
 ######################
 #  Bifucation plots  #
@@ -347,3 +347,27 @@ g1 <- out(mod_run) %>%
   ggplot(., aes(x = times, y = rho, color = state)) +
   geom_line() + ylim(0, 1)
 g1
+
+#################
+#  Cooccurence  #
+#################
+
+load(file = "inst/scenar_avg_ca_cooccurence.Rdata")
+scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
+
+# Average by replicate
+occurences <- scenar_avg
+occurences$run <- compute_occurences(scenar_avg) %>%
+  .$run %>%
+  gather(clustering, value, cnp:cveg) %>%
+  group_by(u, del, g, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(clustering, value)
+
+plot_list <- list()
+clustering <- c("cnp", "cpp", "cnn", "cveg")
+for (i in seq_along(clustering)) {
+  plot_list[[i]] <- plot_diagram(occurences, param = c(x = "del", y = "u"), fill = clustering[i])
+}
+
+cowplot::plot_grid(plotlist = plot_list, labels = "auto")

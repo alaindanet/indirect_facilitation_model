@@ -161,7 +161,6 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
 	  unstable <- FALSE
 	}
       }
-      
     }
   }
   out <- do.call(rbind, out[1:i])
