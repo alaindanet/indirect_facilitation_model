@@ -302,6 +302,7 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 
 states <- compute_states(scenar_avg, type = "double")
+length(states$gradient$b)
 
 plot_fig2(states)
 ggsave("./inst/figs/figure2.pdf", device = cairo_pdf)
@@ -364,10 +365,4 @@ occurences$run <- compute_occurences(scenar_avg) %>%
   summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
 
-plot_list <- list()
-clustering <- c("cnp", "cpp", "cnn", "cveg")
-for (i in seq_along(clustering)) {
-  plot_list[[i]] <- plot_diagram(occurences, param = c(x = "del", y = "u"), fill = clustering[i])
-}
-
-cowplot::plot_grid(plotlist = plot_list, labels = "auto")
+plot_fig3(occurences)
