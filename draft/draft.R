@@ -2,36 +2,8 @@
 library(simecol)
 library(tidyverse)
 library(magrittr)
-options(mc.cores = 3)
+options(mc.cores = 1)
 
-
-mod <- ca_two_facilitation_model()
-times(mod)["to"] <- c(to = 1000)
-parms(mod)[c("g", "b", "del")]  <- c(.1, .4, 1)
-mod_run <- sim(mod)
-#plot(mod_run)
-
-test <- out(mod_run)
-sapply(test, moments::skewness)
-
-g1 <- as.tibble(out(mod_run)) %>%
-  mutate(
-    cut_time = c(0,sapply(seq(n() / 300), function(x) {
-      rep(x, 300)})),
-    cut_time = as.integer(cut_time)
-    ) %>%
-  gather(state, rho, nurse, protegee) %>%
-  filter(cut_time != 0) %>%
-  group_by(cut_time, state) %>%
-  summarise(skewness = moments::skewness(rho))
-ggplot(g1, aes(x = cut_time, y = skewness, fill = state)) +
-  geom_point()
-g1
-
-mod <- ca_two_facilitation_model()
-times(mod)["to"] <- c(to = 6000)
-parms(mod)[c("g", "b")]  <- c(.1, .5)
-sim(mod)
 
 scenar_occurences <- compute_occurences(scenar_avg)$run %>%
   gather(var, clustering, cnp, cnn, cpp, cveg, cveg2) %>%
@@ -43,42 +15,48 @@ load(file = "inst/scenar_avg_ca_cooccurence.Rdata")
 scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
 
 occurences <- scenar_avg
-occurences$run <- compute_occurences(scenar_avg) %>%
+occurences$run <- filter(scenar_avg, P > 0.01 | P == 0, N > 0.01 | N == 0)  %>%
+  compute_occurences(.) %>%
   .$run %>%
   gather(clustering, value, cnp:cveg) %>%
-  group_by(u, del, g, clustering) %>%
-  summarise(value = mean(value, na.rm = TRUE) %>% log10(.)) %>%
-  spread(clustering, value)
-
-plot_fig3(occurences)
-
-clustering <- occurences
-clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
-plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
-  scale_fill_gradient2(low = scales::muted("blue"), mid = "white",
-    high = scales::muted("red")) +
-  facet_grid(vars(g), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx))
-
-filter(occurences, cpp > 3)
-
-#########################
-#  Averaging densities  #
-#########################
-occurences <- compute_occurences(scenar_avg)
-occurences$run %<>%
-  gather(rho, value, N:qveg) %>%
-  group_by(u, del, g, rho) %>%
-  summarise(value = mean(value, na.rm = TRUE)%>% log10(.)) %>% 
-  spread(rho, value)
-occurences$run <- compute_occurences(occurences) %>%
-  .$run %>%
-  gather(clustering, value, N:cveg) %>%
   group_by(u, del, g, clustering) %>%
   summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
 
-clustering <- occurences
-clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
-plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
-  scale_fill_gradient2(low = scales::muted("blue"), mid = "white", high = scales::muted("red")) +
-  facet_grid(vars(g), vars(var))
+# Add log10 scale to the plot
+# Add color scale with diverging palette 
+plot_fig3(occurences)
+
+## Check big cooccurences
+big_co_occcurences <- filter(occurences, cpp > 100)
+
+gradient_test <- sapply(big_co_occcurences$gradient, function(x) x[1])
+gradient_test["del"] <- big_co_occcurences$gradient$del[4]
+gradient_test["del"] <- .1
+
+output <- run_scenarii_gradient(
+  gradient = gradient_test,
+  model_spec = big_co_occcurences$model,
+  param = big_co_occcurences$param,
+  time_seq = c(from = 0, to = 10000, by = .5),
+  set_tail = 300, nrep = NULL
+  )
+avg_runs(output, cut_row = 300)
+
+
+mod <- ca_two_facilitation_model()
+solver(mod) <- "ca_solver"
+times(mod)["to"] <- c(to = 20000)
+parms(mod)["g"] <- .1
+set.seed(123)
+mod_run <- sim(mod)
+#plot(mod_run)
+
+g1 <- out(mod_run) %>%
+  gather(state, rho, N, P, E, D) %>%
+  ggplot(., aes(x = time, y = rho, color = state)) +
+  geom_line() + ylim(0, 1)
+g1
+
+test <- out(mod_run)
+test[204,]$P == 0

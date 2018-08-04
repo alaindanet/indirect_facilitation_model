@@ -12,8 +12,6 @@
 ### Implementation
 
 - [x] Add cellular automata
-    - [ ] solver: keep clustering
-    - [ ] implement in run_scenarii_gradient; do not forget a set.seed()
 - [ ] Multispecies implementation: cf Minus and Lion; need to implement the
   rules 
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)

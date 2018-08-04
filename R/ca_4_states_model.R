@@ -123,7 +123,7 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
   unstable <- TRUE
   two_species <- TRUE
   nb_check <- 0
-  check_points <- seq(length(times) %/% 300) * 300
+  check_points <- seq(length(times) %/% 200) * 200
   i <- 1
   out <- as.list(seq_along(times))
   res <- observer(init)
@@ -142,30 +142,30 @@ ca_solver <- function(y, times=NULL, func=NULL, parms=NULL,
     out[[i]] <- res
     
     # Conditions check  
-    if (i >= 300 & i %in% check_points) {
+    if (i >= 200 & i %in% check_points) {
 
       nb_check <- nb_check + 1
       # Select data:
-      test <- do.call(rbind, out[1:i])
+      test <- as.data.frame(do.call(rbind, out[1:i]))
       if (nb_check == 1){
-	avg[check_points, c("N", "P")] <- sapply(test[1:check_points[nb_check], c("N", "P")], mean)
+	avg[nb_check, c("N", "P")] <- sapply(test[1:check_points[nb_check], c("N", "P")], mean)
       } else {
-	avg[check_points, c("N", "P")] <- sapply(test[
+	avg[nb_check, c("N", "P")] <- sapply(test[
 	  check_points[nb_check - 1]:check_points[nb_check],
 	  c("N", "P")], mean)
 	# Test for stability
-	test <- sapply(avg, function(x) { abs(x[nb_check - 1] - x[nb_check]) / x[nb_check - 1]})
-	if (all(test < .005)) {
+	stab_stat <- sapply(avg, function(x) {
+	  abs(x[nb_check - 1] - x[nb_check]) / x[nb_check - 1]
+	  })
+	if (all(stab_stat < .005)) {
 	  unstable <- FALSE
 	}
-
       }
       # Test for presence of the two species:
-      test <- sapply(as.data.frame(avg), function(x) any(x == 0))
-      if (any(test)){
+      two_species_stat <- sapply(avg, function(x) any(x[nb_check] == 0))
+      if (any(two_species_stat)){
 	two_species <- FALSE
       }
-      
     }
   }
   out <- do.call(rbind, out[1:i])

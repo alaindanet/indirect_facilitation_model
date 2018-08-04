@@ -24,5 +24,8 @@ output <- run_scenarii_gradient(
   )
 
 save(output, file = "scenar_ca_cooccurence.Rdata")
+
+options(mc.cores = 5)
 scenar_avg <- avg_runs(output, cut_row = 300)
+rm(output)
 save(scenar_avg, file = "scenar_avg_ca_cooccurence.Rdata")
