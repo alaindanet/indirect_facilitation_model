@@ -300,6 +300,13 @@ ggsave(filename = "./inst/figs/four_states/diag_bistab_u=10_gamma1=.1.pdf")
 #  Figure 2 new sim  #
 ######################
 load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+u0_5 <- scenar_avg
+load(file = "./inst/scenar_birfuc_u_10.RData")
+u10 <- scenar_avg; rm(scenar_avg)
+
+bind_scenar(u0_5, u10)
+u0_5$inits
+u10$inits
 
 states <- compute_states(scenar_avg, type = "double")
 length(states$gradient$b)
@@ -335,7 +342,6 @@ p + facet_grid(vars(g), vars(u))
 #                              Cellular automata                               #
 ################################################################################
 
-
 mod <- ca_two_facilitation_model()
 solver(mod) <- "myiteration"
 times(mod)["to"] <- c(to = 6000)
@@ -349,16 +355,16 @@ g1 <- out(mod_run) %>%
   geom_line() + ylim(0, 1)
 g1
 
-#################
-#  Cooccurence  #
-#################
+##################
+#  Cooccurences  #
+##################
 
 load(file = "inst/scenar_avg_ca_cooccurence.Rdata")
 scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
 
 # Average by replicate
 occurences <- scenar_avg
-occurences$run <- compute_occurences(scenar_avg) %>%
+occurences$run <- compute_occurences(filter(scenar_avg, g == 0.1)) %>%
   .$run %>%
   gather(clustering, value, cnp:cveg) %>%
   group_by(u, del, g, clustering) %>%
@@ -366,3 +372,6 @@ occurences$run <- compute_occurences(scenar_avg) %>%
   spread(clustering, value)
 
 plot_fig3(occurences)
+# To do: for computation, keep only the combination of parameter for which 9 sim
+# over 10 gave the same output!
+

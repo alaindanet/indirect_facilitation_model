@@ -136,52 +136,63 @@ convert2scenarii <- function (x, scenario) {
 #' 
 #' Combine a list of scenarii in one
 #'
-#' @param l a list of scenarii object  
-#' @param var_name a character vector. Names of the parameters which are different
-#' between scenarii
-#' @param 
+#' @param ... scenarii objects  
 #' @details The scenario should describe one of init density values defined in
 #' init_scenarii 
 #' @seealso init_scenarii
 #' @export
 bind_scenar <- function(x, ...) UseMethod("bind_scenar")
 bind_scenar.default <- function(x) "Unknown class"
-bind_scenar.list <- function (l, var_name = "u") {
+bind_scenar.scenarii <- function (...) {
+
+  scenar <- list(...)
 
   # Parameters
-  param <- lapply(l, function(x) x$param)
-  common_param <- param[[1]][which(!names(param[[1]]) %in% var_name)]
-  varing_param <- sapply(param, function(param)
-    param[which(names(param) %in% var_name)])
 
-  if(!all(sapply(varing_param, function(x){ length(x) > 0 })) ){
-    warning(paste("There was a problem.", var_name, "was not found to be a varing
-	parameter across scenarii."))
+  param <- lapply(scenar, function(x) x$param)
+  test_param <- sapply(param, FUN = identical, param[[1]])
+  if (!all(test_param)) {
+    warning(
+      paste("There was a problem. \n
+	Parameters were not found to be the same across scenarii. \n
+	Only gradient is expected to vary \n")
+	)
   }
 
-  output <- mapply(
-  function(param, var_name, scenar) {
-    run <- scenar$run
-    columns <- lapply(param, function(x) {rep(x, nrow(run))})
-    names(columns) <- var_name
-    test <- cbind(run, columns)
-    return(as.tibble(test))
-    },
-    varing_param, names(varing_param), l, USE.NAMES = FALSE, SIMPLIFY = FALSE)
-  output <- do.call(rbind,
-    lapply(output, as.tibble, stringsAsFactors=FALSE)
-    )
+  inits <- lapply(scenar, function(x) x$inits)
+  if (!all(sapply(inits, FUN = identical, inits[[1]]))) {
+    warning(
+      paste("There was a problem. inits were not found to be the same across scenarii. \n
+	Only gradient is expected to vary")
+	)
+  }
+
+  binded_run <- dplyr::bind_rows(lapply(scenar, function(x) x$run))
+
+  binded_scenar <- scenar[[1]]
+  rm(scenar)
+  binded_scenar$run <- binded_run
+  rm(binded_run)
+  #We need to update the gradient slot
+  binded_scenar[["gradient"]] <- binded_scenar[["run"]] %>%
+    .[, names(.) %in% names(binded_scenar[["gradient"]])] %>%
+    as.list(.) %>%
+    lapply(., function(x) unique(x))
+
+  if (any(class(binded_scenar) %in% "avg_scenarii")) {
+    class_returned <- c("avg_scenarii","scenarii", "list")
+  } else {
+    class_returned <- c("scenarii", "list")
+  }
 
   return(
     structure(
-      list(
-	param = common_param,
-	run = output),
-    class = c("list", "scenarii")
+      binded_scenar,
+      class = class_returned
+      )
     )
-    )
-
 }
+
 
 #' Define the state result of a simulation 
 #'
@@ -383,7 +394,7 @@ filter.scenarii <- function (data, ...) {
 #' @param ... variables selected
 #' @details https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
 #' @return a scenarii object
-#' @seealso a scenarii object
+#' @seealso dplyr::select 
 #' @export
 select.scenarii <- function (data, ...) {
   run <- data[["run"]]
@@ -411,3 +422,33 @@ select.scenarii <- function (data, ...) {
     )
 }
 
+#' Check consistency of cellular automata runs 
+#'
+#' @param data a data.frame 
+#' @details It checks that more than 80% of the simulations give the same
+#' behaviour (e.g. same species win)
+#' @return logical 
+#' @seealso
+#' @export
+check_consistency <- function(data) {
+  # possible outputs
+  outcome <- list(
+  N_win = length(which(data$N > 0.001 & data$P < 0.001)),
+  P_win = length(which(data$P > 0.001 & data$N < 0.001)),
+  N_P_win = length(which(data$P > 0.001 & data$N > 0.001)),
+  no_win = length(which(data$P > 0.001 & data$N > 0.001))
+  )
+  # nb replicates:
+  nb_rep <- nrow(data)
+
+  test <- sapply(outcome, function(x) if(x/nb_rep >= .8){TRUE}else{FALSE})
+  # TODO: return true or false for each case, compute the specific clustering
+  #only if the corresponding variables is true
+
+  if(any(test)) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+
+}
