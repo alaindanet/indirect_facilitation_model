@@ -430,13 +430,13 @@ select.scenarii <- function (data, ...) {
 #' @return logical 
 #' @seealso
 #' @export
-check_consistency <- function(data) {
+check_consistency <- function(data, threshold = .001) {
   # possible outputs
   outcome <- list(
-  N_win = length(which(data$N > 0.001 & data$P < 0.001)),
-  P_win = length(which(data$P > 0.001 & data$N < 0.001)),
-  N_P_win = length(which(data$P > 0.001 & data$N > 0.001)),
-  no_win = length(which(data$P > 0.001 & data$N > 0.001))
+  N_win = length(which(data$N > threshold & data$P < threshold)),
+  P_win = length(which(data$P > threshold & data$N < threshold)),
+  N_P_win = length(which(data$P > threshold & data$N > threshold)),
+  no_win = length(which(data$P > threshold & data$N > threshold))
   )
   # nb replicates:
   nb_rep <- nrow(data)
