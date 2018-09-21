@@ -9,9 +9,23 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, echo = TRUE}
+```{r, echo = FALSE}
 library(tidyverse)
 library(magrittr)
+library(cowplot)
+theme_set(hrbrthemes::theme_ipsum_rc())
+theme_update(
+  text = element_text(family = "Helvetica", hjust = .5),
+  axis.title = element_text(family = "Helvetica", hjust = .5),
+  axis.title.x = NULL,
+  axis.title.y = NULL,
+  axis.text.x = NULL,
+  axis.text.y = NULL)
+theme_update(axis.title.y = element_text(angle = 90),
+  axis.text = element_text(size = 8),
+  plot.margin = unit(c(.5, .5, .5, .5), "cm")
+  )
+#theme_get()
 ```
 
 
@@ -211,7 +225,7 @@ compute_p_one_z <- function(gamma1, u) {
 
 factors <- list(
   gamma1 = seq(0, .2, .01),
-  u = seq(5, 20, 4)
+  u = c(0, 5, 10) 
   )
 
 df <- expand.grid(factors) 
@@ -222,11 +236,23 @@ df %<>%
   )
 
 #Plot
-p <- ggplot(df, aes(x = gamma1, y = tau))
-p + geom_line(aes(colour = u)) +
+p1 <- ggplot(df, aes(x = gamma1, y = tau)) +
+  geom_line(aes(colour = u)) +
   labs(
-    y = expression(paste("Relative decrease of mortality due to grazing when surrounded by one neighbor ","(", p[frac(1,z)], ")")), 
-    x = expression(paste("Cost of defense (", gamma, ")")), 
-    title = "Relationship between the protection provided by one neighbor and
-    the cost of defense")
+    y = expression(paste("Protection with one neighbor (", p[frac(1,z)], ")")), 
+    x = expression(paste("Cost of defense (", gamma, ")"))) +
+  ylim(0,1) +
+  theme(legend.position="bottom")
+p2 <- ggdraw() +
+  draw_image(magick::image_read_svg("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stand_alone.svg"))
+
+fig1 <- plot_grid(p2, p1, labels = "AUTO", rel_heights = c(1, 1), nrow = 2)
+fig1
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
+  fig1,
+  base_width = 3.3,
+  base_height = 2.8,
+  nrow = 2)
+# 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
+
 ```

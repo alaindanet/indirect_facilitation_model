@@ -136,22 +136,6 @@ $$
 ![gamma = .1](../inst/figs/four_states/diag_u_grazing_first_protect_gamma1=.1.png){ width=9in }\
 
 
-### Indirect facilitation and  stability
-
-```{r, echo = FALSE}
-library(tidyverse)
-library(cowplot)
-library(magrittr)
-
-load(file = "../inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
-#scenar_avg$run[, c("g", "b", "u")] %<>% lapply(., factor)
-
-states <- compute_states(scenar_avg, type = "double")
-
-
-plot_fig2(states)
-
-```
 
 ### Indirect facilitation and cooccurences
 
@@ -170,7 +154,7 @@ plot_fig2(states)
   C_{++} = \frac{q_{n|p} + q_{p|n} + q_{n|n} + q_{p|p}}{\rho_n \times \rho_p} \\
   $$
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 
 occurenres <- compute_occurences(scenar_avg)
 occurenres$run %<>% gather(var, rho, D:cveg) %>%
@@ -194,27 +178,39 @@ cowplot::plot_grid(p1, p2, p3, p4, labels = "AUTO")
 load(file = "../inst/scenar_avg_ca_cooccurence.Rdata")
 scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
 
+scenar_avg$run <- arrange(scenar_avg$run, u, del, g, rep)
 occurences <- scenar_avg
-occurences$run <- compute_occurences(scenar_avg) %>%
+# To do: for computation, keep only the combination of parameter for which 9 sim
+# over 10 gave the same output!
+consistence <- occurences$run %>%
+  group_by(u, del, g) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = .1))
+
+filtered_scenar <- occurences; filtered_scenar$run <- unnest(consistence) %>%
+  mutate(
+    N = ifelse(N < .1 & N != 0, NA, N),
+    P = ifelse(P < .1 & P != 0, NA, P)
+    )
+
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
+  compute_occurences(.) %>%
   .$run %>%
-  gather(clustering, value, cnp:cveg) %>%
+  gather(clustering, value, N:cveg) %>%
   group_by(u, del, g, clustering) %>%
-  summarise(value = mean(value, na.rm = TRUE) %>% log10(.)) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
 
-g_caption <- sapply(seq_along(scenar_avg$param), function(x) {
-  paste(names(scenar_avg$param)[x], " = ",scenar_avg$param[x], sep="")
+g_caption <- sapply(seq_along(filtered_scenar$param), function(x) {
+  paste(names(filtered_scenar$param)[x], " = ",filtered_scenar$param[x], sep="")
   })
 g_caption <- c("Parameters: ", g_caption)
-g_caption <- do.call( paste, list(as.list(g_caption), collapse = ", ")
-  )
+g_caption <- do.call( paste, list(as.list(g_caption), collapse = ", "))
 
-plot_fig3(occurences) +
+
+plot_fig3(filtered_scenar) +
   labs(caption = g_caption)
-
-```
-
-```{r}
 
 ```
 

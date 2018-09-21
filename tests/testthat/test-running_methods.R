@@ -117,7 +117,7 @@ test_that("run_simecol works", {
   })
 
   u0 <- run_scenarii_gradient(
-    gradient = list(g = c(0, 0.1), b = c(.5, .8)),
+    gradient = list(g = c(0, 0.1), u = 0),
     model_spec = "two_facilitation_model",
     time_seq = c(from = 0, to = 1, by = 1),
     solver_type = NULL
@@ -155,4 +155,18 @@ test_that("the filter of runs works", {
   expect_equal(u0_filtered$gradient$g, 0)
   expect_length(u0_filtered, 5)
 
+  })
+
+u5 <- run_scenarii_gradient(
+  gradient = list(g = c(0, 0.1), u = 5),
+  model_spec = "two_facilitation_model",
+  time_seq = c(from = 0, to = 1, by = 1),
+  solver_type = NULL
+  )
+
+test_that("binding scenarii works", {
+  u_miss <- u0; u_miss$param["c"]  <- .3
+  expect_warning(bind_scenar(u0, u_miss))
+  binded <- bind_scenar(u5, u0)
+  expect_output(class(binded), "scenarii")
   })
