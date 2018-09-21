@@ -11,20 +11,15 @@
 
 ### Implementation
 
-- [x] Add cellular automata
-- [ ] Multispecies implementation: cf Minus and Lion; need to implement the
-  rules 
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
     - [ ] check_param(model_spec, names(gradient)))
     - [ ] Add check for argument conformity (check_param, check_inits)
       of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
-    - [ ] control for plot diagram, check how many param variables there is  
-    - [ ] plotnp.avg_scenarii()
-    - [x] For big simulation runs: add set_tail argument to
-      run_scenarii_gradient() to cut the simulations with tail(output, set_tail)
     - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
-    - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
+- [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
+    - [ ] See [here](https://stackoverflow.com/a/23863893/5968131) 
+- [ ] Compare the effect of dispersal, facilitation strength, paturâge, aridité on clustering  
 - [ ] Document functions
 - [ ] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")

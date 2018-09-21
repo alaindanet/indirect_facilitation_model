@@ -304,7 +304,7 @@ u0_5 <- scenar_avg
 load(file = "./inst/scenar_birfuc_u_10.RData")
 u10 <- scenar_avg; rm(scenar_avg)
 
-bind_scenar(u0_5, u10)
+scenar_avg <- bind_scenar(u0_5, u10)
 u0_5$inits
 u10$inits
 
@@ -315,28 +315,27 @@ plot_fig2(states)
 ggsave("./inst/figs/figure2.pdf", device = cairo_pdf)
 
 
-###########################################
-#  Plot species densities and clustering  #
-###########################################
-
-plot_diagram(scenar_avg, debug_mode = FALSE, fill = "P")
-
-occurenres <- compute_occurences(scenar_avg)
-summary(occurenres$run$c_veg3)
-plot_diagram(occurenres, fill = "cnp")
-plot_diagram(occurenres, fill = "cpp")
-plot_diagram(occurenres, fill = "cnn")
-plot_diagram(occurenres, fill = "c_veg3")
-
 ######################
 #  Bifucation plots  #
 ######################
 
+g_val <- c(0, .1, .25, .3)
+u_val <- c(0, 5)
+i <- 3; j <- 1
+plot_list <- list()
+for (i in seq_along(g_val)) {
+  for (j in seq_along(u_val)) {
+    dd <- c("~/Documents/thesis/talks/coffee_chat/fig/")
+    filename <- paste("bifurc_g=", g_val[i], "_u=", u_val[j], ".pdf", sep = "")
 
-extraction <- filter(scenar_avg, g %in% c(0, 0.1, 0.20, .3))
+    p <- plot_bifurcation(filter(scenar_avg, g == g_val[i], u == u_val[j])) +
+    ggplot2::scale_colour_manual(
+      values = c(N = "#BBCC33", P = "#99DDFF")
+      )
+    ggplot2::ggsave(paste(dd, filename, sep = ""), p, width = 12, height = 10, units = "cm")
+  }
+}
 
-p <- plotnp(extraction, b, threshold = 10^-3, debug_mode = FALSE, N, P)
-p + facet_grid(vars(g), vars(u)) 
 
 ################################################################################
 #                              Cellular automata                               #
@@ -362,16 +361,32 @@ g1
 load(file = "inst/scenar_avg_ca_cooccurence.Rdata")
 scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
 
-# Average by replicate
+scenar_avg$run <- arrange(scenar_avg$run, u, del, g, rep)
 occurences <- scenar_avg
-occurences$run <- compute_occurences(filter(scenar_avg, g == 0.1)) %>%
+# To do: for computation, keep only the combination of parameter for which 9 sim
+# over 10 gave the same output!
+consistence <- occurences$run %>%
+  group_by(u, del, g) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = .1))
+
+which(consistence$consistence == FALSE) %>% length(.)
+# Keep relevant values
+filtered_scenar <- occurences; filtered_scenar$run <- unnest(consistence) %>%
+  mutate(
+    N = ifelse(N < .1 & N != 0, NA, N),
+    P = ifelse(P < .1 & P != 0, NA, P)
+    )
+
+filtered_scenar
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
+  compute_occurences(.) %>%
   .$run %>%
-  gather(clustering, value, cnp:cveg) %>%
+  gather(clustering, value, N:cveg) %>%
   group_by(u, del, g, clustering) %>%
   summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
-
-plot_fig3(occurences)
-# To do: for computation, keep only the combination of parameter for which 9 sim
-# over 10 gave the same output!
+plot_fig3bisbis(filter(filtered_scenar, g == .2), x = "del", y = "u", facet = "g")
+ggsave(paste(dd, "cooccurences.pdf", sep = ""), device = cairo_pdf, width = 12, height = 10, units = "cm")
 

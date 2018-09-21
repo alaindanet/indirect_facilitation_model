@@ -253,20 +253,62 @@ color_states <- function() {
 plot_fig2 <- function(states) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- as_labeller(c("0" = "Without indirect facilitation", "5" = "With indirect facilitation"))
+  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
+    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
   g <- plot_diagram(states) +
-    xlab(expression(paste("Environmental quality (", b, ")"))) +
-    ylab(expression(paste("Grazing intensity (", g, ")"))) +
+    xlab(paste("Environmental quality (b)")) +
+    ylab(paste("Grazing intensity (g)")) +
     scale_fill_manual(
-      labels = c(
-	"Coexistence", "Coexistence / Desert", "Coexistence / Nurse",
-	"Desert", "Nurse", "Nurse / Desert", "Protegee", "Protegee / Desert"),
+      labels = as_labeller(stable_states_lab),
       values = color_states(),
       name = "Stable states"
       ) +
-    facet_grid(cols = vars(u), labeller = u_appender)  +
-    hrbrthemes::theme_ipsum_rc()
+    facet_grid(cols = vars(u), labeller = u_appender)# +
+    #hrbrthemes::theme_ipsum_rc()
+
+  g
+}
+
+plot_bifurcation <- function(scenar, debug_mode = FALSE) {
+
+  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
+  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
+    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
+
+  # Select variables   
+  scenar <- select(scenar, scenario, g, b, u, N, P)
+  scenar$run %<>% gather(species, rho, N, P)
+  # Make group to split lines
+  scenar$run %<>% mutate(group = ifelse(rho > .1, "high", "low")) %>%
+    mutate(
+      group = as.factor(group),
+      species = as.factor(species)
+      )
+
+  scenar_high <- filter(scenar, scenario == "together")
+  scenar_low <- filter(scenar, scenario == "low_together")
+
+  if (debug_mode) {
+   return(scenar_high)
+  }
+
+  g <- ggplot2::ggplot(filter(scenar_high$run, group == "high"),
+    aes(x = b, y = rho, color = species)) +
+    geom_line() +
+    ylim(-0.005,1) +
+    geom_line(data = filter(scenar_high$run, group == "low"),
+      mapping = aes(x = b, y = rho, color = species)) +
+    geom_line(data = filter(scenar_low$run, group == "low"),
+      mapping = aes(x = b, y = rho - .005, color = species), linetype = "dashed") +
+    geom_line(data = filter(scenar_low$run, group == "high"),
+      mapping = aes(x = b, y = rho - .005, color = species), linetype = "dashed")
+    #xlab(expression(paste("Environmental quality (", b, ")"))) +
+    #ylab(expression(paste("Density (", rho, ")"))) #+
+    #facet_grid(cols = vars(u), rows = vars(g), labeller = labeller(u = u_appender))# +
+    #hrbrthemes::theme_ipsum_rc()
 
   g
 }
@@ -286,12 +328,82 @@ plot_fig3 <- function(clustering) {
       y = expression(paste("Strength of grazing protection (", u, ")")),
       fill = "Clustering") +
     scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
       low = scales::muted("blue"),
       mid = "white",
       high = scales::muted("red"),
       guide = guide_colorbar(title.position = "top")) +
     hrbrthemes::theme_ipsum_rc()
 
-
   g
+}
+
+plot_fig3bis <- function(clustering, x = "b", y = "g", facet = "u") {
+
+  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnn, cnp, cpp)#, cveg
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    labs(
+      x = paste("Environmental quality  (", x, ")"),
+      y = paste("Grazing intensity (", y, ")"),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    hrbrthemes::theme_ipsum_rc()
+  g
+}
+
+plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
+
+  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnp)
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
+    labs(
+      x = paste("Fraction of global dispersal (", x, ")"),
+      y = paste("Strength of grazing protection (", y, ")"),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx))
+  g
+}
+
+theme_alain <- function(){
+
+  hrbrthemes::theme_ipsum_rc() +
+  theme(#Whipe
+    text = element_text(family = "Helvetica", hjust = .5),
+    axis.title = element_text(family = "Helvetica", hjust = .5),
+    axis.title.x = NULL,
+    axis.title.y = NULL,
+    axis.text.x = NULL,
+    axis.text.y = NULL,
+    strip.text = NULL) +
+  theme(#Set up
+    axis.title.y = element_text(angle = 90),
+    axis.text = element_text(size = 8),
+    strip.text = element_text(size = 8),
+    plot.margin = unit(c(.5, .5, .5, .5), "cm")
+    )
+
 }
