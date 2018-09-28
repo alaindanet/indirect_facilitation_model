@@ -358,7 +358,11 @@ g1
 #  Cooccurences  #
 ##################
 
+
+## CA  
+### Old sim: 
 load(file = "inst/scenar_avg_ca_cooccurence.Rdata")
+
 scenar_avg$run <- tibble::as.tibble(scenar_avg$run)
 
 scenar_avg$run <- arrange(scenar_avg$run, u, del, g, rep)
@@ -389,4 +393,39 @@ filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
   spread(clustering, value)
 plot_fig3bisbis(filter(filtered_scenar, g == .2), x = "del", y = "u", facet = "g")
 ggsave(paste(dd, "cooccurences.pdf", sep = ""), device = cairo_pdf, width = 12, height = 10, units = "cm")
+
+### New sim:
+load(file = "inst/clustering_ca_avg.Rdata")
+scenar_avg$run <- tibble::as.tibble(scenar_avg$run) %>%
+  mutate(g = .2)
+scenar_avg$run <- arrange(scenar_avg$run, u, del, rep)
+occurences <- scenar_avg
+
+# Which simulation is good 
+consistence <- occurences$run %>%
+  group_by(u, del) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = .01))
+
+which(consistence$consistence == FALSE) %>% length(.)
+# Keep relevant values
+filtered_scenar <- occurences; filtered_scenar$run <- unnest(consistence) %>%
+  mutate(
+    N = ifelse(N < .01 & N != 0, NA, N),
+    P = ifelse(P < .01 & P != 0, NA, P)
+    )
+
+filtered_scenar
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
+  compute_occurences(.) %>%
+  .$run %>%
+  gather(clustering, value, N:cveg) %>%
+  group_by(u, del, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(clustering, value)
+plot_fig3bisbis(filtered_scenar, x = "del", y = "u", facet = "g")
+
+## Pair Approximation
+load(file = "inst/clustering_pa_avg.RData")
 

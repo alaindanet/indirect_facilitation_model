@@ -15,6 +15,8 @@ library(cowplot)
 library(magrittr)
 devtools::load_all()
 
+dd <- "~/Documents/thesis/talks/coffee_chat/fig"
+
 knitr::opts_chunk$set(
   echo = FALSE,
   fig.dim = c(10, 7) #width, height
@@ -67,12 +69,12 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig
 
 ```{r, echo = FALSE}
 
-load(file = "./inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
+load(file = "../inst/scenar_avg_bifurc_u=0_5_gamma1_.1.Rdata")
 u0_5 <- scenar_avg
-load(file = "../inst/scenar_birfuc_u_10.RData")
-u10 <- scenar_avg; rm(scenar_avg)
 
-scenar_avg <- bind_scenar(u0_5, u10)
+#load(file = "../inst/scenar_birfuc_u_10.RData")
+#u10 <- scenar_avg; rm(scenar_avg)
+#scenar_avg <- bind_scenar(u0_5, u10)
 
 states <- compute_states(scenar_avg, type = "double")
 
@@ -88,11 +90,25 @@ save_plot("~/Documents/thesis/talks/coffee_chat/fig/stability.pdf",
 
 ```
 
+```{r}
+g_val <- c(0, .1, .25, .3)
+u_val <- c(0, 5)
+
+plot_bifurcation(filter(scenar_avg, g %in% g_val, u %in% u_val)) +
+    ggplot2::scale_colour_manual(
+      values = c(N = "#BBCC33", P = "#99DDFF")
+      ) +
+    facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
+    xylabs(x = "b", y = "rho") +
+    theme_alain()
+```
+
+
 # Cooccurrences
 
+## Relating to grazing and aridity
 
 ```{r}
-
 
 filtered_scenar <- filter(scenar_avg, scenario == "together"); 
 filtered_scenar$run %<>%
@@ -103,16 +119,139 @@ filtered_scenar$run %<>%
 
 occurenres <- compute_occurences(filtered_scenar) 
 
-occurenres$run %<>%  gather(var, rho, D:cveg) %>%
-  mutate(rho = ifelse(rho <= 10^-2 & rho != 0, 0, rho)) %>%
-  spread(var, rho)
-
 p <- plot_fig3bisbis(occurenres)
 p
 ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, height = 18, units = "cm", device = cairo_pdf)
 #+
   #geom_contour(aes(z = c), bins = 1, na.rm = TRUE)
   #geom_contour(aes(z = ifelse(is.na(c), 0,1)), bins = 1)
+
+```
+
+## Relating to dispersal and indirect facilitation strength
+
+### Pair approximation model
+
+```{r}
+load("../inst/clustering_pa_avg.RData")
+clust_avg <- scenar_avg
+
+clust_avg$run %<>%
+  mutate(
+    g = 0.2, #dummy variable for plot_fig3bisbis
+    N = ifelse(N < .0001 & N != 0, 0, N),
+    P = ifelse(P < .0001 & P != 0, 0, P)
+    )
+
+occurenres <- compute_occurences(clust_avg) 
+
+a <- plot_fig3bisbis(occurenres, x = "del", y = "u", facet = "g")
+b <- plot_diagram(compute_states(clust_avg), param = c(x = "del", y = "u"))
+
+
+```
+
+### Cellular automata
+
+```{r}
+load(file = "../inst/clustering_ca_avg.RData")
+
+##Options 
+rho_threshold <- .01 
+
+##
+scenar_avg$run <- tibble::as.tibble(scenar_avg$run) %>%
+  mutate(g = .2)
+scenar_avg$run <- arrange(scenar_avg$run, u, del, rep)
+occurences <- scenar_avg
+
+# Which simulation is good 
+consistence <- occurences$run %>%
+  group_by(u, del) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = rho_threshold))
+
+# Keep the good values
+filtered_scenar <- occurences; 
+filtered_scenar$run <- unnest(consistence) 
+filtered_scenar$run %<>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, NA, N),
+    P = ifelse(P < rho_threshold & P != 0, NA, P),
+    qnp = ifelse(is.na(P) | is.na(N), NA, qnp),
+    )
+
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
+  compute_occurences(.) %>%
+  .$run %>%
+  gather(clustering, value, N:cveg) %>%
+  group_by(u, del, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(clustering, value)
+c1 <- plot_fig3bisbis(filtered_scenar, x = "del", y = "u", facet = "g")
+# Check the white area! Is it zeros ?
+
+```
+
+```{r check_diagram}
+filtered_scenar <- occurences
+filtered_scenar$run <- filter(consistence, consistence == TRUE) %>%
+  select(-consistence) %>%
+  unnest() %>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P)
+    ) %>% filter(rep == 1)
+   
+filtered_scenar %<>% compute_states(.) 
+
+d <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u")) +
+  theme_alain()
+
+plot_grid(a, b, c1, d, labels = "AUTO")
+```
+
+
+## Consistence pair approximation and cellular automata
+
+```{r}
+# Plot final densities along gradients 
+
+model_type <- c("ca", "pa")
+simulation <- list()
+for (i in seq_along(model_type)) {
+  load(file = paste("../inst/clustering_", model_type[i], "_avg.RData", sep = ""))
+  scenar_avg$run %<>% mutate( model = factor(model_type[i], levels = model_type))
+
+  if (model_type[i] == "ca") {
+  scenar_avg$run %<>% gather(rho, value, N, P) %>%
+  group_by(scenario, u, del, rho, model) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(rho, value)
+  }
+
+  simulation[[i]] <- select(scenar_avg$run, scenario, u, del, N, P, model)
+  rm(scenar_avg)
+}
+simulation %<>% bind_rows(simulation)
+
+load(file = paste("../inst/clustering_", model_type[i], "_avg.RData", sep = ""))
+scenar_avg$run <- ungroup(simulation) %>%  ##NOT SAFE
+  select(-scenario)
+scenar_avg$run %<>% gather(rho, value, N, P) %>% 
+  group_by(u, del, rho, model) %>%
+  mutate(ind = row_number()) %>%
+  spread(model, value) %>%
+  ungroup() %>% select(-ind) %>%
+  mutate(diff_ca_pa = ca - pa)
+
+ca <- plot_diagram(scenar_avg, param = c(x = "del", y = "u"), fill = "diff_ca_pa") + 
+  theme_alain() +
+  scale_fill_temperature() +
+  facet_grid(cols = vars(rho), labeller = species_labeller()) +
+  xylabs(x = "del", y = "u")
+ca
 
 ```
 
