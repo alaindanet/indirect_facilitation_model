@@ -384,7 +384,7 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
       mid = "white",
       high = scales::muted("red"),
       guide = guide_colorbar(title.position = "top")) +
-    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx))
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
   g
 }
 
@@ -407,3 +407,69 @@ theme_alain <- function(){
     )
 
 }
+
+scale_fill_temperature <- function (mid = 0) {
+  scale_fill_gradient2(
+      midpoint = mid,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"))
+}
+
+clustering_labeller <- function () {
+  as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+}
+
+species_labeller <- function () {
+  as_labeller(c(N = "Nurse", P = "Protegee"))
+}
+
+facet_labeller <- function (prefix = "b", sep = "= ") {
+
+  prefix <- paste(prefix, sep)
+  return(
+    as_labeller(function(string, suffix = prefix) { paste0(suffix, string) })   
+    
+    )
+  #g_appender <- function(string, suffix = ) { paste0(suffix, string) }
+}
+
+  stable_states_labeller <- function () {
+  as_labeller(
+    c(
+      "desert" = "Desert",
+      "protegee_desert" = "Protegee / Desert",
+      "protegee" = "Protegee",
+      "coexistence" = "Coexistence",
+      "coexistence_desert" = "Coexistence / Desert",
+      "nurse_desert" = "Nurse / Desert",
+      "nurse" = "Nurse",
+      "coexistence_nurse" = "Coexistence / Nurse",
+      "coexistence_protegee" = "Coexistence / Protegee"
+      )
+    )
+} 
+
+xylabs <- function (...) {
+  dots <- pryr::named_dots(...)
+  dots <- unlist(dots)
+
+  lab_list <- list(
+    del = expression(paste("Fraction of global dispersal (", delta, ")")),
+    u = paste("Strength of grazing protection (u)"),
+    rho = expression(paste("Species density (", rho, ")")),
+    g = paste("Grazing intensity (g)"),
+    b = paste("Environmental quality (b)")
+    )
+  
+  lab_used <- lab_list[dots]
+  names(lab_used) <- names(dots)
+
+  labs(
+    x = lab_used["x"][[1]],
+    y = lab_used["y"][[1]]
+    )
+  #lab_used["x"]
+}
+
