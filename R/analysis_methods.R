@@ -70,10 +70,10 @@ compute_occurences.avg_scenarii <- function(data, ...) {
 
   if (data$model != "ca_two_facilitation_model") {
     run <- data[["run"]] %>%
-      dplyr::mutate(
-      cnp = NP / N * P, #qj|i = pij / pi
-      cnn = NN / N * N,
-      cpp = PP / P * P,
+      dplyr::mutate(#qj|i = pij / pi; cij = qj|i / pj 
+      cnp = NP / (N * P),
+      cnn = NN / (N * N),
+      cpp = PP / (P * P),
       cveg = ((NP + NN) * P + (PP + NP) * N) / (N * P * (N + P)),
       cveg2 = (NN * P + NP * P + N * NP + N * PP) / ((N + P)^2 * N * P)
 
@@ -436,7 +436,7 @@ check_consistency <- function(data, threshold = .001) {
   N_win = length(which(data$N > threshold & data$P < threshold)),
   P_win = length(which(data$P > threshold & data$N < threshold)),
   N_P_win = length(which(data$P > threshold & data$N > threshold)),
-  no_win = length(which(data$P > threshold & data$N > threshold))
+  no_win = length(which(data$P < threshold & data$N < threshold))
   )
   # nb replicates:
   nb_rep <- nrow(data)
@@ -450,5 +450,36 @@ check_consistency <- function(data, threshold = .001) {
   } else {
     return(FALSE)
   }
+
+}
+
+#' Identify abrupt transitions
+#'
+#' @param v a vector 
+#' @param threshold numeric 
+#' @details It identifies changes in variable values and assign series
+#' accordingly to groups. 
+#' @return factor 
+#' @seealso plot_bifurcation
+#' @export
+identify_transition <- function(data, threshold = .001) {
+
+  # Which are different ?
+  ind <- abs(
+  as.numeric(v[-1]) - as.numeric(v[-length(v)])
+  ) >= threshold
+
+  # Assign to group
+  splitAt <- function(x, pos) split(x, cumsum(seq_along(x) %in% (pos+1)))
+  l1 <- splitAt(as.numeric(df_high$run$N), which(ind))
+  names(l1) <- 1:length(l1)
+  l2 <- lapply(seq_along(l1), function(y, n, i) {
+	       as.numeric(rep(n[[i]], length(y[[i]])))
+                               }, 
+	       y = l1,
+	       n = names(l1)
+	       )
+  unlist(l2)
+  #TODO: Test the function
 
 }
