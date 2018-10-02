@@ -1,4 +1,3 @@
-## Cool
 library(simecol)
 library(tidyverse)
 library(magrittr)
@@ -31,34 +30,3 @@ l2 <- lapply(seq_along(l1),
                                  as.numeric(rep(n[[i]], length(y[[i]]))) 
                                }, y=l1, n=names(l1))
 unlist(l2)
-
-myxylab <- function (...) {
-  dots <- pryr::named_dots(...)
-  dots <- unlist(dots)
-
-  lab_list <- list(
-    mpg = paste("Miles/(US) gallon"),
-    qsec = expression(paste("1/4 mile time (", tau, ")")),
-    disp = paste("Displacement (cu.in.)"),
-    wt = paste("Weight (1000 lbs) ")
-    )
-  
-  lab_used <- lab_list[dots]
-  names(lab_used) <- names(dots)
-
-  labs(
-    x = lab_used["x"][[1]],
-    y = lab_used["y"][[1]]
-    )
-
-}
-
-qplot(mpg, wt, data = mtcars) +
-  labs(
-    x = paste("Miles/(US) gallon"),
-    y = paste("Weight (1000 lbs)")
-    )
-
-qplot(mpg, wt, data = mtcars) +
-  myxylab(x = "mpg", y = "wt")
-

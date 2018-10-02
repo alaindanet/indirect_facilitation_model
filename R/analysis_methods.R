@@ -74,8 +74,7 @@ compute_occurences.avg_scenarii <- function(data, ...) {
       cnp = NP / (N * P),
       cnn = NN / (N * N),
       cpp = PP / (P * P),
-      cveg = ((NP + NN) * P + (PP + NP) * N) / (N * P * (N + P)),
-      cveg2 = (NN * P + NP * P + N * NP + N * PP) / ((N + P)^2 * N * P)
+      cveg = (NN + 2 * NP + PP) / ( (N + P)^2 )
 
       )
   message("c_veg has a bad formula")

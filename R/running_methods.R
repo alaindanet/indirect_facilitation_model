@@ -208,7 +208,8 @@ run_simecol <- function(inits, params, model, set_tail = NULL) {
 
   run <- simecol::sim(model)
 
-  if(!is.null(set_tail)){ # For big simulations, keep only the last step 
+  # For big simulations, keep only the last step
+  if (!is.null(set_tail)) {
     output <- simecol::out(run) %>%
       tail(., set_tail) %>%
       dplyr::select(-time)

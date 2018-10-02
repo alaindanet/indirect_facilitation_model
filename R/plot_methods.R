@@ -460,7 +460,8 @@ xylabs <- function (...) {
     u = paste("Strength of grazing protection (u)"),
     rho = expression(paste("Species density (", rho, ")")),
     g = paste("Grazing intensity (g)"),
-    b = paste("Environmental quality (b)")
+    b = paste("Environmental quality (b)"),
+    f = paste("Strength of direct facilitation (f)")
     )
   
   lab_used <- lab_list[dots]

@@ -84,13 +84,13 @@ plotnp(averaged_runs, alpha = 0.65)
 mod <- two_facilitation_model()
 init(mod)
 names(init(mod))
-parms(mod)["g"] <- 0.3
-parms(mod)["gamma1"] <- 0.08
+parms(mod)["g"] <- 0.2
+parms(mod)["gamma1"] <- 0.1
+parms(mod)[c("b", "u", "f")] <- c(0.9, 0.1, .9)
 parms(mod)["protection_type"] <- list("first_protect")
-parms(mod)["protection_type"] <- list("linear")
 times(mod) <- c(from = 0, to = 1000, by = 1)
-parms(mod)["u"] <- 30
 mod_run <- sim(mod)
+is_run_normal(out(mod_run))
 plotnp(mod_run)
 
 #############################################
