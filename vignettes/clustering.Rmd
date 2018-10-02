@@ -1,0 +1,101 @@
+---
+title: "Clustering measurement"
+author: "Alain Danet"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+We aim to compute the clustering between cell pairs: 
+
+Following van Baalen (2000):
+
+1. $q_{j|i} = \frac{\rho_{ij}}{\rho_{i}}$
+2. $C_{++} = \frac{q_{+|+}}{\rho_{+}} = \frac{\rho_{++}}{\rho_{+}^2}$
+
+We have two vegetated states ($+$) in the model, namely the nurse and the protege species ($N$, $P$).
+
+Where
+
+* $q_{+|+}$ is the conditional probability to find an occupied cell in the surrounding cells knowing that the focal cell is occupied
+* $\rho_+$ is the density of occupied cells in the landscape, defines as:
+  $\rho_+ = \rho_N + \rho_P$ 
+* $\rho_++$ is the density of occupied cell **pairs** in the landscape, defines
+  as: $\rho_{++} = \rho_{NN} + \rho_{NP} + \rho_{PN} + \rho_{PP}$ 
+
+* $q_{i|j} = \frac{\rho_{ij}}{\rho_{i}}$
+
+One approach successfully describes the clustering but the second does not and I
+do not find why.
+
+
+## A first approach (Works)
+
+* $q_{+|+} = \frac{\rho_{++}}{\rho_{+}}$
+
+* $\rho_{++} = \rho_{NN} + \rho_{NP} + \rho_{PN} + \rho_{PP}$
+
+Knowing that $\rho_{NP} = \rho_{PN}$:
+
+* $q_{+|+} = \frac{\rho_{NN} + 2\rho_{NP} + \rho_{PP}}{\rho_{N} + \rho_{P}}$
+
+Hence:
+
+\begin{align}
+C_{++} & = \frac{\rho_{NN} + 2\rho_{NP} + \rho_{PP}}{\rho_{N} + \rho_{P}} \times \frac{1}{\rho_{+}} \\
+ & = \boxed{\frac{\rho_{NN} + 2\rho_{NP} + \rho_{PP}}{(\rho_{N} + \rho_{P})^2}}
+\end{align}
+
+This approach works, I have checked it by running simulation of cellular
+automata.
+
+
+## A second approach (Do not works)
+
+
+Let's define $q_{+|+}$.
+
+It is the probability for one cell of state $N$ to be surrounded by occupied
+cells +  the probability for one cell of state $P$ to be surrounded by occupied
+cells. It means that:
+
+$$
+q_{+|+} = q_{+|N} + q_{+|P}
+$$
+
+and $q_{+|N}$ and $q_{+|P}$ can be defined as:
+
+* $q_{+|N} = q_{N|N} + q_{P|N}$
+* $q_{+|P} = q_{N|P} + q_{P|P}$
+
+So: 
+
+\begin{align}
+q_{+|+} & = q_{N|N} + q_{P|N} + q_{N|P} + q_{P|P} \\
+ & = \frac{\rho_{NN}}{\rho_{N}} \frac{\rho_{NP}}{\rho_{N}} + \frac{\rho_{PN}}{\rho_{P}} + \frac{\rho_{PP}}{\rho_{P}} \\
+ & = \frac{\rho_{NN} + \rho_{NP}}{\rho_{N}} + \frac{\rho_{PN} + \rho_{PP}}{\rho_{P}} \\ 
+ & = \frac{\rho_{P}(\rho_{NN} + \rho_{NP})}{\rho_{N}\rho_{P}} + \frac{\rho_{N}(\rho_{PN} + \rho_{PP})}{\rho_{N}\rho_{P}} \\ 
+ & = \frac{\rho_{P}(\rho_{NN} + \rho_{NP}) + \rho_{N}(\rho_{PN} + \rho_{PP}) }{\rho_{N}\rho_{P}} \\
+\end{align}
+
+Obviously this formulation of $q_{+|+}$ is different for the first one. In
+simulation, this formulation gives $C_{++}$ twice higher than with a first
+approach.
+
+I do not what is the mistake in this approach but I guess that the following
+assertion is false: 
+
+$$q_{+|+} = q_{N|N} + q_{P|N} + q_{N|P} + q_{P|P}$$
+
+I would be very helpful for me to know why.
+
