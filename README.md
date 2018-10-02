@@ -19,7 +19,7 @@
       https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
 - [ ] plot: separate lines (create groups: e.g: together & < threshold, together & >= threshold, low_together ...)
     - [ ] See [here](https://stackoverflow.com/a/23863893/5968131) 
-- [ ] Compare the effect of dispersal, facilitation strength, paturâge, aridité on clustering  
+- [x] Compare the effect of dispersal, facilitation strength, paturâge, aridité on clustering  
 - [ ] Document functions
 - [ ] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")
@@ -30,11 +30,10 @@
 Develop a theoretical model of two species in competition and add an interaction
 of indirect facilitation. A nurse species is protected against grazing can protect the saplings of a protégée species by associative protection. We make the simple assumption of a growth-defence trade-off.
 
-The cells can take 3 states: occupied by a nurse, a protégée or be empty.
 
 ## Informations about the model
 
-- 3 state model:
+- 3 or 4 state model:
 - Grazing protection specification
 
 ## Workflow (development)
@@ -63,15 +62,16 @@ library(magrittr)
 - Load the model and specify the parameters:
 
 ```
-mod <- indirect_facilitation_model()
+mod <- two_facilitation_model()
 mod
 
 # Show parameters:
 parms(mod)
 
 # Tweak parameters:
-parms(mod)["g"] <- 0
-parms(mod)["gamma1"] <- 0.20
+parms(mod)["g"] <- 0.2
+parms(mod)["gamma1"] <- 0.10
+parms(mod)["u"] <- 5 
 times(mod) <- c(from = 0, to = 1000, by = 1)
 ```
 
@@ -80,5 +80,58 @@ times(mod) <- c(from = 0, to = 1000, by = 1)
 ```
 mod_run <- sim(mod)
 plotnp(mod_run)
+```
+
+## Repo organization
+
+Here is the tree of the directory:
+
+```
+.
+├── draft
+│   ├── analytic
+│   ├── code
+│   │   └── code_hp_windows
+│   ├── results
+│   └── simulation
+│       ├── CA_mod3
+│       │   └── CA_mod3
+│       ├── CA.mod4
+│       ├── model1
+│       ├── model2
+│       └── pairs_mod3
+├── inst
+│   ├── figs
+│   │   └── four_states
+│   └── r
+├── man
+├── R
+├── tests
+│   └── testthat
+└── vignettes
+```
+
+The repo is organized as a R package. The functions are defined in the `R`
+folder and the results are reported in the `vignettes`.
+
+### Functions
+
+```
+.
+├── analysis_methods.R 
+├── ca_4_states_model.R
+├── ca_transitions_functions.R
+├── cellular_automata_template.R
+├── check_arguments.R
+├── deprecated.R
+├── indirect_facilitation.R
+├── misc.R
+├── model_template.R
+├── ode_template.R
+├── pa_3_states_model.R
+├── pa_4_states_model.R
+├── pa_transition_functions.R
+├── plot_methods.R
+└── running_methods.R
 ```
 
