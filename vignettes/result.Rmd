@@ -251,6 +251,62 @@ c1 <- plot_diagram(occurences, param = c(x = "del", y = "f"), fill = "cveg") +
 cowplot::plot_grid(a, b, c1, labels = "AUTO", ncol = 1)
 ```
 
+## Relating to aridity and direct facilitation
+
+```{r disp and facilitation, fig.dim = c(10, 4)}
+
+load("../inst/f_b_effect_pa_avg.RData")
+clust_avg <- scenar_avg
+
+clust_avg$run %<>%
+  mutate(
+    g = 0.2, #dummy variable for plot_fig3bisbis
+    N = ifelse(N < .01 & N != 0, 0, N),
+    P = ifelse(P < .01 & P != 0, 0, P)
+    )
+
+occurences <- compute_occurences(clust_avg) 
+filter(occurences$run, is.infinite(cveg))
+summary(occurences$run$cveg)
+
+a <- plot_fig3bisbis(occurences, x = "b", y = "f", facet = "g") +
+  xylabs(x = "b", y = "f") + theme_alain()
+b <- plot_diagram(compute_states(clust_avg), param = c(x = "b", y = "f")) +
+  xylabs(x = "b", y = "f") + theme_alain()
+c1 <- plot_diagram(occurences, param = c(x = "b", y = "f"), fill = "cveg") +
+  xylabs(x = "b", y = "f") + theme_alain()
+
+cowplot::plot_grid(a, b, c1, labels = "AUTO", ncol = 1)
+```
+
+## Relating to aridity and indirect facilitation
+
+```{r disp and facilitation, fig.dim = c(10, 4)}
+
+load("../inst/u_b_effect_pa_avg.RData")
+clust_avg <- scenar_avg
+
+clust_avg$run %<>%
+  mutate(
+    g = 0.2, #dummy variable for plot_fig3bisbis
+    N = ifelse(N < .01 & N != 0, 0, N),
+    P = ifelse(P < .01 & P != 0, 0, P)
+    )
+
+occurences <- compute_occurences(clust_avg) 
+filter(occurences$run, is.infinite(cveg))
+summary(occurences$run$cveg)
+
+a <- plot_fig3bisbis(occurences, x = "b", y = "u", facet = "g") +
+  xylabs(x = "b", y = "u") + theme_alain() 
+b <- plot_diagram(compute_states(clust_avg), param = c(x = "b", y = "u")) +
+  xylabs(x = "b", y = "u") + theme_alain()
+c1 <- plot_diagram(occurences, param = c(x = "b", y = "u"), fill = "cveg") +
+  xylabs(x = "b", y = "u") + theme_alain()
+
+cowplot::plot_grid(a, b, c1, labels = "AUTO", ncol = 1)
+```
+
 ## Consistence pair approximation and cellular automata
 
 ```{r}
