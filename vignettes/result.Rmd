@@ -21,8 +21,18 @@ knitr::opts_chunk$set(
   echo = FALSE,
   fig.dim = c(10, 7) #width, height
   )
-
+cowplot_theme <- theme_get()
+theme_set(cowplot_theme)
+theme_update(axis.title = element_text(size = 8))
 ```
+```{r export bib citation}
+export_citation <- function(pkg_name = NULL, dir_name = NULL){
+  x <- toBibtex(citation(pkg_name))
+  cat(x, file = paste(dir_name, pkg_name, ".bib", sep = ""), sep = "\n") 
+}
+sapply(c("simecol", "deSolve"), export_citation, dir_name = "~/Téléchargements/")
+```
+
 
 # Model definition 
 
@@ -47,7 +57,7 @@ df %<>%
 p1 <- ggplot(df, aes(x = gamma1, y = tau)) +
   geom_line(aes(colour = u)) +
   labs(
-    y = expression(paste("Protection with one neighbor (", p[frac(1,z)], ")")), 
+    y = expression(paste("Grazing protection (", p[frac(1,z)], ")")), 
     x = expression(paste("Cost of defense (", gamma, ")"))) +
   ylim(0,1) +
   theme(legend.position="bottom")
@@ -59,7 +69,7 @@ fig1
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
   fig1,
   base_width = 3.3,
-  base_height = 2.8,
+  base_height = 3.0,
   nrow = 2)
 # 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
 
@@ -82,7 +92,7 @@ fig2 <- plot_fig2(states) + theme_alain()
 fig2 
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
-save_plot("~/Documents/thesis/talks/coffee_chat/fig/stability.pdf",
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/stability.pdf",
   fig2,
   base_width = 4.3,
   base_height = 3.8,
