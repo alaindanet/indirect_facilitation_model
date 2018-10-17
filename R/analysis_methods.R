@@ -14,7 +14,6 @@ avg_runs.default <- function(x) "Unknown class"
 avg_runs.data.frame <- function(run, cut_row = 10) {
 
   if (nrow(run) < cut_row) {
-    # Create a NA data.frame of length one
     warnings("cut_row is ", cut_row, "  and the number of row of the data.frame
       is ", nrow(run), ". cut_row has been set to ", nrow(run), ".")
     cut_row <- nrow(run)
@@ -22,9 +21,12 @@ avg_runs.data.frame <- function(run, cut_row = 10) {
 
   out <- run %>%
     dplyr::slice( (n() - cut_row) : n()) %>% # Keep the last simulation
-    tidyr::gather(species, rho) %>%
+    tidyr::gather(species, rho, -time) %>%
     dplyr::group_by(species) %>%
-    dplyr::summarise(rho = mean(rho, na.rm = TRUE)) %>%
+    dplyr::summarise(
+      rho = mean(rho, na.rm = TRUE),
+      time = last(time)
+      ) %>%
     dplyr::ungroup() %>%
     tidyr::spread(species, rho)
 

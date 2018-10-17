@@ -8,11 +8,11 @@ devtools::document()
 
 mod <- indirect_facilitation_model()
 init(mod)
-parms(mod)["g"] <- 0.13
-parms(mod)["gamma1"] <- 0.1
+parms(mod)["g"] <- 0.2
+parms(mod)[c("gamma1", "u")] <- c(0.1, 1)
 parms(mod)["protection_type"] <- list("first_protect")
-parms(mod)["protection_type"] <- list("linear")
 times(mod) <- c(from = 0, to = 3000, by = 1)
+solver(mod) <- steady_state_3
 mod_run <- sim(mod)
 tail(out(mod_run), 10)
 plotnp(mod_run)
@@ -86,11 +86,11 @@ init(mod)
 names(init(mod))
 parms(mod)["g"] <- 0.2
 parms(mod)["gamma1"] <- 0.1
-parms(mod)[c("b", "u", "f")] <- c(0.9, 0.1, .9)
+parms(mod)[c("b", "u", "f")] <- c(0.9, 0, .9)
 parms(mod)["protection_type"] <- list("first_protect")
-times(mod) <- c(from = 0, to = 1000, by = 1)
+times(mod) <- c(from = 0, to = 4000, by = 1)
+solver(mod) <- steady_state_4
 mod_run <- sim(mod)
-is_run_normal(out(mod_run))
 plotnp(mod_run)
 
 #############################################
@@ -98,16 +98,17 @@ plotnp(mod_run)
 #############################################
 
 gradient <- list(
-  g = seq(0, 0.3, length.out = 10),
-  u = seq(0, 20, length.out = 10)
+  g = seq(0, 0.3, length.out = 4),
+  u = seq(0, 20, length.out = 4)
   )
 
 gradient_2d <- run_scenarii_gradient(
   gradient = gradient,
   model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1),
-  time_seq = c(from = 0, to = 3000, by = 1),
-  scenarii = init_scenarii(type = "together")
+  time_seq = c(from = 0, to = 10000, by = 1),
+  scenarii = init_scenarii(type = "together"),
+  solver_type = steady_state_4
   )
 
 averaged_runs <- avg_runs(gradient_2d, cut_row = 10)

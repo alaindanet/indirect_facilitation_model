@@ -12,7 +12,7 @@ run_scenarii_gradient <- function (
   gradient = list(g = seq(0, .3, length.out = 1),
     b = seq(0, 1, length.out = 1)),
   model_spec = "two_facilitation_model",
-  time_seq = c(from = 0, to = 1000, by = 1),
+  time_seq = NULL,
   param = NULL, nb_cores = NULL, solver_type = NULL,
   scenarii = NULL, set_tail = NULL, nrep = NULL) {
 
@@ -22,7 +22,10 @@ run_scenarii_gradient <- function (
 
   model <- eval(call(model_spec))
   # Define parameters:
+
+  if (!is.null(time_seq)) {
   simecol::times(model) <- time_seq
+  }
   if (!is.null(param)) {
     simecol::parms(model)[names(param)] <- param
   }
@@ -54,8 +57,6 @@ run_scenarii_gradient <- function (
      MoreArgs = list(model = model, set_tail = set_tail)
      )
   # Run the simulations
-  #cat(str(run), str(param_combination), str(comb[["inits"]]),
-    #sep = "\n")
   output <- as.tibble(comb) %>%
     dplyr::mutate(
     scenario = comb[, "scenario"],
@@ -76,7 +77,7 @@ run_scenarii_gradient <- function (
   return(
     structure(
       list(
-	model = model_spec,
+	model = eval(call(model_spec)),
 	inits = scenarii,
 	param = basis_param,
 	gradient = gradient,
@@ -211,12 +212,11 @@ run_simecol <- function(inits, params, model, set_tail = NULL) {
   # For big simulations, keep only the last step
   if (!is.null(set_tail)) {
     output <- simecol::out(run) %>%
-      tail(., set_tail) %>%
-      dplyr::select(-time)
+      tail(., set_tail)
   } else {
-    output <- simecol::out(run) %>%
-      dplyr::select(-time)
+    output <- simecol::out(run)
   }
+  #output %<>% select(-time)
 
   return(output)
 }

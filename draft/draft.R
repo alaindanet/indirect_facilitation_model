@@ -30,3 +30,8 @@ l2 <- lapply(seq_along(l1),
                                  as.numeric(rep(n[[i]], length(y[[i]]))) 
                                }, y=l1, n=names(l1))
 unlist(l2)
+
+parms(mod)[c("gamma1", "g", "u")] <- c(0.1, 0.1, 0)
+sim(mod)
+times(mod)
+plotnp(sim(mod))

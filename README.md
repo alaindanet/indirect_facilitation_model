@@ -6,11 +6,18 @@
 
 - Fig 1: methods
 - Fig 2: multi-states + bifurcation details
-- Fig 3:  
-- Fig 4: cellular automata, spatial coexistence Cnp $f(\gamma, u)$ 
+- Fig 3: cellular automata, spatial coexistence Cnp $f(\gamma, u)$ 
 
 ### Implementation
 
+- [ ] sim_multi():
+    - [ ] Save a simecol object
+    - [ ] Save a time argument
+    - [ ] Save init values
+    - [ ] Save baseline parameters 
+    - [ ] Save param_combination
+    - [ ] param_combination: matrix of parameter combination
+    - [ ] be able to sim from a sim_multi object
 - [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
     - [ ] check_param(model_spec, names(gradient)))
     - [ ] Add check for argument conformity (check_param, check_inits)
@@ -21,9 +28,9 @@
     - [ ] See [here](https://stackoverflow.com/a/23863893/5968131) 
 - [x] Compare the effect of dispersal, facilitation strength, paturâge, aridité on clustering  
 - [ ] Document functions
-- [ ] Check if simulations have reached stability
+- [x] Check if simulations have reached stability
     - [x] Implementation of a custom solver ("lsodar")
-    - [ ] Increase precision of the criterion [see here](https://stackoverflow.com/questions/5802592/dealing-with-very-small-numbers-in-r?rq=1) 
+    - [x] Test the implementation
 
 ## Objectives
 

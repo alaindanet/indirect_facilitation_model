@@ -3,6 +3,7 @@ context("running_methods")
 library(tibble)
 library(magrittr)
 set.seed(123)
+#options(mc.cores = 1)
 
 run <- tibble(
   time = seq(0, 200),
@@ -23,7 +24,10 @@ test_that("avg_runs return a good summary of the simulation", {
 my_calc <- dplyr::slice(run, (n() - 100) :n()) %>%
   tidyr::gather(species, rho, -time) %>%
   dplyr::group_by(species) %>%
-  dplyr::summarise(avg = mean(rho)) %>%
+  dplyr::summarise(
+    avg = mean(rho),
+    time = last(time)
+    ) %>%
   tidyr::spread(species, avg)
 
   summary_run <- avg_runs(run, cut_row = 100)
@@ -168,5 +172,21 @@ test_that("binding scenarii works", {
   u_miss <- u0; u_miss$param["c"]  <- .3
   expect_warning(bind_scenar(u0, u_miss))
   binded <- bind_scenar(u5, u0)
-  expect_output(class(binded), "scenarii")
+  expect_match(class(binded), "scenarii", all = FALSE)
+  })
+
+test_that("steady state solver works in run_scenarii_gradient", {
+  
+  set.seed(12)
+  u0 <- run_scenarii_gradient(
+    gradient = list(g = c(0.1)),
+    model_spec = "two_facilitation_model",
+    time_seq = c(from = 0, to = 10000, by = 1),
+    solver_type = steady_state_4,
+    param = c(u = 0, gamma1 = .1)
+    )
+  avg_two_d_sim <- avg_runs(u0, cut_row = 10)
+  
+  expect_equal(avg_two_d_sim$run$time[1], 212, tolerance = 10)
+
   })

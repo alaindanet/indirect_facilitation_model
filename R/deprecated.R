@@ -130,8 +130,7 @@ run_2d_model <- function(x, y, name_x, name_y, model) {
   simecol::parms(model)[name_x] <- x
   simecol::parms(model)[name_y] <- y
   run <- simecol::sim(model)
-  output <- simecol::out(run) %>%
-    dplyr::select(-time)
+  output <- simecol::out(run)
   return(output)
 }
 
