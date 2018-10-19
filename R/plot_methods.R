@@ -250,6 +250,31 @@ color_states <- function() {
 #  Figure 2  #
 ##############
 
+identify_discontinuity <- function(x, ...) UseMethod("identify_discontinuity")
+identify_discontinuity.default <- function(x, ...) "Unknown class"
+identify_discontinuity.numeric <- function(x, threshold = .1) {
+
+#https://stackoverflow.com/a/23863893/5968131
+check_diff <- abs(x[-1] - x[-length(x)]) >= threshold
+split_at <- function(x, pos) split(x, cumsum(seq_along(x) %in% (pos + 1)))
+
+splitted_list <- split_at(x, which(check_diff))
+names(splitted_list) <- 1:length(splitted_list)
+
+l2 <- lapply(seq_along(splitted_list),
+  function(y, n, i) {
+  as.numeric(rep(n[[i]], length(y[[i]])))
+  },
+  y = splitted_list, n = names(splitted_list))
+
+as.integer(unlist(l2))
+}
+identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1) {
+
+  identify_discontinuity(unlist(data[, var]), threshold = threshold)
+
+}
+
 plot_fig2 <- function(states) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
@@ -271,7 +296,7 @@ plot_fig2 <- function(states) {
   g
 }
 
-plot_bifurcation <- function(scenar, debug_mode = FALSE) {
+plot_bifurcation <- function(scenar) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
   u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
@@ -280,112 +305,30 @@ plot_bifurcation <- function(scenar, debug_mode = FALSE) {
 
   # Select variables   
   scenar <- select(scenar, scenario, g, b, u, N, P)
-  scenar$run %<>% gather(species, rho, N, P)
+  scenar$run %<>% gather(species, rho, N, P) %>%
+    mutate(species = as.factor(species))
   # Make group to split lines
-  scenar$run %<>% mutate(group = ifelse(rho > .1, "high", "low")) %>%
-    mutate(
-      group = as.factor(group),
-      species = as.factor(species)
-      )
+  scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
+  mutate(
+    group = map(data, identify_discontinuity, var = "rho")
+    ) %>% unnest()
 
-  scenar_high <- filter(scenar, scenario == "together")
-  scenar_low <- filter(scenar, scenario == "low_together")
-
-  if (debug_mode) {
-   return(scenar_high)
-  }
-
-  g <- ggplot2::ggplot(filter(scenar_high$run, group == "high"),
-    aes(x = b, y = rho, color = species)) +
+  # Have to do this in two steps due to a ggplot2 limitation: cannot specify
+  # group and linetype in the same time:
+  #https://stackoverflow.com/a/27011361/5968131
+  ## Create the two:
+  scenario_list <- lapply(names(scenar$inits), function(x) {
+    filter(scenar$run,
+      scenario == x)
+      })
+  g <- ggplot2::ggplot(scenario_list[[2]],
+    aes(x = b, y = rho, color = species,
+      group = interaction(group, species))) +
     geom_line() +
-    ylim(-0.005,1) +
-    geom_line(data = filter(scenar_high$run, group == "low"),
-      mapping = aes(x = b, y = rho, color = species)) +
-    geom_line(data = filter(scenar_low$run, group == "low"),
-      mapping = aes(x = b, y = rho - .005, color = species), linetype = "dashed") +
-    geom_line(data = filter(scenar_low$run, group == "high"),
-      mapping = aes(x = b, y = rho - .005, color = species), linetype = "dashed")
-    #xlab(expression(paste("Environmental quality (", b, ")"))) +
-    #ylab(expression(paste("Density (", rho, ")"))) #+
-    #facet_grid(cols = vars(u), rows = vars(g), labeller = labeller(u = u_appender))# +
-    #hrbrthemes::theme_ipsum_rc()
+    ylim(-0.005, 1)
 
-  g
-}
-
-plot_fig3 <- function(clustering) {
-
-  g_appender <- function(string, suffix = "g = ") { paste0(suffix, string) }
-  clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
-
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
-      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
-
-  g <- plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
-    facet_grid(vars(g), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
-    labs(
-      x = expression(paste("Proportion of global dispersal (", delta, ")")),
-      y = expression(paste("Strength of grazing protection (", u, ")")),
-      fill = "Clustering") +
-    scale_fill_gradient2(
-      #trans = "log10",
-      midpoint = 1,
-      low = scales::muted("blue"),
-      mid = "white",
-      high = scales::muted("red"),
-      guide = guide_colorbar(title.position = "top")) +
-    hrbrthemes::theme_ipsum_rc()
-
-  g
-}
-
-plot_fig3bis <- function(clustering, x = "b", y = "g", facet = "u") {
-
-  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
-  clustering$run %<>% gather(var, c, cnn, cnp, cpp)#, cveg
-
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
-      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
-
-  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
-    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
-    labs(
-      x = paste("Environmental quality  (", x, ")"),
-      y = paste("Grazing intensity (", y, ")"),
-      fill = "Clustering") +
-    scale_fill_gradient2(
-      #trans = "log10",
-      midpoint = 1,
-      low = scales::muted("blue"),
-      mid = "white",
-      high = scales::muted("red"),
-      guide = guide_colorbar(title.position = "top")) +
-    hrbrthemes::theme_ipsum_rc()
-  g
-}
-
-plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
-
-  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
-  clustering$run %<>% gather(var, c, cnp)
-
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
-      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
-
-  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
-    labs(
-      x = paste("Fraction of global dispersal (", x, ")"),
-      y = paste("Strength of grazing protection (", y, ")"),
-      fill = "Clustering") +
-    scale_fill_gradient2(
-      #trans = "log10",
-      midpoint = 1,
-      low = scales::muted("blue"),
-      mid = "white",
-      high = scales::muted("red"),
-      guide = guide_colorbar(title.position = "top")) +
-    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
-  g
+  g + geom_line(mapping = aes(y = rho - 0.005, group = interaction(group, species)),
+    data = scenario_list[[1]], linetype = "dashed")
 }
 
 theme_alain <- function(){
@@ -474,3 +417,79 @@ xylabs <- function (...) {
   #lab_used["x"]
 }
 
+##############
+#  Figure 3  #
+##############
+
+plot_fig3 <- function(clustering) {
+
+  g_appender <- function(string, suffix = "g = ") { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
+    facet_grid(vars(g), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    labs(
+      x = expression(paste("Proportion of global dispersal (", delta, ")")),
+      y = expression(paste("Strength of grazing protection (", u, ")")),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    hrbrthemes::theme_ipsum_rc()
+
+  g
+}
+plot_fig3bis <- function(clustering, x = "b", y = "g", facet = "u") {
+
+  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnn, cnp, cpp)#, cveg
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    labs(
+      x = paste("Environmental quality  (", x, ")"),
+      y = paste("Grazing intensity (", y, ")"),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    hrbrthemes::theme_ipsum_rc()
+  g
+}
+plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
+
+  g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
+  clustering$run %<>% gather(var, c, cnp)
+
+  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+      cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
+
+  g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
+    labs(
+      x = paste("Fraction of global dispersal (", x, ")"),
+      y = paste("Strength of grazing protection (", y, ")"),
+      fill = "Clustering") +
+    scale_fill_gradient2(
+      #trans = "log10",
+      midpoint = 1,
+      low = scales::muted("blue"),
+      mid = "white",
+      high = scales::muted("red"),
+      guide = guide_colorbar(title.position = "top")) +
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
+  g
+}

@@ -1,13 +1,9 @@
 context("plot")
 
-
-test_that("palette works", {
-  color <- compute_light_paul_palette()
-  temp <- c(5, 7, 6, 4, 8)
-  #par(mfrow=c(3,3))
-  #sapply(color, function(x) {
-    #barplot(temp, col=x, main=names(x))
-#}
-    #)
-
+test_that("disconstinuity are correctly identified",{
+  set.seed(12)
+  series <- c(rnorm(10, 0, .01), rnorm(10, 1, .01))
+  expect_equivalent(identify_discontinuity(series),
+    c(rep(1, 10), rep(2, 10))
+    )
 })
