@@ -56,12 +56,27 @@ This is a basic example which shows you how to solve a common problem:
 
 ### Paper
 
-  - Fig 1: methods
-  - Fig 2: multi-states + bifurcation details
-  - Fig 3: cellular automata, spatial coexistence Cnp \(f(\gamma, u)\)
+  - \[ \] Fig 1: methods
+      - \[ \] Add temporal dynamic CA + PA
+  - \[ \] Fig 2: multi-states
+      - \[ \] Add arrows
+  - \[x\] Fig 3: bifurcation details
+  - \[ \] Fig 4: Clustering cellular automata, C++ et Cnp
+    \(f(\gamma, u)\) and \(f(\gamma, u)\)
 
 ### Implementation
 
+  - \[ \] Clustering:
+      - \[ \] plot NP
+      - \[ \] plot (x2 - x1) / x1 for comparison CA/PA
+      - \[ \] run CA for gradient facilitation/dispersion
+  - \[ \] plot: separate lines (create groups: e.g: together & \<
+    threshold, together & \>= threshold, low\_together …)
+      - \[ \] Create groups
+      - \[ \] Plot groups (linetype problem)
+  - \[x\] Check if simulations have reached stability
+      - \[x\] Implementation of a custom solver (“lsodar”)
+      - \[x\] Test the implementation
   - \[ \] sim\_multi():
       - \[ \] Save a simecol object
       - \[ \] Save a time argument
@@ -79,12 +94,7 @@ This is a basic example which shows you how to solve a common problem:
       - \[ \] Add methods: init.scenarii(), param.scenarii() (S4
         methods)
         <https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function>
-  - \[ \] plot: separate lines (create groups: e.g: together & \<
-    threshold, together & \>= threshold, low\_together …)
       - \[ \] See [here](https://stackoverflow.com/a/23863893/5968131)
   - \[x\] Compare the effect of dispersal, facilitation strength,
     paturâge, aridité on clustering  
   - \[ \] Document functions
-  - \[x\] Check if simulations have reached stability
-      - \[x\] Implementation of a custom solver (“lsodar”)
-      - \[x\] Test the implementation
