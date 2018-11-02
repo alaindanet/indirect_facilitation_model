@@ -7,10 +7,7 @@
 bind_scenar(x, ...)
 }
 \arguments{
-\item{l}{a list of scenarii object}
-
-\item{var_name}{a character vector. Names of the parameters which are different
-between scenarii}
+\item{...}{scenarii objects}
 }
 \description{
 Combine a list of scenarii in one

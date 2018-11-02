@@ -76,6 +76,11 @@ plotnp(mod_run)
 - [ ] Fig 4: Clustering cellular automata, C++ et  Cnp $f(\gamma, u)$ and
   $f(\gamma, u)$
 
+### Run
+
+1. [ ] Run pair-approximation model with automated end of run
+2. [ ] Replace the file with `use_data()`
+
 ### Implementation
 
 - [ ] Clustering:

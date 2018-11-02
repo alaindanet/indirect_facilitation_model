@@ -11,10 +11,14 @@ compute_states(x, ...)
 
 \item{param}{parameters of the gradient}
 
-\item{type}{}
+\item{var_to_keep}{variable name that you want to keep, e.g. scenario for
+scenarii object (set by default)}
 
-\item{possibles_states.}{The different states that can take a simulation.
-Details in def_state}
+\item{type}{character string. The type of state to be computed, either
+"single" or "double" for see bistable areas}
+
+\item{warning_as_desert}{TRUE by default. Convert anormal simulation to
+desert (convenient for plotting)}
 }
 \description{
 Compute the state result of a range of simulation

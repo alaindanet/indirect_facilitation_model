@@ -9,7 +9,8 @@ init_scenarii(type = "together", model = two_facilitation_model(),
   ini_cover = 0.8, low_cover = 0.05)
 }
 \arguments{
-\item{type}{character. the scenario}
+\item{type}{character. the scenario. Can be either "all", "bifurcation",
+"together", "low_together", "nurse_only", "protegee_only", "low_N", "low_P"}
 
 \item{ini_cover}{numeric initial cover for high starting cover}
 }

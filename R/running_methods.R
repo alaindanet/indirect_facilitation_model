@@ -91,7 +91,8 @@ run_scenarii_gradient <- function (
 #' 
 #' Compute initial values of states variable according to a scenario
 #' 
-#' @param type character. the scenario
+#' @param type character. the scenario. Can be either "all", "bifurcation",
+#' "together", "low_together", "nurse_only", "protegee_only", "low_N", "low_P"
 #' @param ini_cover numeric initial cover for high starting cover
 #'
 #' @details when type = "all", all the scenarii are returned. High cover

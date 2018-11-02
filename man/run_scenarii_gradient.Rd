@@ -4,22 +4,12 @@
 \alias{run_scenarii_gradient}
 \title{Run simulation over different initial scenarii}
 \usage{
-run_scenarii_gradient(y = "g", x = "b", gradienty = seq(0, 0.3, by = 0.1),
-  gradientx = seq(0, 1, by = 0.1), model_spec = two_facilitation_model(),
-  time_seq = c(from = 0, to = 1000, by = 1), param = NULL,
-  nb_cores = NULL, solver_type = NULL, scenarii = init_scenarii())
+run_scenarii_gradient(gradient = list(g = seq(0, 0.3, length.out = 1), b =
+  seq(0, 1, length.out = 1)), model_spec = "two_facilitation_model",
+  time_seq = NULL, param = NULL, nb_cores = NULL, solver_type = NULL,
+  scenarii = NULL, set_tail = NULL, nrep = NULL)
 }
 \arguments{
-\item{y}{A string. The first parameter of the 2d gradient}
-
-\item{x}{A string. The second parameter of the 2d gradient}
-
-\item{gradienty}{A vector. The vector of parameter values used for the
-gradient of y.}
-
-\item{gradientx}{A vector. Optional. Same as gradienty but for the second
-parameter. If ommited, the function uses the same gradient than for y.}
-
 \item{model_spec}{A character string. This is the name of the model function
 to use, which calls a SimObj. It can take the values "two_facilitation_model"
 or "indirect_facilitation_model"}
