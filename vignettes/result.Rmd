@@ -103,13 +103,19 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/sta
 g_val <- c(0, .1, .25, .3)
 u_val <- c(0, 5)
 
-plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
+fig3 <- plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
     ggplot2::scale_colour_manual(
       values = c(N = "#BBCC33", P = "#99DDFF")
       ) +
     facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
     theme_alain()
+
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
+  fig3,
+  base_width = 2.5,
+  base_height = 4.3,
+  ncol = 2)
 ```
 
 
@@ -346,7 +352,11 @@ scenar_avg$run %<>% gather(rho, value, N, P) %>%
   mutate(ind = row_number()) %>%
   spread(model, value) %>%
   ungroup() %>% select(-ind) %>%
-  mutate(diff_ca_pa = ca - pa)
+  mutate(
+    ca = ifelse(ca < .001, 0, ca),
+    pa = ifelse(pa < .001, 0, pa),
+    diff_ca_pa = (ca - pa) / pa * 100
+    )
 
 ca <- plot_diagram(scenar_avg, param = c(x = "del", y = "u"), fill = "diff_ca_pa") + 
   theme_alain() +
@@ -354,5 +364,8 @@ ca <- plot_diagram(scenar_avg, param = c(x = "del", y = "u"), fill = "diff_ca_pa
   facet_grid(cols = vars(rho), labeller = species_labeller()) +
   xylabs(x = "del", y = "u")
 ca
+
+## Diff to write in the paper:
+filter(scenar_avg$run, u == 5) %>% select(diff_ca_pa) %>% max(.)
 
 ```
