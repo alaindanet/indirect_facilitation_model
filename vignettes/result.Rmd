@@ -186,24 +186,25 @@ filtered_scenar <- occurences;
 filtered_scenar$run <- unnest(consistence) 
 filtered_scenar$run %<>%
   mutate(
-    N = ifelse(N < rho_threshold & N != 0, NA, N),
-    P = ifelse(P < rho_threshold & P != 0, NA, P),
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P),
     qnp = ifelse(is.na(P) | is.na(N), NA, qnp),
     )
 
 #Ok, let's select only the consistent ones.
-filtered_scenar$run <- filtered_scenar %>% filter(consistence == TRUE) %>%
+filtered_scenar$run <- filtered_scenar %>%
   compute_occurences(.) %>%
   .$run %>%
   gather(clustering, value, N:cveg) %>%
   group_by(u, del, clustering) %>%
   summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
-b <- plot_fig3bisbis(filtered_scenar, x = "del", y = "u", facet = "g")
-d <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u"), fill = "cveg") +
+
+b <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u"), fill = "cnp")
+c1 <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u"), fill = "cveg") +
+  theme_alain() +
   xylabs(x = "del", y = "u") +
-  scale_fill_temperature()
-# Check the white area! Is it zeros ?
+  scale_fill_temperature(name = "Clustering") 
 
 ```
 
@@ -212,28 +213,59 @@ filtered_scenar <- occurences
 # status var is FALSE (is_run_normal) bc some qnn, qnp, etc... are NaN when P
 # and N are absent. We will fix this to not have warning state in the state
 #diagram:
-filtered_scenar$run <- filter(consistence, consistence == TRUE) %>%
-  select(-consistence) %>%
+filtered_scenar$run <- consistence %>%
   unnest() %>%
   mutate(
     N = ifelse(N < rho_threshold & N != 0, 0, N),
     P = ifelse(P < rho_threshold & P != 0, 0, P)
-    ) %>% filter(rep == 1) %>%
+    ) %>% 
   gather(neighbor, value, qnn:qpp) %>%
   mutate(status = replace(value = NaN, TRUE, FALSE)) %>%
   spread(neighbor, value)
 
-   
-states <- compute_states(filtered_scenar, warning_as_desert = FALSE) 
+states <- compute_states(filtered_scenar, warning_as_desert = FALSE, threshold =
+  .001)
+states$run %<>% group_by(u, del) %>% # Get the most frequent state 
+  summarise(state = names(sort(table(state),decreasing=TRUE)[1])) %>%
+    left_join(consistence) %>% select(-data) %>% ungroup() %>%
+    mutate(state = replace(state, consistence == FALSE, "unknown"),
+      state = as.factor(state))
 
-f <- plot_diagram(states, param = c(x = "del", y = "u")) +
+filter(states$run, u %in%  5.0, del == 0.23)
+
+a2 <- plot_diagram(states, param = c(x = "del", y = "u")) +
+  xylabs(x = "del", y = "u") +
   theme_alain()
+
+
+```
+```{r refined clustering plot}
+# Put NaN to points which are not
+clust_data <- select(ungroup(b$data), u, del, cveg, cnp) %>%
+  left_join(states$run) %>%
+  gather(clust_type, clustering, cveg, cnp) %>% # HERE, the replacement don't work
+  mutate(clustering = replace(clustering, state %in% "nurse", NaN))
+
+clust_scenar <- filtered_scenar
+clust_scenar$run <- clust_data
+
+b2 <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
+  "clustering") + 
+  theme_alain() +
+  xylabs(x = "del", y = "u") +
+  scale_fill_temperature(name = "Clustering") +
+  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+b2
+c2 <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill = "cveg") +
+  theme_alain() +
+  xylabs(x = "del", y = "u") +
+  scale_fill_temperature(name = "Clustering") 
+
 
 ```
 
 ```{r plot states and clustering}
-plot_grid(a, b, c1, d, e, f, labels = "AUTO", nrow = 3)
-
+plot_grid(a2, b2, labels = "AUTO", nrow = 2)
 ```
 
 

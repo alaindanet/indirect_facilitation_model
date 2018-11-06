@@ -151,7 +151,9 @@ plot_diagram.states_scenarii <- function (
     ggplot2::geom_raster() +
     theme_diagram() +
     ggplot2::scale_fill_manual(
-      values = color_states()
+      values = color_states(),
+      name = "Stable states",
+      labels = as_labeller(stable_states_labeller())
       )
 
   if (debug_mode) {
@@ -167,10 +169,6 @@ plot_diagram.avg_scenarii <- function (
       aes_string(x = param["x"], y = param["y"], fill = fill)) +
     ggplot2::geom_raster() +
     theme_diagram()
-  #+
-    #ggplot2::scale_fill_manual(
-      #values = color_states()
-      #)
 
   if (debug_mode) {
     return(data)
@@ -249,7 +247,30 @@ color_states <- function() {
 ##############
 #  Figure 2  #
 ##############
+plot_fig2 <- function(states) {
 
+  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
+  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
+    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
+
+  g <- plot_diagram(states) +
+    xlab(paste("Environmental quality (b)")) +
+    ylab(paste("Grazing intensity (g)")) +
+    scale_fill_manual(
+      labels = as_labeller(stable_states_lab),
+      values = color_states(),
+      name = "Stable states"
+      ) +
+    facet_grid(cols = vars(u), labeller = u_appender)# +
+    #hrbrthemes::theme_ipsum_rc()
+
+  g
+}
+
+##############
+#  FIgure 3  #
+##############
 identify_discontinuity <- function(x, ...) UseMethod("identify_discontinuity")
 identify_discontinuity.default <- function(x, ...) "Unknown class"
 identify_discontinuity.numeric <- function(x, threshold = .1) {
@@ -274,28 +295,6 @@ identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1)
   identify_discontinuity(unlist(data[, var]), threshold = threshold)
 
 }
-
-plot_fig2 <- function(states) {
-
-  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
-  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
-    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
-
-  g <- plot_diagram(states) +
-    xlab(paste("Environmental quality (b)")) +
-    ylab(paste("Grazing intensity (g)")) +
-    scale_fill_manual(
-      labels = as_labeller(stable_states_lab),
-      values = color_states(),
-      name = "Stable states"
-      ) +
-    facet_grid(cols = vars(u), labeller = u_appender)# +
-    #hrbrthemes::theme_ipsum_rc()
-
-  g
-}
-
 plot_bifurcation <- function(scenar) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
@@ -336,7 +335,7 @@ theme_alain <- function(){
   hrbrthemes::theme_ipsum_rc() +
   theme(#Whipe
     text = element_text(family = "Helvetica", hjust = .5),
-    axis.title = element_text(family = "Helvetica", hjust = .5, face = "bold"),
+    axis.title = element_text(family = "Helvetica", hjust = .5, face = "bold", size = 10),
     axis.title.x = NULL,
     axis.title.y = NULL,
     axis.text.x = NULL,
@@ -344,6 +343,7 @@ theme_alain <- function(){
     strip.text = NULL) +
   theme(#Set up
     axis.title.y = element_text(angle = 90, face = "bold"),
+    axis.title.x = element_text(face = "bold"),
     axis.text = element_text(size = 8),
     strip.text = element_text(size = 8),
     plot.margin = unit(c(.5, .5, .5, .5), "cm")
@@ -351,12 +351,13 @@ theme_alain <- function(){
 
 }
 
-scale_fill_temperature <- function (mid = 0) {
+scale_fill_temperature <- function (mid = 0, name = NULL) {
   scale_fill_gradient2(
-      midpoint = mid,
-      low = scales::muted("blue"),
-      mid = "white",
-      high = scales::muted("red"))
+    name = name,
+    midpoint = mid,
+    low = scales::muted("blue"),
+    mid = "white",
+    high = scales::muted("red"))
 }
 
 clustering_labeller <- function () {
@@ -378,7 +379,7 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
   #g_appender <- function(string, suffix = ) { paste0(suffix, string) }
 }
 
-  stable_states_labeller <- function () {
+stable_states_labeller <- function () {
   as_labeller(
     c(
       "desert" = "Desert",
@@ -389,7 +390,8 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
       "nurse_desert" = "Nurse / Desert",
       "nurse" = "Nurse",
       "coexistence_nurse" = "Coexistence / Nurse",
-      "coexistence_protegee" = "Coexistence / Protegee"
+      "coexistence_protegee" = "Coexistence / Protegee",
+      "unknown" = "Inconsistent"
       )
     )
 } 
@@ -399,9 +401,9 @@ xylabs <- function (...) {
   dots <- unlist(dots)
 
   lab_list <- list(
-    del = expression(paste("Fraction of global dispersal (", delta, ")")),
+    del = expression(bold(paste("Fraction of global dispersal (", delta, ")"))),
     u = paste("Strength of grazing protection (u)"),
-    rho = expression(paste("Species density (", rho, ")")),
+    rho = expression(bold(paste("Species density (", rho, ")"))),
     g = paste("Grazing intensity (g)"),
     b = paste("Environmental quality (b)"),
     f = paste("Strength of direct facilitation (f)")
@@ -414,7 +416,6 @@ xylabs <- function (...) {
     x = lab_used["x"][[1]],
     y = lab_used["y"][[1]]
     )
-  #lab_used["x"]
 }
 
 ##############

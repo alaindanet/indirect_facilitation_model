@@ -256,7 +256,7 @@ compute_states <- function(x, ...) UseMethod("compute_states")
 compute_states.avg_scenarii <- function (
   data,
   var_to_keep = "scenario",
-  type = "single", warning_as_desert = TRUE) {
+  type = "single", warning_as_desert = TRUE, threshold = 10^-3) {
 
   stopifnot(type %in% c("single", "double"))
 
@@ -271,7 +271,7 @@ compute_states.avg_scenarii <- function (
     dplyr::mutate(
       state = purrr::pmap_chr(
 	list(nurse = N, protegee = P, sim_status = status),
-	def_state)) %>%
+	def_state, threshold = threshold)) %>%
   purrr::modify_at(var_to_drop, ~NULL) %>%
     dplyr::mutate(state = as.factor(state))
 
@@ -310,7 +310,7 @@ compute_states.avg_scenarii <- function (
 	gradient = data$gradient,
 	run = run
       ),
-    class = c("states_scenarii","scenarii", "list")
+    class = c("states_scenarii", "scenarii", "list")
     )
     )
 }
