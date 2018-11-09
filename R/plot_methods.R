@@ -303,7 +303,7 @@ plot_bifurcation <- function(scenar) {
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
   # Select variables   
-  scenar <- select(scenar, scenario, g, b, u, N, P)
+  scenar <- dplyr::select(scenar, scenario, g, b, u, N, P)
   scenar$run %<>% gather(species, rho, N, P) %>%
     mutate(species = as.factor(species))
   # Make group to split lines
@@ -351,15 +351,58 @@ theme_alain <- function(){
 
 }
 
-scale_fill_temperature <- function (mid = 0, name = NULL) {
-  scale_fill_gradient2(
+scale_fill_temperature <- function (colors = c("white", "yellow", "orange", "red"), name = NULL, limits = c(NA, NA)) {
+  scale_fill_gradientn(
+    colors = colors,
     name = name,
-    midpoint = mid,
-    low = scales::muted("blue"),
-    mid = "white",
-    high = scales::muted("red"))
+    limits = limits
+    )
 }
 
+#######################################################################################################
+#  Create own palette:
+#  https://drsimonj.svbtle.com/creating-corporate-colour-palettes-for-ggplot2  #
+#######################################################################################################
+
+temp_colors <- c(
+  `red`        = "#d11141",
+  `green`      = "#00b159",
+  `blue`       = "#00aedb",
+  `orange`     = "#f37735",
+  `yellow`     = "#ffc425",
+  `light grey` = "#cccccc",
+  `dark grey`  = "#8c8c8c")
+
+temp_cols <- function(...) {
+  cols <- c(...)
+
+  if (is.null(cols))
+    return (temp_colors)
+
+  temp_colors[cols]
+}
+
+temp_palettes <- list(
+  `main`  = temp_cols("blue", "green", "yellow"),
+
+  `cool`  = temp_cols("blue", "green"),
+
+  `hot`   = temp_cols("yellow", "orange", "red"),
+
+  `mixed` = temp_cols("blue", "green", "yellow", "orange", "red"),
+
+  `grey`  = temp_cols("light grey", "dark grey")
+)
+
+temp_pal <- function(palette = "main", reverse = FALSE, ...) {
+  pal <- temp_palettes[[palette]]
+
+  if (reverse) pal <- rev(pal)
+
+  colorRampPalette(pal, ...)
+}
+
+## Auto lab:
 clustering_labeller <- function () {
   as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
       cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))

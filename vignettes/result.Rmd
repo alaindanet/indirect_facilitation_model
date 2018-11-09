@@ -171,7 +171,7 @@ e <- plot_diagram(compute_states(clust_pa), param = c(x = "del", y = "u"))
 data(clust_ca)
 
 ##Options 
-rho_threshold <- .001
+rho_threshold <- .01
 
 ##
 clust_ca$run <- tibble::as.tibble(clust_ca$run) 
@@ -269,8 +269,9 @@ clust_np$run <- spread(clust_scenar$run, clust_type, clustering) %>%
 qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   "qpn") + 
   theme_alain() +
-  xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Average \n # of nurse neighbors \n for a protegee cell")
+  xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
+  # limits arg 
+  scale_fill_gradientn(colors = c("white", temp_cols("yellow", "orange", "red")), limits = c(0,2))
 ```
 
 ```{r plot states and clustering}
@@ -316,7 +317,7 @@ data("direct_facilitation_dispersal_ca")
 clust_ca <- direct_facilitation_dispersal_ca
 
 ##Options 
-rho_threshold <- .01
+rho_threshold <- .001
 
 ##
 clust_ca$run <- tibble::as.tibble(clust_ca$run) 
@@ -414,7 +415,7 @@ rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   "qpn") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Average \n # of nurse neighbors \n for a protegee cell")
+  scale_fill_temperature(name = "Average \n # of nurse neighbors \n for a protegee cell", limits = c(0,2))
 
 ```
 
