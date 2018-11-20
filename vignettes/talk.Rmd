@@ -1,0 +1,155 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r set_up, echo = FALSE}
+library(tidyverse)
+library(cowplot)
+library(magrittr)
+devtools::load_all()
+
+dd <- "~/Documents/thesis/talks/coffee_chat/fig"
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.dim = c(10, 7) #width, height
+  )
+cowplot_theme <- theme_get()
+theme_set(cowplot_theme)
+theme_update(axis.title = element_text(size = 8))
+```
+
+```{r}
+data(u0_5)
+states <- compute_states(u0_5, type = "double")
+
+fig1 <- plot_diagram(states, param = c(x = "b", y = "g")) +
+  xylabs(x = "b", y = "g") +
+  theme_alain() +
+  facet_grid(col = vars(u), labeller = u_labeller)
+
+fig1
+cowplot::save_plot("~/Documents/thesis/talks/gdr_theoretical/fig/stability.pdf",
+  fig1,
+  base_width = 4.3,
+  base_height = 4.3,
+  ncol = 2)
+
+```
+
+```{r}
+u_val <- c(0, 5)
+plot_list <- list()
+for (j in seq_along(u_val)) {
+    dd <- c("~/Documents/thesis/talks/gdr_theoretical/fig/")
+    filename <- paste("stability_u", u_val[j], ".pdf", sep = "")
+
+    states_u0 <- filter(states, u == u_val[j]); class(states_u0) <- c("states_scenarii") 
+fig_stab <- plot_diagram(states_u0, param = c(x = "b", y = "g")) +
+  xylabs(x = "b", y = "g") +
+  theme_alain() +
+  facet_grid(col = vars(u), labeller = u_labeller) +
+  theme(legend.position="none")
+
+fig_stab
+cowplot::save_plot(paste(dd, filename, sep = ""),
+  fig_stab,
+  base_width = 2.4,
+  base_height = 2.4,
+  ncol = 1)
+  }
+
+```
+
+```{r}
+
+g_val <- c(0, .1, .25, .3)
+u_val <- c(0, 5)
+
+plot_list <- list()
+for (i in seq_along(g_val)) {
+  for (j in seq_along(u_val)) {
+    dd <- c("~/Documents/thesis/talks/gdr_theoretical/fig/")
+    filename <- paste("bifurc_g=", g_val[i], "_u=", u_val[j], ".pdf", sep = "")
+
+    p <- plot_bifurcation(filter(u0_5, g == g_val[i], u == u_val[j])) +
+    ggplot2::scale_colour_manual(
+      name = "Species",
+      values = c(N = "#BBCC33", P = "#99DDFF"),
+      labels = species_labeller()
+      ) +
+    xylabs(x = "b", y = "rho") +
+    ggtitle(paste("g =", g_val[i])) +
+    theme_alain()
+    ggplot2::ggsave(paste(dd, filename, sep = ""), p, width = 3.4, height = 2.4, units = "in")
+  }
+}
+
+```
+
+```{r}
+data(clust_ca)
+clust_u <- clean_cellular_automata(clust_ca, var = "u", rho_threshold = .1)
+clust_u <- filter(clust_u, clust_type == "cnp")
+clust_u$run %<>% rename(u = `get(var)`)
+
+# States
+state_u <- plot_diagram(clust_u, param = c(x = "del", y = "u"), fill = "state") +
+  xylabs(x = "del", y = "u") +
+  theme_alain() + 
+  scale_fill_manual(
+    labels = stable_states_labeller(),
+    values = color_states(),
+    name = "Stable states"
+    )
+cowplot::save_plot("~/Documents/thesis/talks/gdr_theoretical/fig/stability_ca.pdf",
+  state_u,
+  base_width = 3.0,
+  base_height = 4.3,
+  ncol = 2)
+
+plot_nurse_protegee <- plot_diagram(clust_u, param = c(x = "del", y = "u"), fill =
+  "clustering") + 
+  theme_alain() +
+  xylabs(x = "del", y = "u") +
+  scale_fill_temperature(name = "Clustering", limits = c(1.5, 4.5)) +
+  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+cowplot::save_plot("~/Documents/thesis/talks/gdr_theoretical/fig/np_ca.pdf",
+  plot_nurse_protegee,
+  base_width = 2.3,
+  base_height = 3.3,
+  ncol = 2)
+
+# Q_np 
+clust_np <- clust_u 
+clust_np$run <- spread(clust_u$run, clust_type, clustering) %>%
+  gather(var, values, qnp, N, qpn, P) %>%
+  mutate(values = replace(values, state %in% c("unknown","desert", "nurse"), NaN)) %>%
+  spread(var, values)
+
+qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
+  "qpn") + 
+  theme_alain() +
+  xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
+  # limits arg 
+  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
+
+cowplot::save_plot("~/Documents/thesis/talks/gdr_theoretical/fig/qpn_ca.pdf",
+  qpn_u,
+  base_width = 2.5,
+  base_height = 3.3,
+  ncol = 2)
+```
+
+```{r}
+data(direct_facilitation_dispersal_ca)
+clust_f <- clean_cellular_automata(direct_facilitation_dispersal_ca, var = "f", rho_threshold = .1)
+```
+
