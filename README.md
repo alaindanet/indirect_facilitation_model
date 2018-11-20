@@ -61,8 +61,19 @@ This is a basic example which shows you how to solve a common problem:
   - \[ \] Fig 2: multi-states
       - \[ \] Add arrows
   - \[x\] Fig 3: bifurcation details
-  - \[ \] Fig 4: Clustering cellular automata, C++ et Cnp
+  - \[x\] Fig 4: Clustering cellular automata, C++ et Cnp
     \(f(\gamma, u)\) and \(f(\gamma, u)\)
+      - \[ \] (Change space between
+        panel)\[<https://github.com/tidyverse/ggplot2/issues/2464#issuecomment-384980197>\]
+      - \[ \] (Change margin of the plot for
+        plot\_grid)\[<https://github.com/wilkelab/cowplot/issues/31#issuecomment-292748114>\]
+      - \[ \] Fix B and E legend decrease a bit the lowest value (some
+        points disapeared in fig B right panel, en haut à gauche)
+
+### Run
+
+1.  \[ \] Run pair-approximation model with automated end of run
+2.  \[ \] Replace the file with `use_data()`
 
 ### Implementation
 

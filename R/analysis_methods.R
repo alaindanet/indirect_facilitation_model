@@ -484,3 +484,66 @@ identify_transition <- function(data, threshold = .001) {
   #TODO: Test the function
 
 }
+
+clean_cellular_automata <- function (clust_ca, var = "u", rho_threshold = 0.1) {
+  
+clust_ca$run <- arrange(clust_ca$run, get(var), del, rep)
+occurences <- clust_ca
+
+# Which simulation is good
+consistence <- occurences$run %>%
+  group_by(get(var), del) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = rho_threshold))
+
+# Keep the good values
+filtered_scenar <- occurences;
+filtered_scenar$run <- unnest(consistence)
+filtered_scenar$run %<>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P),
+    qnp = ifelse(is.na(P) | is.na(N), NA, qnp),
+    )
+
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>%
+  compute_occurences(.) %>%
+  .$run %>%
+  gather(clustering, value, N:cveg) %>%
+  group_by(get(var), del, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(clustering, value)
+clust_filtered <- filtered_scenar
+
+#filter states
+filtered_scenar$run <- consistence %>%
+  unnest() %>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P)
+    ) %>% 
+  gather(neighbor, value, qnn:qpp) %>%
+  mutate(status = replace(value = NaN, TRUE, FALSE)) %>%
+  spread(neighbor, value)
+
+states <- compute_states(filtered_scenar, warning_as_desert = FALSE, threshold =
+  .001)
+states$run %<>% group_by(get(var), del) %>% # Get the most frequent state 
+  summarise(state = names(sort(table(state), decreasing=TRUE)[1])) %>%
+    left_join(consistence) %>% select(-data) %>% ungroup() %>%
+    mutate(state = replace(state, consistence == FALSE, "unknown"),
+      state = as.factor(state))
+
+clust_data <- ungroup(clust_filtered$run) %>%
+  left_join(states$run) %>%
+  gather(clust_type, clustering, cveg, cnp) %>% # HERE, the replacement don't work
+  mutate(clustering = replace(clustering, state %in% "nurse", NaN)) %>%
+
+
+clust_scenar <- filtered_scenar
+clust_scenar$run <- clust_data
+
+return(clust_scenar)
+
+}

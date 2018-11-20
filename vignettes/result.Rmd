@@ -105,7 +105,9 @@ u_val <- c(0, 5)
 
 fig3 <- plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
     ggplot2::scale_colour_manual(
-      values = c(N = "#BBCC33", P = "#99DDFF")
+      name = "Species",
+      values = c(N = "#BBCC33", P = "#99DDFF"),
+      labels = species_labeller()
       ) +
     facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
@@ -233,8 +235,6 @@ states$run %<>% group_by(u, del) %>% # Get the most frequent state
     mutate(state = replace(state, consistence == FALSE, "unknown"),
       state = as.factor(state))
 
-filter(states$run, u %in%  5.0, del == 0.23)
-
 state_u <- plot_diagram(states, param = c(x = "del", y = "u")) +
   xylabs(x = "del", y = "u") +
   theme_alain()
@@ -255,7 +255,7 @@ clust_u <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
   "clustering") + 
   theme_alain() +
   xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Clustering") +
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
   facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
 ```
 
@@ -271,7 +271,7 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   theme_alain() +
   xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
   # limits arg 
-  scale_fill_gradientn(colors = c("white", temp_cols("yellow", "orange", "red")), limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
 ```
 
 ```{r plot states and clustering}
@@ -317,7 +317,7 @@ data("direct_facilitation_dispersal_ca")
 clust_ca <- direct_facilitation_dispersal_ca
 
 ##Options 
-rho_threshold <- .001
+rho_threshold <- .01
 
 ##
 clust_ca$run <- tibble::as.tibble(clust_ca$run) 
@@ -399,7 +399,7 @@ cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
   "clustering") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Clustering") +
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
   facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
 
 ```
@@ -415,7 +415,7 @@ rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   "qpn") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Average \n # of nurse neighbors \n for a protegee cell", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
 
 ```
 
@@ -426,13 +426,18 @@ plot_grid(state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 1)
 # Clustering plot  
 
 ```{r clustering plot}
-clustering_plot <- plot_grid(state_u, clust_u, qpn_u, state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 2)
+clustering_plot <- plot_grid(
+  state_u, clust_u, qpn_u, state_f, cnp_cveg_f, rho_qpn_f,
+  labels = "AUTO",
+  nrow = 2,
+  rel_widths = c(1,1.5,1,1,1.5,1)
+  )
 clustering_plot
 
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
   clustering_plot,
   base_width = 14.3,
-  base_height = 3.0,
+  base_height = 2.8,
   nrow = 2)
 ```
 

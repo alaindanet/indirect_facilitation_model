@@ -304,12 +304,12 @@ plot_bifurcation <- function(scenar) {
 
   # Select variables   
   scenar <- dplyr::select(scenar, scenario, g, b, u, N, P)
-  scenar$run %<>% gather(species, rho, N, P) %>%
+  scenar$run %<>% mutate(N = N - 0.005) %>% gather(species, rho, N, P) %>%
     mutate(species = as.factor(species))
   # Make group to split lines
   scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
   mutate(
-    group = map(data, identify_discontinuity, var = "rho")
+    group = map(data, identify_discontinuity, var = "rho", threshold = .05)
     ) %>% unnest()
 
   # Have to do this in two steps due to a ggplot2 limitation: cannot specify
@@ -326,8 +326,8 @@ plot_bifurcation <- function(scenar) {
     geom_line() +
     ylim(-0.005, 1)
 
-  g + geom_line(mapping = aes(y = rho - 0.005, group = interaction(group, species)),
-    data = scenario_list[[1]], linetype = "dashed")
+  g + geom_line(mapping = aes(y = rho, group = interaction(group, species)),#y = rho - 0.005
+    data = scenario_list[[1]], linetype = "solid")
 }
 
 theme_alain <- function(){
@@ -336,12 +336,14 @@ theme_alain <- function(){
   theme(#Whipe
     text = element_text(family = "Helvetica", hjust = .5),
     axis.title = element_text(family = "Helvetica", hjust = .5, face = "bold", size = 10),
+    plot.title = NULL,
     axis.title.x = NULL,
     axis.title.y = NULL,
     axis.text.x = NULL,
     axis.text.y = NULL,
     strip.text = NULL) +
   theme(#Set up
+    plot.title = element_text(family = "Helvetica", hjust = .5, face = "bold", size = 10),
     axis.title.y = element_text(angle = 90, face = "bold"),
     axis.title.x = element_text(face = "bold"),
     axis.text = element_text(size = 8),
@@ -421,6 +423,9 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
     )
   #g_appender <- function(string, suffix = ) { paste0(suffix, string) }
 }
+
+
+u_labeller <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
 
 stable_states_labeller <- function () {
   as_labeller(
