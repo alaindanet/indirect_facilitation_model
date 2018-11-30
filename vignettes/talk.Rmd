@@ -139,7 +139,7 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   theme_alain() +
   xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
   # limits arg 
-  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
 
 cowplot::save_plot("~/Documents/thesis/talks/gdr_theoretical/fig/qpn_ca.pdf",
   qpn_u,

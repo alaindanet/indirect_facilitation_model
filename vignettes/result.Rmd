@@ -271,11 +271,20 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   theme_alain() +
   xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
   # limits arg 
-  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
 ```
 
 ```{r plot states and clustering}
 plot_grid(state_u, clust_u, qpn_u, labels = "AUTO", nrow = 1)
+```
+
+```{r numbers for the paper}
+clust_np$run %>%
+  summarise(
+    max = max(qpn, na.rm = TRUE),
+    std = sd(qpn, na.rm = TRUE),
+    min = min(qpn, na.rm = TRUE)
+    )
 ```
 
 ## Relating to dispersal and direct facilitation
@@ -415,13 +424,24 @@ rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   "qpn") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Average # of \n nurse neighbors \n for a protegee cell", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
 
 ```
 
 ```{r}
 plot_grid(state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 1)
 ```
+```{r numbers for the paper}
+clust_np$run %>%
+  summarise(
+    max = max(qpn, na.rm = TRUE),
+    std = sd(qpn, na.rm = TRUE),
+    min = min(qpn, na.rm = TRUE)
+    )
+ggplot(clust_np$run, aes(y = qpn, x = del)) +
+  geom_point()
+```
+
 
 # Clustering plot  
 
