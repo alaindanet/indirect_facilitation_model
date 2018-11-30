@@ -364,15 +364,10 @@ scale_fill_temperature <- function (colors = c("white", "yellow", "orange", "red
 scale_colour_species <- function(){
   ggplot2::scale_colour_manual(
     name = "Species",
-    values = c(N = "#BBCC33", P = "#99DDFF"),
-    labels = species_labeller()
-    )
-}
-
-scale_colour_species <- function(){
-  ggplot2::scale_colour_manual(
-    name = "Species",
-    values = c(N = "#BBCC33", P = "#99DDFF"),
+    values = c(
+      N = "#BBCC33",
+      P = "#99DDFF",
+      total = "black"),
     labels = species_labeller()
     )
 }
@@ -435,7 +430,11 @@ clustering_labeller <- function () {
 }
 
 species_labeller <- function () {
-  as_labeller(c(N = "Nurse", P = "Protegee"))
+  as_labeller(
+    c(N = "Nurse",
+      P = "Protegee",
+      total = "Total")
+    )
 }
 
 model_labeller <- function () {

@@ -12,6 +12,7 @@ vignette: >
 ```{r, echo = FALSE}
 library(tidyverse)
 library(cowplot)
+library(simecol)
 library(magrittr)
 devtools::load_all()
 
@@ -75,7 +76,7 @@ mod_list <- list(
 set.seed(123)
 output <- lapply(mod_list, function(x){
   times(x) <- c(from = 0, to = 3000, by = 1)
-  parms(x) <- parms(two_facilitation_model()) 
+  parms(x) <- parms(two_facilitation_model())
   simul <- sim(x)
   # Is it PA or CA?
   mod_type <- ifelse("PD" %in% names(out(simul)), "pa", "ca")
@@ -85,9 +86,10 @@ output <- lapply(mod_list, function(x){
     as.tibble()
     })
 example_time_series <- do.call(rbind, output) %>%
-  mutate(model = as.factor(model)) %>%
+  mutate(model = as.factor(model),
+    total = N + P) %>%
   select(-D) %>%
-  gather(species, rho, N, P)
+  gather(species, rho, N, P, total)
 
 p_ts <- ggplot(example_time_series, aes(x = time, y = rho)) +
   geom_line(aes(color = species, linetype = model)) +
@@ -96,17 +98,19 @@ p_ts <- ggplot(example_time_series, aes(x = time, y = rho)) +
   xylabs(x = "time", y = "rho") +
   ylim(0, 1) +
   theme_alain()
+  #theme(legend.position="bottom")
 p_ts
 
 ```
 
 ```{r plot fig1}
-fig1 <- plot_grid(p2, p1, p_ts, labels = "AUTO", rel_heights = c(1, 1), nrow = 2)
-fig1
+model_fig <- plot_grid(p2, p1,  labels = "AUTO", rel_heights = c(1, 1), rel_widths = c(1.5, 1), ncol = 2)
+fig1 <- plot_grid(model_fig, p_ts, nrow = 2, labels = c('', 'C'))
+
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
   fig1,
-  base_width = 3.3,
-  base_height = 3.0,
+  base_width = 129/25.4,
+  base_height = 64/25.4,
   nrow = 2)
 # 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
 ```
