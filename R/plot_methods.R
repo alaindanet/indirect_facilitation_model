@@ -361,6 +361,30 @@ scale_fill_temperature <- function (colors = c("white", "yellow", "orange", "red
     )
 }
 
+scale_colour_species <- function(){
+  ggplot2::scale_colour_manual(
+    name = "Species",
+    values = c(N = "#BBCC33", P = "#99DDFF"),
+    labels = species_labeller()
+    )
+}
+
+scale_colour_species <- function(){
+  ggplot2::scale_colour_manual(
+    name = "Species",
+    values = c(N = "#BBCC33", P = "#99DDFF"),
+    labels = species_labeller()
+    )
+}
+
+scale_linetype_model <- function(){
+  ggplot2::scale_linetype_manual(
+    name = "Model",
+    values = c(ca = "solid", pa = "dashed"),
+    labels = model_labeller()
+    )
+}
+
 #######################################################################################################
 #  Create own palette:
 #  https://drsimonj.svbtle.com/creating-corporate-colour-palettes-for-ggplot2  #
@@ -414,6 +438,12 @@ species_labeller <- function () {
   as_labeller(c(N = "Nurse", P = "Protegee"))
 }
 
+model_labeller <- function () {
+  as_labeller(
+    c(ca = "Cellular automata", pa = "Pair approximation")
+    )
+}
+
 facet_labeller <- function (prefix = "b", sep = "= ") {
 
   prefix <- paste(prefix, sep)
@@ -423,6 +453,7 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
     )
   #g_appender <- function(string, suffix = ) { paste0(suffix, string) }
 }
+
 
 
 u_labeller <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
@@ -454,7 +485,8 @@ xylabs <- function (...) {
     rho = expression(bold(paste("Species density (", rho, ")"))),
     g = paste("Grazing intensity (g)"),
     b = paste("Environmental quality (b)"),
-    f = paste("Strength of direct facilitation (f)")
+    f = paste("Strength of direct facilitation (f)"),
+    time = paste("Time step")
     )
   
   lab_used <- lab_list[dots]

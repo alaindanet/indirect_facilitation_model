@@ -34,11 +34,10 @@ indirect_facilitation_model <- function() {
 two_facilitation_model <- function() {
   new("odeModel",
     main = four_states_sys,
-    times = c(from = 0, to = 100, by = 0.1),
-    parms = c(z = 4, del = .1, b = .8, c = .2, g = .08, m = .2,
-      gamma1 = .08, r = .01, f = .9, d = .1,
-      extinction_threshold = 1 * 10 ^ -3, protection_type = list("first_protect"),
-      u = 15, n = 1, tau_n = 15),
+    times = c(from = 0, to = 1000, by = 1),
+    parms = c(z = 4, del = .1, b = .8, c = .2, g = .15, m = .2,
+      gamma1 = .1, r = .01, f = .9, d = .1, protection_type = list("first_protect"),
+      u = 5),
     init = c(N = .4, P = .4, D = .1,
       NP = .1, PP = .1, NN = .1,
       DD = .1, PD = .1, ND = .1),
@@ -50,9 +49,9 @@ ca_two_facilitation_model <- function () {
   new("gridModel",
     main = four_states_ca,
     times = c(from = 0, to = 100, by = 1),
-    parms = c(z = 4, del = .1, b = .8, c = .2, g = .1, m = .2,
+    parms = c(z = 4, del = .1, b = .8, c = .2, g = .2, m = .2,
       gamma1 = .1, r = .01, f = .9, d = .1, protection_type = list("first_protect"),
-      u = 0, skew_threshold = .5),
+      u = 5),
     init = matrix(sample.int(4, size = 100*100, replace = TRUE, prob = c(.4, .4, .1, .1)), nrow = 100, ncol = 100),
     solver = "ca_solver"
     

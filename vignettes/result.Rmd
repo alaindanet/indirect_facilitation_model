@@ -60,11 +60,48 @@ p1 <- ggplot(df, aes(x = gamma1, y = tau)) +
     y = expression(paste("Grazing protection (", p[frac(1,z)], ")")), 
     x = expression(paste("Cost of defense (", gamma, ")"))) +
   ylim(0,1) +
-  theme(legend.position="bottom")
+  theme_alain() +
+  theme(legend.position="bottom") 
 p2 <- ggdraw() +
   draw_image(magick::image_read_svg("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stand_alone.svg"))
 
-fig1 <- plot_grid(p2, p1, labels = "AUTO", rel_heights = c(1, 1), nrow = 2)
+```
+
+```{r ca and pa time series}
+mod_list <- list(
+  pa = two_facilitation_model(),
+  ca = ca_two_facilitation_model()
+  )
+set.seed(123)
+output <- lapply(mod_list, function(x){
+  times(x) <- c(from = 0, to = 3000, by = 1)
+  parms(x) <- parms(two_facilitation_model()) 
+  simul <- sim(x)
+  # Is it PA or CA?
+  mod_type <- ifelse("PD" %in% names(out(simul)), "pa", "ca")
+  #common output
+  out(simul) %>% select(time, N, P, D) %>%
+    mutate(model = mod_type) %>%
+    as.tibble()
+    })
+example_time_series <- do.call(rbind, output) %>%
+  mutate(model = as.factor(model)) %>%
+  select(-D) %>%
+  gather(species, rho, N, P)
+
+p_ts <- ggplot(example_time_series, aes(x = time, y = rho)) +
+  geom_line(aes(color = species, linetype = model)) +
+  scale_colour_species() +
+  scale_linetype_model() +
+  xylabs(x = "time", y = "rho") +
+  ylim(0, 1) +
+  theme_alain()
+p_ts
+
+```
+
+```{r plot fig1}
+fig1 <- plot_grid(p2, p1, p_ts, labels = "AUTO", rel_heights = c(1, 1), nrow = 2)
 fig1
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
   fig1,
@@ -72,8 +109,8 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig
   base_height = 3.0,
   nrow = 2)
 # 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
-
 ```
+
 
 # Stability 
 
@@ -245,7 +282,7 @@ state_u <- plot_diagram(states, param = c(x = "del", y = "u")) +
 # Put NaN to points which are not
 clust_data <- ungroup(c1$data) %>%
   left_join(states$run) %>%
-  gather(clust_type, clustering, cveg, cnp) %>% # HERE, the replacement don't work
+  gather(clust_type, clustering, cveg, cnp) %>% 
   mutate(clustering = replace(clustering, state %in% "nurse", NaN))
 
 clust_scenar <- filtered_scenar
