@@ -132,7 +132,7 @@ fig2 <- plot_fig2(states) + theme_alain()
 fig2 
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/stability.pdf",
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
   fig2,
   base_width = 4.3,
   base_height = 3.8,
