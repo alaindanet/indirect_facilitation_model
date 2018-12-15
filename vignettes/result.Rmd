@@ -12,6 +12,7 @@ vignette: >
 ```{r, echo = FALSE}
 library(tidyverse)
 library(cowplot)
+library(simecol)
 library(magrittr)
 devtools::load_all()
 
@@ -60,20 +61,60 @@ p1 <- ggplot(df, aes(x = gamma1, y = tau)) +
     y = expression(paste("Grazing protection (", p[frac(1,z)], ")")), 
     x = expression(paste("Cost of defense (", gamma, ")"))) +
   ylim(0,1) +
-  theme(legend.position="bottom")
+  theme_alain() +
+  theme(legend.position="bottom") 
 p2 <- ggdraw() +
   draw_image(magick::image_read_svg("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stand_alone.svg"))
 
-fig1 <- plot_grid(p2, p1, labels = "AUTO", rel_heights = c(1, 1), nrow = 2)
-fig1
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
-  fig1,
-  base_width = 3.3,
-  base_height = 3.0,
-  nrow = 2)
-# 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
+```
+
+```{r ca and pa time series}
+mod_list <- list(
+  pa = two_facilitation_model(),
+  ca = ca_two_facilitation_model()
+  )
+set.seed(123)
+output <- lapply(mod_list, function(x){
+  times(x) <- c(from = 0, to = 3000, by = 1)
+  parms(x) <- parms(two_facilitation_model())
+  simul <- sim(x)
+  # Is it PA or CA?
+  mod_type <- ifelse("PD" %in% names(out(simul)), "pa", "ca")
+  #common output
+  out(simul) %>% select(time, N, P, D) %>%
+    mutate(model = mod_type) %>%
+    as.tibble()
+    })
+example_time_series <- do.call(rbind, output) %>%
+  mutate(model = as.factor(model),
+    total = N + P) %>%
+  select(-D) %>%
+  gather(species, rho, N, P, total)
+
+p_ts <- ggplot(example_time_series, aes(x = time, y = rho)) +
+  geom_line(aes(color = species, linetype = model)) +
+  scale_colour_species() +
+  scale_linetype_model() +
+  xylabs(x = "time", y = "rho") +
+  ylim(0, 1) +
+  theme_alain()
+  #theme(legend.position="bottom")
+p_ts
 
 ```
+
+```{r plot fig1}
+model_fig <- plot_grid(p2, p1,  labels = "AUTO", rel_heights = c(1, 1), rel_widths = c(1.5, 1), ncol = 2)
+fig1 <- plot_grid(model_fig, p_ts, nrow = 2, labels = c('', 'C'))
+
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/model.pdf",
+  fig1,
+  base_width = 129/25.4,
+  base_height = 64/25.4,
+  nrow = 2)
+# 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm
+```
+
 
 # Stability 
 
@@ -91,7 +132,7 @@ fig2 <- plot_fig2(states) + theme_alain()
 fig2 
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/stability.pdf",
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
   fig2,
   base_width = 4.3,
   base_height = 3.8,
@@ -105,7 +146,9 @@ u_val <- c(0, 5)
 
 fig3 <- plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
     ggplot2::scale_colour_manual(
-      values = c(N = "#BBCC33", P = "#99DDFF")
+      name = "Species",
+      values = c(N = "#BBCC33", P = "#99DDFF"),
+      labels = species_labeller()
       ) +
     facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
@@ -145,6 +188,8 @@ ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, hei
 
 ## Relating to dispersal and indirect facilitation strength
 
+### Pair approximation model
+
 ```{r}
 data(clust_pa)
 
@@ -163,15 +208,16 @@ e <- plot_diagram(compute_states(clust_pa), param = c(x = "del", y = "u"))
 
 ```
 
+### Cellular automata 
+
 ```{r}
 data(clust_ca)
 
 ##Options 
-rho_threshold <- .001
+rho_threshold <- .01
 
 ##
-clust_ca$run <- tibble::as.tibble(clust_ca$run) %>%
-  mutate(g = .2)
+clust_ca$run <- tibble::as.tibble(clust_ca$run) 
 clust_ca$run <- arrange(clust_ca$run, u, del, rep)
 occurences <- clust_ca
 
@@ -200,9 +246,8 @@ filtered_scenar$run <- filtered_scenar %>%
   summarise(value = mean(value, na.rm = TRUE)) %>%
   spread(clustering, value)
 
-b <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u"), fill = "cnp")
 c1 <- plot_diagram(filtered_scenar, param = c(x = "del", y = "u"), fill = "cveg") +
-  theme_alain() +
+  theme_alain() + #Need to remove inconsistent points
   xylabs(x = "del", y = "u") +
   scale_fill_temperature(name = "Clustering") 
 
@@ -231,9 +276,7 @@ states$run %<>% group_by(u, del) %>% # Get the most frequent state
     mutate(state = replace(state, consistence == FALSE, "unknown"),
       state = as.factor(state))
 
-filter(states$run, u %in%  5.0, del == 0.23)
-
-a2 <- plot_diagram(states, param = c(x = "del", y = "u")) +
+state_u <- plot_diagram(states, param = c(x = "del", y = "u")) +
   xylabs(x = "del", y = "u") +
   theme_alain()
 
@@ -241,35 +284,53 @@ a2 <- plot_diagram(states, param = c(x = "del", y = "u")) +
 ```
 ```{r refined clustering plot}
 # Put NaN to points which are not
-clust_data <- select(ungroup(b$data), u, del, cveg, cnp) %>%
+clust_data <- ungroup(c1$data) %>%
   left_join(states$run) %>%
-  gather(clust_type, clustering, cveg, cnp) %>% # HERE, the replacement don't work
+  gather(clust_type, clustering, cveg, cnp) %>% 
   mutate(clustering = replace(clustering, state %in% "nurse", NaN))
 
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 
-b2 <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
+clust_u <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
   "clustering") + 
   theme_alain() +
   xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Clustering") +
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
   facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
-b2
-c2 <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill = "cveg") +
+```
+
+```{r q_np and indirect facilitation}
+clust_np <- clust_scenar 
+clust_np$run <- spread(clust_scenar$run, clust_type, clustering) %>%
+  gather(var, values, qnp, N, qpn, P) %>%
+  mutate(values = replace(values, state %in% c("unknown","desert", "nurse"), NaN)) %>%
+  spread(var, values)
+
+qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
+  "qpn") + 
   theme_alain() +
-  xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Clustering") 
-
-
+  xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
+  # limits arg 
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
 ```
 
 ```{r plot states and clustering}
-plot_grid(a2, b2, labels = "AUTO", nrow = 2)
+plot_grid(state_u, clust_u, qpn_u, labels = "AUTO", nrow = 1)
 ```
 
+```{r numbers for the paper}
+clust_np$run %>%
+  summarise(
+    max = max(qpn, na.rm = TRUE),
+    std = sd(qpn, na.rm = TRUE),
+    min = min(qpn, na.rm = TRUE)
+    )
+```
 
 ## Relating to dispersal and direct facilitation
+
+### Pair-approximation
 
 ```{r disp and facilitation, fig.dim = c(10, 4)}
 
@@ -296,6 +357,152 @@ c1 <- plot_diagram(occurences, param = c(x = "del", y = "f"), fill = "cveg") +
 
 cowplot::plot_grid(a, b, c1, labels = "AUTO", ncol = 1)
 ```
+
+### Cellular automata
+
+```{r}
+# May be set up a function to analyze cellular automata (arg: rho_threshold,
+# consistency_threshold)
+data("direct_facilitation_dispersal_ca")
+clust_ca <- direct_facilitation_dispersal_ca
+
+##Options 
+rho_threshold <- .01
+
+##
+clust_ca$run <- tibble::as.tibble(clust_ca$run) 
+clust_ca$run <- arrange(clust_ca$run, f, del, rep)
+occurences <- clust_ca
+
+# Which simulation is good 
+consistence <- occurences$run %>%
+  group_by(f, del) %>%
+  nest() %>%
+  mutate(consistence = map_lgl(data, check_consistency, threshold = rho_threshold))
+
+# Keep the good values
+filtered_scenar <- occurences
+filtered_scenar$run <- unnest(consistence) 
+filtered_scenar$run %<>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P),
+    qnp = ifelse(is.na(P) | is.na(N), NA, qnp),
+    )
+
+#Ok, let's select only the consistent ones.
+filtered_scenar$run <- filtered_scenar %>%
+  compute_occurences(.) %>%
+  .$run %>%
+  gather(clustering, value, N:cveg) %>%
+  group_by(f, del, clustering) %>%
+  summarise(value = mean(value, na.rm = TRUE)) %>%
+  spread(clustering, value)
+
+cveg_test <- plot_diagram(filtered_scenar, param = c(x = "del", y = "f"), fill =
+  "cveg") + # We have to remove inconsistent runs    
+  theme_alain() +
+  xylabs(x = "del", y = "f") +
+  scale_fill_temperature(name = "Clustering")
+```
+
+```{r}
+filtered_scenar <- occurences
+# status var is FALSE (is_run_normal) bc some qnn, qnp, etc... are NaN when P
+# and N are absent. We will fix this to not have warning state in the state
+#diagram:
+filtered_scenar$run <- consistence %>%
+  unnest() %>%
+  mutate(
+    N = ifelse(N < rho_threshold & N != 0, 0, N),
+    P = ifelse(P < rho_threshold & P != 0, 0, P)
+    ) %>% 
+  gather(neighbor, value, qnn:qpp) %>%
+  mutate(status = replace(value = NaN, TRUE, FALSE)) %>%
+  spread(neighbor, value)
+
+states <- compute_states(filtered_scenar, warning_as_desert = FALSE, threshold =
+  .001)
+states$run %<>% group_by(f, del) %>% # Get the most frequent state 
+  summarise(state = names(sort(table(state),decreasing=TRUE)[1])) %>%
+    left_join(consistence) %>% select(-data) %>% ungroup() %>%
+    mutate(state = replace(state, consistence == FALSE, "unknown"),
+      state = as.factor(state))
+
+state_f <- plot_diagram(states, param = c(x = "del", y = "f")) +
+  xylabs(x = "del", y = "f") +
+  theme_alain()
+
+
+```
+```{r clustering_refined_ca}
+# Put NaN to points which are not
+clust_data <- ungroup(cveg_test$data) %>%
+  left_join(states$run) %>%
+  gather(clust_type, clustering, cveg, cnp) %>%
+  mutate(clustering = replace(clustering, state %in% c("unknown","desert", "nurse"), NaN))
+
+clust_scenar <- filtered_scenar
+clust_scenar$run <- clust_data
+
+cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
+  "clustering") + 
+  theme_alain() +
+  xylabs(x = "del", y = "f") +
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
+  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+
+```
+
+```{r rho_np_f}
+clust_np <- clust_scenar 
+clust_np$run <- spread(clust_scenar$run, clust_type, clustering) %>%
+  gather(var, values, qnp, N, qpn, P) %>%
+  mutate(values = replace(values, state %in% c("unknown","desert", "nurse"), NaN)) %>%
+  spread(var, values)
+
+rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
+  "qpn") + 
+  theme_alain() +
+  xylabs(x = "del", y = "f") +
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
+
+```
+
+```{r}
+plot_grid(state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 1)
+```
+```{r numbers for the paper}
+clust_np$run %>%
+  summarise(
+    max = max(qpn, na.rm = TRUE),
+    std = sd(qpn, na.rm = TRUE),
+    min = min(qpn, na.rm = TRUE)
+    )
+ggplot(clust_np$run, aes(y = qpn, x = del)) +
+  geom_point()
+```
+
+
+# Clustering plot  
+
+```{r clustering plot}
+clustering_plot <- plot_grid(
+  state_u, clust_u, qpn_u, state_f, cnp_cveg_f, rho_qpn_f,
+  labels = "AUTO",
+  nrow = 2,
+  rel_widths = c(1,1.5,1,1,1.5,1)
+  )
+clustering_plot
+
+save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
+  clustering_plot,
+  base_width = 14.3,
+  base_height = 2.8,
+  nrow = 2)
+```
+
+# Appendix
 
 ## Relating to aridity and direct facilitation
 

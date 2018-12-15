@@ -153,7 +153,7 @@ plot_diagram.states_scenarii <- function (
     ggplot2::scale_fill_manual(
       values = color_states(),
       name = "Stable states",
-      labels = as_labeller(stable_states_labeller())
+      labels = ggplot2::as_labeller(stable_states_labeller())
       )
 
   if (debug_mode) {
@@ -250,15 +250,15 @@ color_states <- function() {
 plot_fig2 <- function(states) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
   stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
   g <- plot_diagram(states) +
     xlab(paste("Environmental quality (b)")) +
     ylab(paste("Grazing intensity (g)")) +
-    scale_fill_manual(
-      labels = as_labeller(stable_states_lab),
+    ggplot2::scale_fill_manual(
+      labels = ggplot2::as_labeller(stable_states_lab),
       values = color_states(),
       name = "Stable states"
       ) +
@@ -298,18 +298,18 @@ identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1)
 plot_bifurcation <- function(scenar) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
   stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
   # Select variables   
-  scenar <- select(scenar, scenario, g, b, u, N, P)
-  scenar$run %<>% gather(species, rho, N, P) %>%
+  scenar <- dplyr::select(scenar, scenario, g, b, u, N, P)
+  scenar$run %<>% mutate(N = N - 0.005) %>% gather(species, rho, N, P) %>%
     mutate(species = as.factor(species))
   # Make group to split lines
   scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
   mutate(
-    group = map(data, identify_discontinuity, var = "rho")
+    group = map(data, identify_discontinuity, var = "rho", threshold = .05)
     ) %>% unnest()
 
   # Have to do this in two steps due to a ggplot2 limitation: cannot specify
@@ -326,8 +326,8 @@ plot_bifurcation <- function(scenar) {
     geom_line() +
     ylim(-0.005, 1)
 
-  g + geom_line(mapping = aes(y = rho - 0.005, group = interaction(group, species)),
-    data = scenario_list[[1]], linetype = "dashed")
+  g + geom_line(mapping = aes(y = rho, group = interaction(group, species)),#y = rho - 0.005
+    data = scenario_list[[1]], linetype = "solid")
 }
 
 theme_alain <- function(){
@@ -336,12 +336,14 @@ theme_alain <- function(){
   theme(#Whipe
     text = element_text(family = "Helvetica", hjust = .5),
     axis.title = element_text(family = "Helvetica", hjust = .5, face = "bold", size = 10),
+    plot.title = NULL,
     axis.title.x = NULL,
     axis.title.y = NULL,
     axis.text.x = NULL,
     axis.text.y = NULL,
     strip.text = NULL) +
   theme(#Set up
+    plot.title = element_text(family = "Helvetica", hjust = .5, face = "bold", size = 10),
     axis.title.y = element_text(angle = 90, face = "bold"),
     axis.title.x = element_text(face = "bold"),
     axis.text = element_text(size = 8),
@@ -351,36 +353,112 @@ theme_alain <- function(){
 
 }
 
-scale_fill_temperature <- function (mid = 0, name = NULL) {
-  scale_fill_gradient2(
+scale_fill_temperature <- function (colors = c("white", "yellow", "orange", "red"), name = NULL, limits = c(NA, NA)) {
+  scale_fill_gradientn(
+    colors = colors,
     name = name,
-    midpoint = mid,
-    low = scales::muted("blue"),
-    mid = "white",
-    high = scales::muted("red"))
+    limits = limits
+    )
 }
 
+scale_colour_species <- function(){
+  ggplot2::scale_colour_manual(
+    name = "Species",
+    values = c(
+      N = "#BBCC33",
+      P = "#99DDFF",
+      total = "black"),
+    labels = species_labeller()
+    )
+}
+
+scale_linetype_model <- function(){
+  ggplot2::scale_linetype_manual(
+    name = "Model",
+    values = c(ca = "solid", pa = "dashed"),
+    labels = model_labeller()
+    )
+}
+
+#######################################################################################################
+#  Create own palette:
+#  https://drsimonj.svbtle.com/creating-corporate-colour-palettes-for-ggplot2  #
+#######################################################################################################
+
+temp_colors <- c(
+  `red`        = "#d11141",
+  `green`      = "#00b159",
+  `blue`       = "#00aedb",
+  `orange`     = "#f37735",
+  `yellow`     = "#ffc425",
+  `light grey` = "#cccccc",
+  `dark grey`  = "#8c8c8c")
+
+temp_cols <- function(...) {
+  cols <- c(...)
+
+  if (is.null(cols))
+    return (temp_colors)
+
+  temp_colors[cols]
+}
+
+temp_palettes <- list(
+  `main`  = temp_cols("blue", "green", "yellow"),
+
+  `cool`  = temp_cols("blue", "green"),
+
+  `hot`   = temp_cols("yellow", "orange", "red"),
+
+  `mixed` = temp_cols("blue", "green", "yellow", "orange", "red"),
+
+  `grey`  = temp_cols("light grey", "dark grey")
+)
+
+temp_pal <- function(palette = "main", reverse = FALSE, ...) {
+  pal <- temp_palettes[[palette]]
+
+  if (reverse) pal <- rev(pal)
+
+  colorRampPalette(pal, ...)
+}
+
+## Auto lab:
 clustering_labeller <- function () {
-  as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+  ggplot2::as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
       cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
 }
 
 species_labeller <- function () {
-  as_labeller(c(N = "Nurse", P = "Protegee"))
+  ggplot2::as_labeller(
+    c(N = "Nurse",
+      P = "Protegee",
+      total = "Total")
+    )
+}
+
+model_labeller <- function () {
+  ggplot2::as_labeller(
+    c(ca = "Cellular automata", pa = "Pair approximation")
+    )
 }
 
 facet_labeller <- function (prefix = "b", sep = "= ") {
 
   prefix <- paste(prefix, sep)
   return(
-    as_labeller(function(string, suffix = prefix) { paste0(suffix, string) })   
+    ggplot2::as_labeller(function(string, suffix = prefix) { paste0(suffix, string) })   
     
     )
   #g_appender <- function(string, suffix = ) { paste0(suffix, string) }
 }
 
+
+
+u_labeller <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+
 stable_states_labeller <- function () {
-  as_labeller(
+  ggplot2::as_labeller(
     c(
       "desert" = "Desert",
       "protegee_desert" = "Protegee / Desert",
@@ -406,7 +484,8 @@ xylabs <- function (...) {
     rho = expression(bold(paste("Species density (", rho, ")"))),
     g = paste("Grazing intensity (g)"),
     b = paste("Environmental quality (b)"),
-    f = paste("Strength of direct facilitation (f)")
+    f = paste("Strength of direct facilitation (f)"),
+    time = paste("Time step")
     )
   
   lab_used <- lab_list[dots]
@@ -427,11 +506,11 @@ plot_fig3 <- function(clustering) {
   g_appender <- function(string, suffix = "g = ") { paste0(suffix, string) }
   clustering$run %<>% gather(var, c, cnn, cnp, cpp, cveg)
 
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+  cxx <- ggplot2::as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
       cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
 
   g <- plot_diagram(clustering, param = c(x = "del", y = "u"), fill = "c") +
-    facet_grid(vars(g), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    facet_grid(vars(g), vars(var), labeller = labeller(g = ggplot2::as_labeller(g_appender), var = cxx)) +
     labs(
       x = expression(paste("Proportion of global dispersal (", delta, ")")),
       y = expression(paste("Strength of grazing protection (", u, ")")),
@@ -450,13 +529,13 @@ plot_fig3 <- function(clustering) {
 plot_fig3bis <- function(clustering, x = "b", y = "g", facet = "u") {
 
   g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
-  clustering$run %<>% gather(var, c, cnn, cnp, cpp)#, cveg
+  clustering$run %<>% tidyr::gather(var, c, cnn, cnp, cpp)#, cveg
 
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+  cxx <- ggplot2::as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
       cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
 
   g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
-    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = cxx)) +
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = ggplot2::as_labeller(g_appender), var = cxx)) +
     labs(
       x = paste("Environmental quality  (", x, ")"),
       y = paste("Grazing intensity (", y, ")"),
@@ -476,7 +555,7 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
   g_appender <- function(string, suffix = paste(facet, "= ")) { paste0(suffix, string) }
   clustering$run %<>% gather(var, c, cnp)
 
-  cxx <- as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
+  cxx <- ggplot2::as_labeller(c(cnn = "Nurse / Nurse", cnp = "Nurse / Protegee",
       cpp = "Protegee / Protegee", cveg = "Vegetation / Vegetation"))
 
   g <- plot_diagram(clustering, param = c(x = x, y = y), fill = "c") +
@@ -491,6 +570,6 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
       mid = "white",
       high = scales::muted("red"),
       guide = guide_colorbar(title.position = "top")) +
-    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
+    facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = ggplot2::as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
   g
 }

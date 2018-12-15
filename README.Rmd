@@ -73,27 +73,24 @@ plotnp(mod_run)
 - [ ] Fig 2: multi-states 
     - [ ] Add arrows
 - [x] Fig 3: bifurcation details
-- [ ] Fig 4: Clustering cellular automata, C++ et  Cnp $f(\gamma, u)$ and
+- [x] Fig 4: Clustering cellular automata, C++ et  Cnp $f(\gamma, u)$ and
   $f(\gamma, u)$
+  - [ ] (Change space between panel)[https://github.com/tidyverse/ggplot2/issues/2464#issuecomment-384980197]
+  - [ ] (Change margin of the plot for plot_grid)[https://github.com/wilkelab/cowplot/issues/31#issuecomment-292748114]
+  - [ ] Fix B and E legend decrease a bit the lowest value (some points
+    disapeared in fig B right panel, en haut à gauche)
 
 ### Run
 
-1. [ ] Run pair-approximation model with automated end of run
+1. [x] Run pair-approximation model with automated end of run
 2. [ ] Replace the file with `use_data()`
 
 ### Implementation
 
-- [ ] Clustering:
-    - [ ] plot NP
-    - [ ] plot (x2 - x1) / x1 for comparison CA/PA
-    - [ ] run CA for gradient facilitation/dispersion
-- [ ] plot: separate lines (create groups: e.g: together & < threshold, together
+- [x] Clustering:
+- [x] plot: separate lines (create groups: e.g: together & < threshold, together
   & >= threshold, low_together ...)
-    - [ ] Create groups
-    - [ ] Plot groups (linetype problem)
 - [x] Check if simulations have reached stability
-    - [x] Implementation of a custom solver ("lsodar")
-    - [x] Test the implementation
 - [ ] sim_multi():
     - [ ] Save a simecol object
     - [ ] Save a time argument
