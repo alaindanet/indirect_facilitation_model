@@ -250,7 +250,6 @@ color_states <- function() {
 plot_fig2 <- function(states) {
 
   #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
   stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
@@ -262,7 +261,7 @@ plot_fig2 <- function(states) {
       values = color_states(),
       name = "Stable states"
       ) +
-    facet_grid(cols = vars(u), labeller = u_appender)# +
+    facet_grid(cols = vars(u), labeller = u_labeller)# +
     #hrbrthemes::theme_ipsum_rc()
 
   g
@@ -295,16 +294,12 @@ identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1)
   identify_discontinuity(unlist(data[, var]), threshold = threshold)
 
 }
-plot_bifurcation <- function(scenar) {
-
-  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
-  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
-    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
+plot_bifurcation <- function(scenar, ...) {
+  species <- quos(...)
 
   # Select variables   
-  scenar <- dplyr::select(scenar, scenario, g, b, u, N, P)
-  scenar$run %<>% mutate(N = N - 0.005) %>% gather(species, rho, N, P) %>%
+  scenar <- dplyr::select(scenar, scenario, g, b, u, !!!species)
+  scenar$run %<>% mutate(P = P - 0.005) %>% gather(species, rho, !!!species) %>%
     mutate(species = as.factor(species))
   # Make group to split lines
   scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
@@ -347,8 +342,9 @@ theme_alain <- function(){
     axis.title.y = element_text(angle = 90, face = "bold"),
     axis.title.x = element_text(face = "bold"),
     axis.text = element_text(size = 8),
-    strip.text = element_text(size = 8),
-    plot.margin = unit(c(.5, .5, .5, .5), "cm")
+    strip.text = element_text(size = 8, margin = margin(t = 2, r = 2, b = 2, l = 2, unit = "pt")),
+    plot.margin = unit(c(.5, .5, .5, .5), "pt"),
+    panel.spacing = unit(5, "points")
     )
 
 }
@@ -455,7 +451,10 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
 
 
 
-u_labeller <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+u_labeller <- ggplot2::as_labeller(c(
+    "0" = "Without indirect facilitation (u = 0)",
+    "5" = "High indirect facilitation (u = 5)",
+    "10" = "Strong indirect facilitation (u = 10)"))
 
 stable_states_labeller <- function () {
   ggplot2::as_labeller(

@@ -122,9 +122,10 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig
 
 data(u0_5)
 
-#data(u10)
-#u10 <- scenar_avg; rm(scenar_avg)
-#scenar_avg <- bind_scenar(u0_5, u10)
+protegee_only <- filter(u0_5, !(scenario %in% c("together", "low_together")))
+protegee_only$inits <- protegee_only$inits[c("protegee_only", "low_protegee_only")]
+u0_5 %<>% filter(scenario %in% c("together", "low_together"))
+u0_5$inits <- u0_5$inits[c("together", "low_together")]
 
 states <- compute_states(u0_5, type = "double")
 
@@ -132,7 +133,7 @@ fig2 <- plot_fig2(states) + theme_alain()
 fig2 
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
+cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
   fig2,
   base_width = 4.3,
   base_height = 3.8,
@@ -143,20 +144,50 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig
 ```{r}
 g_val <- c(0, .1, .25, .3)
 u_val <- c(0, 5)
+bifurc_together <- filter(u0_5, g %in% g_val, u %in% u_val)
+margin_set_up <- margin(t = 2, r = 0, b = 2, l = 2, unit = "pt")
 
-fig3 <- plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
+fig3 <- plot_bifurcation(bifurc_together, N, P) +
     ggplot2::scale_colour_manual(
       name = "Species",
       values = c(N = "#BBCC33", P = "#99DDFF"),
       labels = species_labeller()
       ) +
-    facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
+    facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
-    theme_alain()
+    theme_alain() +
+    theme(legend.position = "none", 
+      axis.text.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.title.x = element_text(hjust = 0.1)
+      ) +
+    ggtitle("Protegee and Nurse")
+    
+# Left panel 
+protegee_only %<>% filter(u == 0, g %in% g_val) %>%
+select(P)
 
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
-  fig3,
-  base_width = 2.5,
+left_panel <- plot_bifurcation(protegee_only, P) +
+    ggplot2::scale_colour_manual(
+      name = "Species",
+      values = c(N = "#BBCC33", P = "#99DDFF"),
+      labels = species_labeller()
+      ) +
+    facet_grid(rows = vars(g), cols = vars(u), labeller = labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
+    xylabs(y = "rho") +
+    xlab("") +
+    theme_alain() +
+    theme(legend.position = "none", strip.text.y = element_blank()) +
+    ggtitle("Protegee only")
+
+legend_b <- cowplot::get_legend(fig3 + theme(legend.position="bottom"))
+
+top_row <- cowplot::plot_grid(left_panel, fig3, labels = "AUTO", rel_widths = c(.55, 1))
+bifurcation <- cowplot::plot_grid(top_row, legend_b, nrow = 2, rel_heights = c(1,.05))
+
+cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
+  bifurcation,
+  base_width = 3.5,
   base_height = 4.3,
   ncol = 2)
 ```
