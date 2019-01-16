@@ -1,4 +1,9 @@
 .Rproj.user
 .Rhistory
 .RData
+*.Rdata
+*.html
 inst/doc
+inst/figs
+inst/*.RData
+draft
