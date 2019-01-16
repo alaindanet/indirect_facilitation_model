@@ -482,13 +482,15 @@ cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
   theme_alain() +
   xylabs(x = "del", y = "f") +
   scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller()) +
-  clustering_contour()
+  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+
+
+interp_data <- interp_contour(clust_scenar, x = del, y = f, z = clustering, nb_pts = 100, duplic = clust_type)
 
 contour_c_f <- cnp_cveg_f +
-  clustering_contour(clust_scenar, x = del, y = f, z = clustering, nb_pts = 50, duplic = clust_type, colour = "black", breaks = c(.3, .4)) 
+  draw_contour(interp_data, x = x, y = y, z = clustering, colour = "black", breaks = c(3, 3.5, 4, 4.5)) 
 
-c_del_f <- direct.label(contour_c_f, list("bottom.pieces"))
+c_del_f <- direct.label(contour_c_f, list("bottom.pieces", colour = "black"))
 
 ```
 
@@ -510,8 +512,10 @@ library(akima)
 library(directlabels)
 
 
+interp_qpn_f <- interp_contour(clust_np, x = del, y = f, z = qpn, nb_pts = 50)
+
 contour_qpn_f <- rho_qpn_f +
-  clustering_contour(clust_np, x = del, y = f, z = qpn, nb_pts = 50, colour = "black", breaks = c(.25, .75)) 
+  draw_contour(interp_qpn_f, x = del, y = f, z = qpn, nb_pts = 50, colour = "black", breaks = c(.25, .75)) 
 
 p_qpn_f <- direct.label(contour_qpn_f, list("bottom.pieces"))
 

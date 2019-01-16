@@ -573,10 +573,10 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
   g
 }
 
-#' Draw contours
+#' interp contours
 #'
 #'
-clustering_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+interp_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
   var_fill <- rlang::enquo(z)
   y <- rlang::enquo(y)
   x <- rlang::enquo(x)
@@ -611,7 +611,7 @@ clustering_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 10
 	linear = TRUE
       )
 
-      interp_temp_df <- interp2xyz(interp_temp, data.frame = TRUE) %>%
+      interp_temp_df <- akima::interp2xyz(interp_temp, data.frame = TRUE) %>%
 	as.tibble %>%
 	rename(!!var_fill := z) %>%
 	mutate(!!duplic := type[i])
@@ -637,13 +637,24 @@ clustering_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 10
     #jitter.random = TRUE,
     linear = TRUE
   )
-  interp_df <- interp2xyz(interp_akima, data.frame = TRUE) %>%
+  interp_df <- akima::interp2xyz(interp_akima, data.frame = TRUE) %>%
     as.tibble %>%
     rename(!!var_fill := z)
   }
+  interp_df
   # Contour
-  ggplot2::stat_contour(data = interp_df,
-    aes(x = x, y = y, z = !!var_fill, colour = ..level..), ...)
+}
+
+#' draw contours
+#'
+#'
+draw_contour <- function (data, x = NULL, y = NULL, z = NULL, ...) {
+  var_fill <- rlang::enquo(z)
+  y <- rlang::enquo(y)
+  x <- rlang::enquo(x)
+
+  ggplot2::stat_contour(data = data,
+    aes(x = !!x, y = !!y, z = !!var_fill, colour = ..level..), ...)
   #Strange error with directlabels: have to specify colour = ..level..
   #https://rdrr.io/rforge/directlabels/src/etc/contour.R
 }
