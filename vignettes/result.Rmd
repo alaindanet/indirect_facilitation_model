@@ -77,6 +77,7 @@ set.seed(123)
 output <- lapply(mod_list, function(x){
   times(x) <- c(from = 0, to = 3000, by = 1)
   parms(x) <- parms(two_facilitation_model())
+  parms(x)[c("b", "g")] <- c(1, .13)
   simul <- sim(x)
   # Is it PA or CA?
   mod_type <- ifelse("PD" %in% names(out(simul)), "pa", "ca")
@@ -197,20 +198,20 @@ cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stab
 
 ## Relating to grazing and aridity
 
-```{r}
+```{r, eval = FALSE}
 
-filtered_scenar <- filter(u0_5, scenario == "together"); 
-filtered_scenar$run %<>%
-  mutate(
-    N = ifelse(N < .05 & N != 0, NA, N),
-    P = ifelse(P < .05 & P != 0, NA, P)
-    )
+#filtered_scenar <- filter(u0_5, scenario == "together"); 
+#filtered_scenar$run %<>%
+  #mutate(
+    #N = ifelse(N < .05 & N != 0, NA, N),
+    #P = ifelse(P < .05 & P != 0, NA, P)
+    #)
 
-occurenres <- compute_occurences(filtered_scenar) 
+#occurenres <- compute_occurences(filtered_scenar) 
 
-p <- plot_fig3bisbis(occurenres)
-p
-ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, height = 18, units = "cm", device = cairo_pdf)
+#p <- plot_fig3bisbis(occurenres)
+#p
+#ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, height = 18, units = "cm", device = cairo_pdf)
 #+
   #geom_contour(aes(z = c), bins = 1, na.rm = TRUE)
   #geom_contour(aes(z = ifelse(is.na(c), 0,1)), bins = 1)
@@ -222,6 +223,7 @@ ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, hei
 ### Pair approximation model
 
 ```{r}
+rm(list = ls())
 data(clust_pa)
 
 clust_pa$run %<>%
@@ -364,10 +366,8 @@ clust_np$run %>%
 ### Pair-approximation
 
 ```{r disp and facilitation, fig.dim = c(10, 4)}
-
 load("../inst/direct_facilitation_effect_pa_avg.RData")
 clust_avg <- scenar_avg
-
 clust_avg$run %<>%
   mutate(
     g = 0.2, #dummy variable for plot_fig3bisbis
@@ -467,7 +467,7 @@ state_f <- plot_diagram(states, param = c(x = "del", y = "f")) +
 
 ```
 ```{r clustering_refined_ca}
-# Put NaN to points which are not
+# Put NaN to points which are not coexistence
 clust_data <- ungroup(cveg_test$data) %>%
   left_join(states$run) %>%
   gather(clust_type, clustering, cveg, cnp) %>%
@@ -476,12 +476,19 @@ clust_data <- ungroup(cveg_test$data) %>%
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 
+
 cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
   "clustering") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
   scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+  facet_grid(cols = vars(clust_type), labeller = clustering_labeller()) +
+  clustering_contour()
+
+contour_c_f <- cnp_cveg_f +
+  clustering_contour(clust_scenar, x = del, y = f, z = clustering, nb_pts = 50, duplic = clust_type, colour = "black", breaks = c(.3, .4)) 
+
+c_del_f <- direct.label(contour_c_f, list("bottom.pieces"))
 
 ```
 
@@ -496,13 +503,26 @@ rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   "qpn") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2)) 
+```
+```{r add_contour}
+library(akima)
+library(directlabels)
+
+
+contour_qpn_f <- rho_qpn_f +
+  clustering_contour(clust_np, x = del, y = f, z = qpn, nb_pts = 50, colour = "black", breaks = c(.25, .75)) 
+
+p_qpn_f <- direct.label(contour_qpn_f, list("bottom.pieces"))
+
 
 ```
+
 
 ```{r}
-plot_grid(state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 1)
+plot_grid(state_f, cnp_cveg_f, p_qpn_f, labels = "AUTO", nrow = 1)
 ```
+
 ```{r numbers for the paper}
 clust_np$run %>%
   summarise(

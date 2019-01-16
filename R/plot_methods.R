@@ -572,3 +572,78 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
     facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = ggplot2::as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
   g
 }
+
+#' Draw contours
+#'
+#'
+clustering_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+  var_fill <- rlang::enquo(z)
+  y <- rlang::enquo(y)
+  x <- rlang::enquo(x)
+  duplic <- rlang::enquo(duplic)
+  #plot_arg <- rlang::quos(...)
+
+  #Interp
+  clust_interp <- na.omit(clust$run)
+  # Check if duplicated row
+  if (dplyr::distinct(dplyr::select(clust_interp, !!x, !!y)) %>% nrow /
+    nrow(clust_interp) < 1) {
+  
+    stopifnot(!rlang::quo_is_null(duplic))
+    type <- unique(clust_interp[, rlang::quo_name(duplic)]) %>% unlist 
+    
+    for (i in 1:length(type)) {
+      temp <- dplyr::filter(clust_interp, !!duplic == type[i])
+
+      interp_temp <- akima::interp(
+	x = temp[, rlang::quo_name(x)] %>% unlist,
+	y = temp[, rlang::quo_name(y)] %>% unlist,
+	z = temp[, rlang::quo_name(var_fill)] %>% unlist,
+	xo = seq(
+	  min(temp[, rlang::quo_name(x)] %>% unlist),
+	  max(temp[, rlang::quo_name(x)] %>% unlist),
+	  length.out = nb_pts),
+	yo = seq(
+	  min(temp[, rlang::quo_name(y)] %>% unlist),
+	  max(temp[, rlang::quo_name(y)] %>% unlist),
+	  length.out = nb_pts),
+	#jitter.random = TRUE,
+	linear = TRUE
+      )
+
+      interp_temp_df <- interp2xyz(interp_temp, data.frame = TRUE) %>%
+	as.tibble %>%
+	rename(!!var_fill := z) %>%
+	mutate(!!duplic := type[i])
+     if (i == 1) {
+       interp_df <- interp_temp_df
+     } else {
+       interp_df <- rbind(interp_df, interp_temp_df)
+     }
+    }
+  } else {
+  interp_akima <- akima::interp(
+    x = clust_interp[, rlang::quo_name(x)] %>% unlist,
+    y = clust_interp[, rlang::quo_name(y)] %>% unlist,
+    z = clust_interp[, rlang::quo_name(var_fill)] %>% unlist,
+    xo = seq(
+      min(clust_interp[, rlang::quo_name(x)] %>% unlist),
+      max(clust_interp[, rlang::quo_name(x)] %>% unlist),
+      length.out = nb_pts),
+    yo = seq(
+      min(clust_interp[, rlang::quo_name(y)] %>% unlist),
+      max(clust_interp[, rlang::quo_name(y)] %>% unlist),
+      length.out = nb_pts),
+    #jitter.random = TRUE,
+    linear = TRUE
+  )
+  interp_df <- interp2xyz(interp_akima, data.frame = TRUE) %>%
+    as.tibble %>%
+    rename(!!var_fill := z)
+  }
+  # Contour
+  ggplot2::stat_contour(data = interp_df,
+    aes(x = x, y = y, z = !!var_fill, colour = ..level..), ...)
+  #Strange error with directlabels: have to specify colour = ..level..
+  #https://rdrr.io/rforge/directlabels/src/etc/contour.R
+}
