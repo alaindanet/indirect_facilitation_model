@@ -239,11 +239,12 @@ top_row <- cowplot::plot_grid(left_panel, right_panel, rel_widths = c(1, .55))
 bifurcation <- cowplot::plot_grid(top_row, legend_b, nrow = 2, rel_heights = c(1,.05))
 bifurcation
 
+#1 inches to mm = 25.4 mm
 cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
   bifurcation,
-  base_width = 3.5,
+  base_width = 174/25.4,
   base_height = 4.3,
-  ncol = 2)
+  ncol = 1)
 ```
 
 # Cooccurrences in cellular automata
@@ -319,6 +320,9 @@ states$run %<>% group_by(u, del) %>% # Get the most frequent state
 state_u <- plot_diagram(states, param = c(x = "del", y = "u")) +
   xylabs(x = "del", y = "u") +
   theme_alain()
+legend_state <- get_legend(state_u)
+
+state_u  <- state_u + theme(legend.position = "none")
 
 ```
 ```{r refined clustering plot}
@@ -330,21 +334,44 @@ clust_data <- ungroup(c1$data) %>%
 
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
+## 
 
-clust_u <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
-  "clustering") + 
-  theme_alain() +
-  xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+clust_data %<>%
+  group_by(clust_type) %>%
+  nest() %>%
+  mutate(
+    plot_diagram = map(data, function(x) {
+      ggplot2::ggplot(x,
+      aes(x = del, y = u, fill = clustering)) +
+    ggplot2::geom_raster() +
+    theme_alain() +
+    xylabs(x = "del", y = "u") +
+    scale_fill_temperature(name = "Clustering", limits = c(2, 4.5))
 
-interp_u <- interp_contour(clust_scenar, x = del, y = u, z = clustering, nb_pts = 30, duplic = clust_type)
+
+}) 
+  )
+
+plot_grid(plotlist = clust_data$plot_diagram)
 
 brks_clustering <- c(3, 3.5, 4, 4.1, 4.2, 4.5)
-contour_u <- clust_u +
-  draw_contour(interp_u, x = x, y = y, z = clustering, colour = "black", breaks = brks_clustering) 
+clust_data %<>%
+  mutate(interp = map2(data, plot_diagram, function(data, graph, brks){
 
-c_del_u <- direct.label(contour_u, list("bottom.pieces", colour = "black"))
+      interp_u <- interp_contour(data, x = del, y = u, z = clustering,
+	nb_pts = 30, duplic = clust_type)
+
+      contour_u <- graph +
+	draw_contour(interp_u, x = x, y = y, z = clustering, colour = "black", breaks = brks_clustering) 
+
+      direct.label(contour_u, list("bottom.pieces", colour = "black"))
+
+}, brks = brks_clustering))
+
+legend_clust <- get_legend(clust_data[1,]$plot_diagram[[1]]) 
+
+
+
 ```
 
 ```{r q_np and indirect facilitation}
@@ -360,6 +387,7 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
   # limits arg 
   scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
+legend_qpn <- get_legend(qpn_u)
 
 interp_qpn_u <- interp_contour(clust_np, x = del, y = u, z = qpn, nb_pts = 30)
 
@@ -372,7 +400,7 @@ p_qpn_u <- direct.label(contour_qpn_u, list("bottom.pieces",
 ```
 
 ```{r plot states and clustering}
-plot_grid(state_u, clust_u, p_qpn_u, labels = "AUTO", nrow = 1)
+plot_grid(state_u, clust_u, p_qpn_u, legend_qpn, labels = "AUTO", nrow = 1)
 ```
 
 ```{r numbers for the paper}
@@ -458,7 +486,8 @@ states$run %<>% group_by(f, del) %>% # Get the most frequent state
 
 state_f <- plot_diagram(states, param = c(x = "del", y = "f")) +
   xylabs(x = "del", y = "f") +
-  theme_alain()
+  theme_alain() +
+  theme(legend.position = "none")
 
 
 ```
@@ -505,8 +534,6 @@ qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2)) 
 ```
 ```{r add_contour}
-library(akima)
-library(directlabels)
 
 interp_qpn_f <- interp_contour(clust_np, x = del, y = f, z = qpn, nb_pts = 30)
 
@@ -538,17 +565,19 @@ ggplot(clust_np$run, aes(y = qpn, x = del)) +
 
 ```{r clustering plot}
 clustering_plot <- plot_grid(
-  state_u, clust_u, p_qpn_u, state_f, cnp_cveg_f, p_qpn_f,
+  plot_grid(state_u,state_f, legend_state, ncol = 3, rel_widths = c(1, 1, .1)),
+  plot_grid(plot_grid(c_del_u, c_del_f, nrow = 2), legend_clust, ncol = 2, rel_widths = c(1, .1)),
+  plot_grid(p_qpn_u, p_qpn_f, legend_qpn, ncol = 3, rel_widths = c(1, 1, .1)),
   labels = "AUTO",
-  nrow = 2,
-  rel_widths = c(1,1.5,1,1,1.5,1)
+  ncol = 1,
+  rel_heights = c(.5, 1, .5)
   )
 clustering_plot
 
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
   clustering_plot,
-  base_width = 14.3,
-  base_height = 2.8,
-  nrow = 2)
+  base_width = 174/25.4,
+  base_height = 9,
+  nrow = 1)
 ```
 

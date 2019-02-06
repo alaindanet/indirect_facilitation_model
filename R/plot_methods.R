@@ -175,6 +175,20 @@ plot_diagram.avg_scenarii <- function (
   }
   return(g)
 }
+plot_diagram.data.frame <- function (
+  data,
+  param = c(x = "b", y = "g"), debug_mode = FALSE, fill = "N") {
+
+    g <- ggplot2::ggplot(data,
+      aes_string(x = param["x"], y = param["y"], fill = fill)) +
+    ggplot2::geom_raster() +
+    theme_diagram()
+
+  if (debug_mode) {
+    return(data)
+  }
+  return(g)
+}
 theme_diagram <- function(base_size = 12, base_family = "Helvetica"){
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
     theme(
@@ -575,7 +589,9 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
 #' interp contours
 #'
 #'
-interp_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+interp_contour <- function(data, ...) UseMethod("interp_contour")
+interp_contour.default <- function(data, ...) "Unknown class"
+interp_contour.data.frame <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
   var_fill <- rlang::enquo(z)
   y <- rlang::enquo(y)
   x <- rlang::enquo(x)
@@ -583,14 +599,14 @@ interp_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, d
   #plot_arg <- rlang::quos(...)
 
   #Interp
-  clust_interp <- na.omit(clust$run)
+  clust_interp <- na.omit(clust)
   # Check if duplicated row
   if (dplyr::distinct(dplyr::select(clust_interp, !!x, !!y)) %>% nrow /
     nrow(clust_interp) < 1) {
-  
+
     stopifnot(!rlang::quo_is_null(duplic))
     type <- unique(clust_interp[, rlang::quo_name(duplic)]) %>% unlist 
-    
+
     for (i in 1:length(type)) {
       temp <- dplyr::filter(clust_interp, !!duplic == type[i])
 
@@ -614,34 +630,38 @@ interp_contour <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, d
 	as.tibble %>%
 	rename(!!var_fill := z) %>%
 	mutate(!!duplic := type[i])
-     if (i == 1) {
-       interp_df <- interp_temp_df
-     } else {
-       interp_df <- rbind(interp_df, interp_temp_df)
-     }
+      if (i == 1) {
+	interp_df <- interp_temp_df
+      } else {
+	interp_df <- rbind(interp_df, interp_temp_df)
+      }
     }
   } else {
-  interp_akima <- akima::interp(
-    x = clust_interp[, rlang::quo_name(x)] %>% unlist,
-    y = clust_interp[, rlang::quo_name(y)] %>% unlist,
-    z = clust_interp[, rlang::quo_name(var_fill)] %>% unlist,
-    xo = seq(
-      min(clust_interp[, rlang::quo_name(x)] %>% unlist),
-      max(clust_interp[, rlang::quo_name(x)] %>% unlist),
-      length.out = nb_pts),
-    yo = seq(
-      min(clust_interp[, rlang::quo_name(y)] %>% unlist),
-      max(clust_interp[, rlang::quo_name(y)] %>% unlist),
-      length.out = nb_pts),
-    #jitter.random = TRUE,
-    linear = TRUE
-  )
-  interp_df <- akima::interp2xyz(interp_akima, data.frame = TRUE) %>%
-    as.tibble %>%
-    rename(!!var_fill := z)
+    interp_akima <- akima::interp(
+      x = clust_interp[, rlang::quo_name(x)] %>% unlist,
+      y = clust_interp[, rlang::quo_name(y)] %>% unlist,
+      z = clust_interp[, rlang::quo_name(var_fill)] %>% unlist,
+      xo = seq(
+	min(clust_interp[, rlang::quo_name(x)] %>% unlist),
+	max(clust_interp[, rlang::quo_name(x)] %>% unlist),
+	length.out = nb_pts),
+      yo = seq(
+	min(clust_interp[, rlang::quo_name(y)] %>% unlist),
+	max(clust_interp[, rlang::quo_name(y)] %>% unlist),
+	length.out = nb_pts),
+      #jitter.random = TRUE,
+      linear = TRUE
+    )
+    interp_df <- akima::interp2xyz(interp_akima, data.frame = TRUE) %>%
+      as.tibble %>%
+      rename(!!var_fill := z)
   }
   interp_df
   # Contour
+}
+
+interp_contour.avg_scenarii <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+  interp_contour.data.frame(clust$run, x, y, z, nb_pts, duplic, ...)
 }
 
 #' draw contours
