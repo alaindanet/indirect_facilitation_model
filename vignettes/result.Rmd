@@ -157,10 +157,11 @@ cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stab
 ```
 
 ```{r}
+letter_pos <- c(x = .49, y = .95)
 g_val <- c(0, .1, .25, .3)
 u_val <- c(0, 5)
 bifurc_together <- filter(u0_5, g %in% g_val, u %in% u_val)
-margin_set_up <- margin(t = 2, r = 0, b = 2, l = 2, unit = "pt")
+margin_set_up <- margin(t = 10, r = 0, b = 2, l = 2, unit = "pt")
 
 fig3 <- plot_bifurcation(bifurc_together, N, P) +
     ggplot2::scale_colour_manual(
@@ -171,18 +172,38 @@ fig3 <- plot_bifurcation(bifurc_together, N, P) +
     facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
     theme_alain() +
-    theme(legend.position = "none", 
-      axis.text.y = element_blank(),
-      axis.title.y = element_blank(),
-      axis.title.x = element_text(hjust = 0.1)
+    theme(
+      legend.position = "none",
+      strip.text.y = element_blank(),
+      axis.title.x = element_text(hjust = 0.9),
+      plot.background = element_rect(color = "black", linetype = 0)
       ) +
     ggtitle("Protegee and Nurse")
+## Put A, B, C
+combination_facet_var <- expand.grid(
+  u = bifurc_together$run$u %>% unique,
+  g = bifurc_together$run$g %>% unique
+)
+letter_left_panel <- tibble(
+  g = combination_facet_var$g,
+  u = combination_facet_var$u,
+  x = letter_pos["x"],
+  y = letter_pos["y"],
+  lab = c("A", "B", "D", "E", "G", "H", "J", "K")
+  )
+left_panel <- fig3 +
+  geom_text(aes(x = x, y = y, label = lab, group = NULL),
+    data = letter_left_panel,
+    inherit.aes = FALSE)
     
-# Left panel 
+#################
+#  right panel  #
+#################
+
 protegee_only %<>% filter(u == 0, g %in% g_val) %>%
 select(P)
 
-left_panel <- plot_bifurcation(protegee_only, P) +
+right_panel <- plot_bifurcation(protegee_only, P) +
     ggplot2::scale_colour_manual(
       name = "Species",
       values = c(N = "#BBCC33", P = "#99DDFF"),
@@ -192,13 +213,31 @@ left_panel <- plot_bifurcation(protegee_only, P) +
     xylabs(y = "rho") +
     xlab("") +
     theme_alain() +
-    theme(legend.position = "none", strip.text.y = element_blank()) +
-    ggtitle("Protegee only")
+    theme(legend.position = "none", 
+      axis.text.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.title.x = element_text(hjust = 0.1),
+      plot.background = element_rect(color = "black", linetype = c(1))
+      ) +
+    ggtitle("Protegee alone")
+## Put A, B, C
+letter_right_panel <- tibble(
+  g = protegee_only$run$g %>% unique,
+  u = protegee_only$run$u %>% unique,
+  x = letter_pos["x"],
+  y = letter_pos["y"],
+  lab = c("C", "F", "I", "L")
+  )
+right_panel <- right_panel +
+  geom_text(aes(x = x, y = y, label = lab, group = NULL),
+    data = letter_right_panel,
+    inherit.aes = FALSE)
 
-legend_b <- cowplot::get_legend(fig3 + theme(legend.position="bottom"))
+legend_b <- cowplot::get_legend(left_panel + theme(legend.position="bottom"))
 
-top_row <- cowplot::plot_grid(left_panel, fig3, labels = "AUTO", rel_widths = c(.55, 1))
+top_row <- cowplot::plot_grid(left_panel, right_panel, rel_widths = c(1, .55))
 bifurcation <- cowplot::plot_grid(top_row, legend_b, nrow = 2, rel_heights = c(1,.05))
+bifurcation
 
 cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
   bifurcation,
