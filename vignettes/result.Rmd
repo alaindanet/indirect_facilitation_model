@@ -131,15 +131,28 @@ u0_5$inits <- u0_5$inits[c("together", "low_together")]
 
 states <- compute_states(u0_5, type = "double")
 
-fig2 <- plot_fig2(states) + theme_alain()
-fig2 
+fig2 <- plot_fig2(states) + theme_alain() + theme(legend.position = "bottom") +
+  guides(
+    fill = guide_legend(nrow = 3, title.position = "top")
+    )
+legend_fig2 <- get_legend(fig2)
+fig2 <- fig2 + theme(legend.position = "none") 
+
+final_fig_2 <- plot_grid(
+  fig2,
+  legend_fig2,
+  rel_heights = c(1, 0.5),
+  nrow = 2
+)
+final_fig_2
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
+#1 inches to mm = 25.4 mm
 cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
-  fig2,
-  base_width = 4.3,
-  base_height = 3.8,
-  ncol = 2)
+  final_fig_2,
+  base_width = 118/25.4,
+  base_height = 3.5,
+  ncol = 1, nrow = 1)
 
 ```
 

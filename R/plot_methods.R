@@ -249,7 +249,6 @@ color_states <- function() {
 ##############
 plot_fig2 <- function(states) {
 
-  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
   stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
