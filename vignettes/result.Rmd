@@ -336,7 +336,7 @@ clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 ## 
 
-clust_data %<>%
+clust_u <- clust_data %>%
   group_by(clust_type) %>%
   nest() %>%
   mutate(
@@ -347,28 +347,10 @@ clust_data %<>%
     theme_alain() +
     xylabs(x = "del", y = "u") +
     scale_fill_temperature(name = "Clustering", limits = c(2, 4.5))
-
-
 }) 
   )
 
-plot_grid(plotlist = clust_data$plot_diagram)
-
-brks_clustering <- c(3, 3.5, 4, 4.1, 4.2, 4.5)
-clust_data %<>%
-  mutate(interp = map2(data, plot_diagram, function(data, graph, brks){
-
-      interp_u <- interp_contour(data, x = del, y = u, z = clustering,
-	nb_pts = 30, duplic = clust_type)
-
-      contour_u <- graph +
-	draw_contour(interp_u, x = x, y = y, z = clustering, colour = "black", breaks = brks_clustering) 
-
-      direct.label(contour_u, list("bottom.pieces", colour = "black"))
-
-}, brks = brks_clustering))
-
-legend_clust <- get_legend(clust_data[1,]$plot_diagram[[1]]) 
+plot_grid(plotlist = clust_u$plot_diagram)
 
 
 
@@ -389,7 +371,7 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
 legend_qpn <- get_legend(qpn_u)
 
-interp_qpn_u <- interp_contour(clust_np, x = del, y = u, z = qpn, nb_pts = 30)
+interp_qpn_u <- interp_contour(clust = clust_np$run, x = del, y = u, z = qpn, nb_pts = 30)
 
 brks_q <- c(.25, .75, 1.25, 1.5)
 contour_qpn_u <- qpn_u +
@@ -397,10 +379,6 @@ contour_qpn_u <- qpn_u +
 
 p_qpn_u <- direct.label(contour_qpn_u, list("bottom.pieces",
       box.color = NA, fill = "transparent", colour = "black"))
-```
-
-```{r plot states and clustering}
-plot_grid(state_u, clust_u, p_qpn_u, legend_qpn, labels = "AUTO", nrow = 1)
 ```
 
 ```{r numbers for the paper}
@@ -501,22 +479,10 @@ clust_data <- ungroup(cveg_test$data) %>%
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 
-
-cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
-  "clustering") + 
-  theme_alain() +
-  xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+clust_f <- plot_clustering_contour(clust_data, fac = f)
 
 
-interp_f <- interp_contour(clust_scenar, x = del, y = f, z = clustering, nb_pts = 30, duplic = clust_type)
-
-contour_c_f <- cnp_cveg_f +
-  draw_contour(interp_f, x = x, y = y, z = clustering, colour = "black", breaks = brks_clustering) 
-
-c_del_f <- direct.label(contour_c_f, list("bottom.pieces",
-      box.color = NA, fill = "transparent", colour = "black"))
+plot_grid(plotlist = clust_f$plot_diagram)
 
 ```
 
@@ -535,7 +501,7 @@ qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
 ```
 ```{r add_contour}
 
-interp_qpn_f <- interp_contour(clust_np, x = del, y = f, z = qpn, nb_pts = 30)
+interp_qpn_f <- interp_contour(clust_np$run, x = del, y = f, z = qpn, nb_pts = 30)
 
 contour_qpn_f <- qpn_f +
   draw_contour(interp_qpn_f, x = x, y = y, z = qpn, colour = "black", breaks = brks_q) 
@@ -545,12 +511,7 @@ p_qpn_f <- direct.label(contour_qpn_f, list("bottom.pieces",
 
 ```
 
-
-```{r}
-plot_grid(state_f, c_del_f, p_qpn_f, labels = "AUTO", nrow = 1)
-```
-
-```{r numbers for the paper}
+```{r numbers for the paper 2}
 clust_np$run %>%
   summarise(
     max = max(qpn, na.rm = TRUE),
@@ -564,13 +525,46 @@ ggplot(clust_np$run, aes(y = qpn, x = del)) +
 # Clustering plot  
 
 ```{r clustering plot}
+
+# Get legend
+legend_clust <- get_legend(clust_u[1,]$plot_diagram[[1]]) 
+legend_qpn <- get_legend(qpn_u) 
+legend_state <- get_legend(state_f)
+
+state_u
+clust_u
+p_qpn_u
+state_f
+clust_f
+p_qpn_f
+
+# Remove x axis
+states <- map(list(state_u, state_f), rm_x_axis)
+clust_f %<>% mutate(plot_diagram = map(plot_diagram, rm_x_axis))
+clust_u %<>% mutate(plot_diagram = map(plot_diagram, rm_x_axis))
+
+# Left column
+list_of_plot <- list(states[[1]], clust_u[1, ]$plot_diagram[[1]],
+  clust_u[2, ]$plot_diagram[[1]], p_qpn_u)
+left_col <- plot_grid(plotlist = list_of_plot)
+left_col
+
+# Right column
+list_of_plot <- list(states[[2]], clust_f$plot_diagram[[1]], p_qpn_f)
+right_col <- plot_grid(plotlist = list_of_plot)
+right_col
+
+# Legend col
+legend_col <- plot_grid(legend_state, legend_clust, legend_qpn)
+legend_col
+
+
 clustering_plot <- plot_grid(
-  plot_grid(state_u,state_f, legend_state, ncol = 3, rel_widths = c(1, 1, .1)),
-  plot_grid(plot_grid(c_del_u, c_del_f, nrow = 2), legend_clust, ncol = 2, rel_widths = c(1, .1)),
-  plot_grid(p_qpn_u, p_qpn_f, legend_qpn, ncol = 3, rel_widths = c(1, 1, .1)),
-  labels = "AUTO",
-  ncol = 1,
-  rel_heights = c(.5, 1, .5)
+  left_col,
+  right_col,
+  legend_col,
+  ncol = 3,
+  rel_width = c(1, 1, .5)
   )
 clustering_plot
 
