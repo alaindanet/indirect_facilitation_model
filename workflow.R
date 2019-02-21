@@ -430,3 +430,6 @@ plot_fig3bisbis(filtered_scenar, x = "del", y = "u", facet = "g")
 ## Pair Approximation
 load(file = "inst/clustering_pa_avg.RData")
 
+
+# get init values for protégée alone
+init_scenarii("protegee_bifurcation")

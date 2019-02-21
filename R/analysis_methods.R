@@ -531,7 +531,7 @@ states <- compute_states(filtered_scenar, warning_as_desert = FALSE, threshold =
   .001)
 states$run %<>% group_by(get(var), del) %>% # Get the most frequent state 
   summarise(state = names(sort(table(state), decreasing=TRUE)[1])) %>%
-    left_join(consistence) %>% select(-data) %>% ungroup() %>%
+    left_join(consistence) %>% dplyr::select(-data) %>% ungroup() %>%
     mutate(state = replace(state, consistence == FALSE, "unknown"),
       state = as.factor(state))
 
