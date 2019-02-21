@@ -336,24 +336,8 @@ clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 ## 
 
-clust_u <- clust_data %>%
-  group_by(clust_type) %>%
-  nest() %>%
-  mutate(
-    plot_diagram = map(data, function(x) {
-      ggplot2::ggplot(x,
-      aes(x = del, y = u, fill = clustering)) +
-    ggplot2::geom_raster() +
-    theme_alain() +
-    xylabs(x = "del", y = "u") +
-    scale_fill_temperature(name = "Clustering", limits = c(2, 4.5))
-}) 
-  )
-
-plot_grid(plotlist = clust_u$plot_diagram)
-
-
-
+clust_u <- plot_clustering_contour(clust_data, fac = u)
+plot_grid(plotlist = clust_u$interp)
 ```
 
 ```{r q_np and indirect facilitation}
@@ -464,10 +448,7 @@ states$run %<>% group_by(f, del) %>% # Get the most frequent state
 
 state_f <- plot_diagram(states, param = c(x = "del", y = "f")) +
   xylabs(x = "del", y = "f") +
-  theme_alain() +
-  theme(legend.position = "none")
-
-
+  theme_alain() 
 ```
 ```{r clustering_refined_ca}
 # Put NaN to points which are not coexistence
@@ -479,10 +460,9 @@ clust_data <- ungroup(cveg_test$data) %>%
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 
-clust_f <- plot_clustering_contour(clust_data, fac = f)
+clust_f <- plot_clustering_contour(clust_data, fac = f) 
 
-
-plot_grid(plotlist = clust_f$plot_diagram)
+plot_grid(plotlist = clust_f$interp)
 
 ```
 
@@ -531,31 +511,48 @@ legend_clust <- get_legend(clust_u[1,]$plot_diagram[[1]])
 legend_qpn <- get_legend(qpn_u) 
 legend_state <- get_legend(state_f)
 
-state_u
-clust_u
-p_qpn_u
-state_f
-clust_f
-p_qpn_f
+# Remove legend
+state_f <- state_f +
+  theme(legend.position = "none")
+clust_f <- clust_f %>%
+  mutate(plot_diagram = map(plot_diagram, function (graph) {
+       graph + theme(legend.position = "none")
+      }))
+clust_u <- clust_u %>%
+  mutate(plot_diagram = map(plot_diagram, function (graph) {
+       graph + theme(legend.position = "none")
+      }))
 
-# Remove x axis
+# Remove axis
 states <- map(list(state_u, state_f), rm_x_axis)
-clust_f %<>% mutate(plot_diagram = map(plot_diagram, rm_x_axis))
-clust_u %<>% mutate(plot_diagram = map(plot_diagram, rm_x_axis))
+states <- map(states, rm_y_axis)
+states[[1]] <- states[[1]] +
+  labs(title = "Strength of indirect facilitation (u)")
+states[[2]] <- states[[2]] +
+  labs(title = "Strength of direct facilitation (f)")
+p_qpn <- map(list(p_qpn_u, p_qpn_f), rm_y_axis)
+clust_f %<>% mutate(interp = map(interp, rm_x_axis))
+clust_f %<>% mutate(interp = map(interp, rm_y_axis))
+clust_u %<>% mutate(interp = map(interp, rm_x_axis))
+clust_u %<>% mutate(interp = map(interp, rm_y_axis))
 
 # Left column
-list_of_plot <- list(states[[1]], clust_u[1, ]$plot_diagram[[1]],
-  clust_u[2, ]$plot_diagram[[1]], p_qpn_u)
-left_col <- plot_grid(plotlist = list_of_plot)
+list_of_plot <- list(states[[1]], clust_u[1, ]$interp[[1]],
+  clust_u[2, ]$interp[[1]], p_qpn[[1]])
+left_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("A", "C", "E", "G"),
+  label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
 left_col
 
 # Right column
-list_of_plot <- list(states[[2]], clust_f$plot_diagram[[1]], p_qpn_f)
-right_col <- plot_grid(plotlist = list_of_plot)
+list_of_plot <- list(states[[2]], clust_f[1, ]$interp[[1]],
+  clust_f[2, ]$interp[[1]], p_qpn[[2]])
+right_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("B", "D", "F", "H"),
+  label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
 right_col
 
 # Legend col
-legend_col <- plot_grid(legend_state, legend_clust, legend_qpn)
+legend_col <- plot_grid(legend_state, legend_clust, legend_qpn, ncol = 1,
+  align = "v", axis = "r", rel_heights = c(1, 2, 1))
 legend_col
 
 
@@ -564,14 +561,15 @@ clustering_plot <- plot_grid(
   right_col,
   legend_col,
   ncol = 3,
-  rel_width = c(1, 1, .5)
+  rel_widths = c(1,1, .5)
   )
 clustering_plot
 
+
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
   clustering_plot,
-  base_width = 174/25.4,
+  base_width = 218/25.4,
   base_height = 9,
-  nrow = 1)
+  ncol = 1)
 ```
 

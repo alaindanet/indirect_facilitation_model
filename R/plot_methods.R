@@ -594,24 +594,24 @@ plot_clustering_contour <- function (clust, fac = u) {
 
   # Plot by clust_type
   clust %<>%
-    group_by(clust_type) %>%
-    nest() %>%
-    mutate(
-      plot_diagram = map(data,
-	plot_clustering, yvar = quo_name(fac))
+    dplyr::group_by(clust_type) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(
+      plot_diagram = purrr::map(data,
+	plot_clustering, yvar = rlang::quo_name(fac))
     )
-
       brks_clustering <- c(3, 3.5, 4, 4.1, 4.2, 4.5)
       clust %<>%
-	mutate(interp = map2(data, plot_diagram, function(data, graph, brks){
-
+	dplyr::mutate(interp = purrr::map2(data, plot_diagram, function(data, graph, brks){
+	    #Interp
 	    interp <- interp_contour(data, x = del, y = !!fac, z = clustering,
 	      nb_pts = 30, duplic = clust_type)
-
+	    # Draw contours
 	    contours <- graph +
 	      draw_contour(interp, x = x, y = y, z = clustering,
 		colour = "black", breaks = brks_clustering)
 	    direct.label(contours, list("bottom.pieces", colour = "black"))
+
 }, brks = brks_clustering))
       clust
 }
@@ -623,14 +623,12 @@ plot_clustering_contour <- function (clust, fac = u) {
 #'
 #'
 plot_clustering <- function(clust_data, yvar) {
-  test <- eval(yvar) # Necessary because xylabs capture elements without evaluating them
   ggplot2::ggplot(clust_data,
     aes_string(
       x = "del", y = yvar, fill = "clustering")) +
   ggplot2::geom_raster() +
   theme_alain() +
-  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  xylabs(x = "del", y = test)
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) 
 }
 
 
@@ -729,7 +727,10 @@ draw_contour <- function (data, x = NULL, y = NULL, z = NULL, ...) {
 #'
 #' @param x a ggplot object
 rm_x_axis <- function (x) {
-  x + theme(axis.title.x=element_blank(),
-    axis.text.x=element_blank(),
-    axis.ticks.x=element_blank())
+  x + theme(axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank())
+}
+rm_y_axis <- function (x) {
+  x + theme(axis.title.y = element_blank())
 }
