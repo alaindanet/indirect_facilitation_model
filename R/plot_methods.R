@@ -175,6 +175,20 @@ plot_diagram.avg_scenarii <- function (
   }
   return(g)
 }
+plot_diagram.data.frame <- function (
+  data,
+  param = c(x = "b", y = "g"), debug_mode = FALSE, fill = "N") {
+
+    g <- ggplot2::ggplot(data,
+      aes_string(x = param["x"], y = param["y"], fill = fill)) +
+    ggplot2::geom_raster() +
+    theme_diagram()
+
+  if (debug_mode) {
+    return(data)
+  }
+  return(g)
+}
 theme_diagram <- function(base_size = 12, base_family = "Helvetica"){
   theme_minimal(base_size = base_size, base_family = base_family) %+replace%
     theme(
@@ -249,8 +263,6 @@ color_states <- function() {
 ##############
 plot_fig2 <- function(states) {
 
-  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
   stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
     "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
 
@@ -262,7 +274,7 @@ plot_fig2 <- function(states) {
       values = color_states(),
       name = "Stable states"
       ) +
-    facet_grid(cols = vars(u), labeller = u_appender)# +
+    facet_grid(cols = vars(u), labeller = u_labeller)# +
     #hrbrthemes::theme_ipsum_rc()
 
   g
@@ -295,16 +307,12 @@ identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1)
   identify_discontinuity(unlist(data[, var]), threshold = threshold)
 
 }
-plot_bifurcation <- function(scenar) {
-
-  #appender <- function(string, suffix = "u = ") { paste0(suffix, string) }
-  u_appender <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
-  stable_states_lab <- c("desert" = "Desert", "protegee_desert" = "Protegee / Desert" , "protegee" = "Protegee", "coexistence" = "Coexistence",
-    "coexistence_desert" = "Coexistence / Desert", "nurse_desert" = "Nurse / Desert", "nurse" = "Nurse", "coexistence_nurse" = "Coexistence / Nurse", "coexistence_protegee" = "Coexistence / Protegee")
+plot_bifurcation <- function(scenar, ...) {
+  species <- quos(...)
 
   # Select variables   
-  scenar <- dplyr::select(scenar, scenario, g, b, u, N, P)
-  scenar$run %<>% mutate(N = N - 0.005) %>% gather(species, rho, N, P) %>%
+  scenar <- dplyr::select(scenar, scenario, g, b, u, !!!species)
+  scenar$run %<>% mutate(P = P - 0.005) %>% gather(species, rho, !!!species) %>%
     mutate(species = as.factor(species))
   # Make group to split lines
   scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
@@ -347,8 +355,9 @@ theme_alain <- function(){
     axis.title.y = element_text(angle = 90, face = "bold"),
     axis.title.x = element_text(face = "bold"),
     axis.text = element_text(size = 8),
-    strip.text = element_text(size = 8),
-    plot.margin = unit(c(.5, .5, .5, .5), "cm")
+    strip.text = element_text(size = 8, margin = margin(t = 2, r = 2, b = 2, l = 2, unit = "pt")),
+    plot.margin = unit(c(.5, .5, .5, .5), "pt"),
+    panel.spacing = unit(5, "points")
     )
 
 }
@@ -455,7 +464,10 @@ facet_labeller <- function (prefix = "b", sep = "= ") {
 
 
 
-u_labeller <- ggplot2::as_labeller(c("0" = "Without indirect facilitation (0%)", "5" = "High indirect facilitation (40%)", "10" = "Strong indirect facilitation (60%)"))
+u_labeller <- ggplot2::as_labeller(c(
+    "0" = "Without indirect facilitation (u = 0)",
+    "5" = "High indirect facilitation (u = 5)",
+    "10" = "Strong indirect facilitation (u = 10)"))
 
 stable_states_labeller <- function () {
   ggplot2::as_labeller(
@@ -476,7 +488,7 @@ stable_states_labeller <- function () {
 
 xylabs <- function (...) {
   dots <- pryr::named_dots(...)
-  dots <- unlist(dots)
+  dots <- map(dots, eval) %>% unlist
 
   lab_list <- list(
     del = expression(bold(paste("Fraction of global dispersal (", delta, ")"))),
@@ -572,4 +584,153 @@ plot_fig3bisbis <- function(clustering, x = "b", y = "g", facet = "u") {
       guide = guide_colorbar(title.position = "top")) +
     facet_grid(vars(get(facet)), vars(var), labeller = labeller(g = ggplot2::as_labeller(g_appender), var = clustering_labeller())) + theme_alain()
   g
+}
+
+##########################
+#  Clustering + contour  #
+##########################
+plot_clustering_contour <- function (clust, fac = u) {
+  fac <- rlang::enquo(fac)
+
+  # Plot by clust_type
+  clust %<>%
+    dplyr::group_by(clust_type) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(
+      plot_diagram = purrr::map(data,
+	plot_clustering, yvar = rlang::quo_name(fac))
+    )
+      brks_clustering <- c(3, 3.5, 4, 4.1, 4.2, 4.5)
+      clust %<>%
+	dplyr::mutate(interp = purrr::map2(data, plot_diagram, function(data, graph, brks){
+	    #Interp
+	    interp <- interp_contour(data, x = del, y = !!fac, z = clustering,
+	      nb_pts = 30, duplic = clust_type)
+	    # Draw contours
+	    contours <- graph +
+	      draw_contour(interp, x = x, y = y, z = clustering,
+		colour = "black", breaks = brks_clustering)
+	    direct.label(contours, list("bottom.pieces", colour = "black"))
+
+}, brks = brks_clustering))
+      clust
+}
+
+#' Plot clustering 
+#'
+#' @param clust_data clustering dataset
+#' @param yvar character
+#'
+#'
+plot_clustering <- function(clust_data, yvar) {
+  ggplot2::ggplot(clust_data,
+    aes_string(
+      x = "del", y = yvar, fill = "clustering")) +
+  ggplot2::geom_raster() +
+  theme_alain() +
+  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) 
+}
+
+
+#' interp contours
+#'
+#'
+interp_contour <- function(clust, ...) UseMethod("interp_contour")
+interp_contour.default <- function(clust, ...) "Unknown class"
+interp_contour.data.frame <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+  var_fill <- rlang::enquo(z)
+  y <- rlang::enquo(y)
+  x <- rlang::enquo(x)
+  duplic <- rlang::enquo(duplic)
+  #plot_arg <- rlang::quos(...)
+
+  #Interp
+  clust_interp <- na.omit(clust)
+  # Check if duplicated row
+  if (dplyr::distinct(dplyr::select(clust_interp, !!x, !!y)) %>% nrow /
+    nrow(clust_interp) < 1) {
+
+    stopifnot(!rlang::quo_is_null(duplic))
+    type <- unique(clust_interp[, rlang::quo_name(duplic)]) %>% unlist 
+
+    for (i in 1:length(type)) {
+      temp <- dplyr::filter(clust_interp, !!duplic == type[i])
+
+      interp_temp <- akima::interp(
+	x = temp[, rlang::quo_name(x)] %>% unlist,
+	y = temp[, rlang::quo_name(y)] %>% unlist,
+	z = temp[, rlang::quo_name(var_fill)] %>% unlist,
+	xo = seq(
+	  min(temp[, rlang::quo_name(x)] %>% unlist),
+	  max(temp[, rlang::quo_name(x)] %>% unlist),
+	  length.out = nb_pts),
+	yo = seq(
+	  min(temp[, rlang::quo_name(y)] %>% unlist),
+	  max(temp[, rlang::quo_name(y)] %>% unlist),
+	  length.out = nb_pts),
+	#jitter.random = TRUE,
+	linear = TRUE
+      )
+
+      interp_temp_df <- akima::interp2xyz(interp_temp, data.frame = TRUE) %>%
+	as.tibble %>%
+	rename(!!var_fill := z) %>%
+	mutate(!!duplic := type[i])
+      if (i == 1) {
+	interp_df <- interp_temp_df
+      } else {
+	interp_df <- rbind(interp_df, interp_temp_df)
+      }
+    }
+  } else {
+    interp_akima <- akima::interp(
+      x = clust_interp[, rlang::quo_name(x)] %>% unlist,
+      y = clust_interp[, rlang::quo_name(y)] %>% unlist,
+      z = clust_interp[, rlang::quo_name(var_fill)] %>% unlist,
+      xo = seq(
+	min(clust_interp[, rlang::quo_name(x)] %>% unlist),
+	max(clust_interp[, rlang::quo_name(x)] %>% unlist),
+	length.out = nb_pts),
+      yo = seq(
+	min(clust_interp[, rlang::quo_name(y)] %>% unlist),
+	max(clust_interp[, rlang::quo_name(y)] %>% unlist),
+	length.out = nb_pts),
+      #jitter.random = TRUE,
+      linear = TRUE
+    )
+    interp_df <- akima::interp2xyz(interp_akima, data.frame = TRUE) %>%
+      as.tibble %>%
+      rename(!!var_fill := z)
+  }
+  interp_df
+  # Contour
+}
+
+interp_contour.avg_scenarii <- function (clust, x = NULL, y = NULL, z = NULL, nb_pts = 100, duplic = NULL, ...) {
+  interp_contour.data.frame(clust$run, x, y, z, nb_pts, duplic, ...)
+}
+
+#' draw contours
+#'
+#'
+draw_contour <- function (data, x = NULL, y = NULL, z = NULL, ...) {
+  var_fill <- rlang::enquo(z)
+  y <- rlang::enquo(y)
+  x <- rlang::enquo(x)
+
+  ggplot2::stat_contour(data = data,
+    aes(x = !!x, y = !!y, z = !!var_fill, colour = ..level..), ...)
+  #Strange error with directlabels: have to specify colour = ..level..
+  #https://rdrr.io/rforge/directlabels/src/etc/contour.R
+}
+#' Remove x axis
+#'
+#' @param x a ggplot object
+rm_x_axis <- function (x) {
+  x + theme(axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank())
+}
+rm_y_axis <- function (x) {
+  x + theme(axis.title.y = element_blank())
 }

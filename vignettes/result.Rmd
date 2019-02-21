@@ -1,10 +1,10 @@
 ---
-title: "Results of 'Effects of indirect facilitation on ecosystem functioning'"
+title: "Main results"
 author: "Alain Danet"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Main results}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,6 +14,7 @@ library(tidyverse)
 library(cowplot)
 library(simecol)
 library(magrittr)
+library(directlabels)
 devtools::load_all()
 
 dd <- "~/Documents/thesis/talks/coffee_chat/fig"
@@ -77,6 +78,7 @@ set.seed(123)
 output <- lapply(mod_list, function(x){
   times(x) <- c(from = 0, to = 3000, by = 1)
   parms(x) <- parms(two_facilitation_model())
+  parms(x)[c("b", "g")] <- c(1, .13)
   simul <- sim(x)
   # Is it PA or CA?
   mod_type <- ifelse("PD" %in% names(out(simul)), "pa", "ca")
@@ -122,95 +124,134 @@ save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig
 
 data(u0_5)
 
-#data(u10)
-#u10 <- scenar_avg; rm(scenar_avg)
-#scenar_avg <- bind_scenar(u0_5, u10)
+protegee_only <- filter(u0_5, !(scenario %in% c("together", "low_together")))
+protegee_only$inits <- protegee_only$inits[c("protegee_only", "low_protegee_only")]
+u0_5 %<>% filter(scenario %in% c("together", "low_together"))
+u0_5$inits <- u0_5$inits[c("together", "low_together")]
 
 states <- compute_states(u0_5, type = "double")
 
-fig2 <- plot_fig2(states) + theme_alain()
-fig2 
+fig2 <- plot_fig2(states) + theme_alain() + theme(legend.position = "bottom") +
+  guides(
+    fill = guide_legend(nrow = 3, title.position = "top")
+    )
+legend_fig2 <- get_legend(fig2)
+fig2 <- fig2 + theme(legend.position = "none") 
+
+final_fig_2 <- plot_grid(
+  fig2,
+  legend_fig2,
+  rel_heights = c(1, 0.5),
+  nrow = 2
+)
+final_fig_2
 
 #"~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/Stability.pdf"
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
-  fig2,
-  base_width = 4.3,
-  base_height = 3.8,
-  ncol = 2)
+#1 inches to mm = 25.4 mm
+cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stability.pdf",
+  final_fig_2,
+  base_width = 118/25.4,
+  base_height = 3.5,
+  ncol = 1, nrow = 1)
 
 ```
 
 ```{r}
+letter_pos <- c(x = .49, y = .95)
 g_val <- c(0, .1, .25, .3)
 u_val <- c(0, 5)
+bifurc_together <- filter(u0_5, g %in% g_val, u %in% u_val)
+margin_set_up <- margin(t = 10, r = 0, b = 2, l = 2, unit = "pt")
 
-fig3 <- plot_bifurcation(filter(u0_5, g %in% g_val, u %in% u_val)) +
+fig3 <- plot_bifurcation(bifurc_together, N, P) +
     ggplot2::scale_colour_manual(
       name = "Species",
       values = c(N = "#BBCC33", P = "#99DDFF"),
       labels = species_labeller()
       ) +
-    facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = facet_labeller(prefix = "u"), g = facet_labeller(prefix = "g"))) +
+    facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
     xylabs(x = "b", y = "rho") +
-    theme_alain()
+    theme_alain() +
+    theme(
+      legend.position = "none",
+      strip.text.y = element_blank(),
+      axis.title.x = element_text(hjust = 0.9),
+      plot.background = element_rect(color = "black", linetype = 0)
+      ) +
+    ggtitle("Protegee and Nurse")
+## Put A, B, C
+combination_facet_var <- expand.grid(
+  u = bifurc_together$run$u %>% unique,
+  g = bifurc_together$run$g %>% unique
+)
+letter_left_panel <- tibble(
+  g = combination_facet_var$g,
+  u = combination_facet_var$u,
+  x = letter_pos["x"],
+  y = letter_pos["y"],
+  lab = c("A", "B", "D", "E", "G", "H", "J", "K")
+  )
+left_panel <- fig3 +
+  geom_text(aes(x = x, y = y, label = lab, group = NULL),
+    data = letter_left_panel,
+    inherit.aes = FALSE)
+    
+#################
+#  right panel  #
+#################
 
-save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
-  fig3,
-  base_width = 2.5,
+protegee_only %<>% filter(u == 0, g %in% g_val) %>%
+select(P)
+
+right_panel <- plot_bifurcation(protegee_only, P) +
+    ggplot2::scale_colour_manual(
+      name = "Species",
+      values = c(N = "#BBCC33", P = "#99DDFF"),
+      labels = species_labeller()
+      ) +
+    facet_grid(rows = vars(g), cols = vars(u), labeller = labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
+    xylabs(y = "rho") +
+    xlab("") +
+    theme_alain() +
+    theme(legend.position = "none", 
+      axis.text.y = element_blank(),
+      axis.title.y = element_blank(),
+      axis.title.x = element_text(hjust = 0.1),
+      plot.background = element_rect(color = "black", linetype = c(1))
+      ) +
+    ggtitle("Protegee alone")
+## Put A, B, C
+letter_right_panel <- tibble(
+  g = protegee_only$run$g %>% unique,
+  u = protegee_only$run$u %>% unique,
+  x = letter_pos["x"],
+  y = letter_pos["y"],
+  lab = c("C", "F", "I", "L")
+  )
+right_panel <- right_panel +
+  geom_text(aes(x = x, y = y, label = lab, group = NULL),
+    data = letter_right_panel,
+    inherit.aes = FALSE)
+
+legend_b <- cowplot::get_legend(left_panel + theme(legend.position="bottom"))
+
+top_row <- cowplot::plot_grid(left_panel, right_panel, rel_widths = c(1, .55))
+bifurcation <- cowplot::plot_grid(top_row, legend_b, nrow = 2, rel_heights = c(1,.05))
+bifurcation
+
+#1 inches to mm = 25.4 mm
+cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/bifurcation.pdf",
+  bifurcation,
+  base_width = 174/25.4,
   base_height = 4.3,
-  ncol = 2)
+  ncol = 1)
 ```
 
-
-# Cooccurrences
-
-## Relating to grazing and aridity
-
-```{r}
-
-filtered_scenar <- filter(u0_5, scenario == "together"); 
-filtered_scenar$run %<>%
-  mutate(
-    N = ifelse(N < .05 & N != 0, NA, N),
-    P = ifelse(P < .05 & P != 0, NA, P)
-    )
-
-occurenres <- compute_occurences(filtered_scenar) 
-
-p <- plot_fig3bisbis(occurenres)
-p
-ggplot2::ggsave(paste(dd, "clustering_pa_tot.pdf", sep = ""), p, width = 24, height = 18, units = "cm", device = cairo_pdf)
-#+
-  #geom_contour(aes(z = c), bins = 1, na.rm = TRUE)
-  #geom_contour(aes(z = ifelse(is.na(c), 0,1)), bins = 1)
-
-```
+# Cooccurrences in cellular automata
 
 ## Relating to dispersal and indirect facilitation strength
 
-### Pair approximation model
-
-```{r}
-data(clust_pa)
-
-clust_pa$run %<>%
-  mutate(
-    g = 0.2, #dummy variable for plot_fig3bisbis
-    N = ifelse(N < .0001 & N != 0, 0, N),
-    P = ifelse(P < .0001 & P != 0, 0, P)
-    )
-
-occurenres <- compute_occurences(clust_pa) 
-
-a <- plot_fig3bisbis(occurenres, x = "del", y = "u", facet = "g")
-c1 <- plot_diagram(occurenres , param = c(x = "del", y = "u"), fill = "cveg")
-e <- plot_diagram(compute_states(clust_pa), param = c(x = "del", y = "u"))
-
-```
-
-### Cellular automata 
-
-```{r}
+```{r prepare data}
 data(clust_ca)
 
 ##Options 
@@ -279,7 +320,9 @@ states$run %<>% group_by(u, del) %>% # Get the most frequent state
 state_u <- plot_diagram(states, param = c(x = "del", y = "u")) +
   xylabs(x = "del", y = "u") +
   theme_alain()
+legend_state <- get_legend(state_u)
 
+state_u  <- state_u + theme(legend.position = "none")
 
 ```
 ```{r refined clustering plot}
@@ -291,13 +334,10 @@ clust_data <- ungroup(c1$data) %>%
 
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
+## 
 
-clust_u <- plot_diagram(clust_scenar, param = c(x = "del", y = "u"), fill =
-  "clustering") + 
-  theme_alain() +
-  xylabs(x = "del", y = "u") +
-  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+clust_u <- plot_clustering_contour(clust_data, fac = u)
+plot_grid(plotlist = clust_u$interp)
 ```
 
 ```{r q_np and indirect facilitation}
@@ -313,10 +353,16 @@ qpn_u <- plot_diagram(clust_np, param = c(x = "del", y = "u"), fill =
   xylabs(x = "del", y = "u") + # Replace tempature by yellow/red etc... add::
   # limits arg 
   scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
-```
+legend_qpn <- get_legend(qpn_u)
 
-```{r plot states and clustering}
-plot_grid(state_u, clust_u, qpn_u, labels = "AUTO", nrow = 1)
+interp_qpn_u <- interp_contour(clust = clust_np$run, x = del, y = u, z = qpn, nb_pts = 30)
+
+brks_q <- c(.25, .75, 1.25, 1.5)
+contour_qpn_u <- qpn_u +
+  draw_contour(interp_qpn_u, x = x, y = y, z = qpn, colour = "black", breaks = brks_q) 
+
+p_qpn_u <- direct.label(contour_qpn_u, list("bottom.pieces",
+      box.color = NA, fill = "transparent", colour = "black"))
 ```
 
 ```{r numbers for the paper}
@@ -330,35 +376,6 @@ clust_np$run %>%
 
 ## Relating to dispersal and direct facilitation
 
-### Pair-approximation
-
-```{r disp and facilitation, fig.dim = c(10, 4)}
-
-load("../inst/direct_facilitation_effect_pa_avg.RData")
-clust_avg <- scenar_avg
-
-clust_avg$run %<>%
-  mutate(
-    g = 0.2, #dummy variable for plot_fig3bisbis
-    N = ifelse(N < .01 & N != 0, 0, N),
-    P = ifelse(P < .01 & P != 0, 0, P)
-    )
-
-occurences <- compute_occurences(clust_avg) 
-filter(occurences$run, is.infinite(100))
-summary(occurences$run$cveg)
-
-a <- plot_fig3bisbis(occurences, x = "del", y = "f", facet = "g") +
-  xylabs(x = "del", y = "f") + theme_alain()
-b <- plot_diagram(compute_states(clust_avg), param = c(x = "del", y = "f")) +
-  xylabs(x = "del", y = "f") + theme_alain()
-c1 <- plot_diagram(occurences, param = c(x = "del", y = "f"), fill = "cveg") +
-  xylabs(x = "del", y = "f") + theme_alain()
-
-cowplot::plot_grid(a, b, c1, labels = "AUTO", ncol = 1)
-```
-
-### Cellular automata
 
 ```{r}
 # May be set up a function to analyze cellular automata (arg: rho_threshold,
@@ -431,12 +448,10 @@ states$run %<>% group_by(f, del) %>% # Get the most frequent state
 
 state_f <- plot_diagram(states, param = c(x = "del", y = "f")) +
   xylabs(x = "del", y = "f") +
-  theme_alain()
-
-
+  theme_alain() 
 ```
 ```{r clustering_refined_ca}
-# Put NaN to points which are not
+# Put NaN to points which are not coexistence
 clust_data <- ungroup(cveg_test$data) %>%
   left_join(states$run) %>%
   gather(clust_type, clustering, cveg, cnp) %>%
@@ -445,34 +460,38 @@ clust_data <- ungroup(cveg_test$data) %>%
 clust_scenar <- filtered_scenar
 clust_scenar$run <- clust_data
 
-cnp_cveg_f <- plot_diagram(clust_scenar, param = c(x = "del", y = "f"), fill =
-  "clustering") + 
-  theme_alain() +
-  xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Clustering", limits = c(2, 4.5)) +
-  facet_grid(cols = vars(clust_type), labeller = clustering_labeller())
+clust_f <- plot_clustering_contour(clust_data, fac = f) 
+
+plot_grid(plotlist = clust_f$interp)
 
 ```
 
-```{r rho_np_f}
+```{r qnp_f}
 clust_np <- clust_scenar 
 clust_np$run <- spread(clust_scenar$run, clust_type, clustering) %>%
   gather(var, values, qnp, N, qpn, P) %>%
   mutate(values = replace(values, state %in% c("unknown","desert", "nurse"), NaN)) %>%
   spread(var, values)
 
-rho_qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
+qpn_f <- plot_diagram(clust_np, param = c(x = "del", y = "f"), fill =
   "qpn") + 
   theme_alain() +
   xylabs(x = "del", y = "f") +
-  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2))
+  scale_fill_temperature(name = "Average # of \n protegee neighbors \n for nurse cells", limits = c(0,2)) 
+```
+```{r add_contour}
+
+interp_qpn_f <- interp_contour(clust_np$run, x = del, y = f, z = qpn, nb_pts = 30)
+
+contour_qpn_f <- qpn_f +
+  draw_contour(interp_qpn_f, x = x, y = y, z = qpn, colour = "black", breaks = brks_q) 
+
+p_qpn_f <- direct.label(contour_qpn_f, list("bottom.pieces",
+      box.color = NA, fill = "transparent", colour = "black"))
 
 ```
 
-```{r}
-plot_grid(state_f, cnp_cveg_f, rho_qpn_f, labels = "AUTO", nrow = 1)
-```
-```{r numbers for the paper}
+```{r numbers for the paper 2}
 clust_np$run %>%
   summarise(
     max = max(qpn, na.rm = TRUE),
@@ -483,128 +502,74 @@ ggplot(clust_np$run, aes(y = qpn, x = del)) +
   geom_point()
 ```
 
-
 # Clustering plot  
 
 ```{r clustering plot}
+
+# Get legend
+legend_clust <- get_legend(clust_u[1,]$plot_diagram[[1]]) 
+legend_qpn <- get_legend(qpn_u) 
+legend_state <- get_legend(state_f)
+
+# Remove legend
+state_f <- state_f +
+  theme(legend.position = "none")
+clust_f <- clust_f %>%
+  mutate(plot_diagram = map(plot_diagram, function (graph) {
+       graph + theme(legend.position = "none")
+      }))
+clust_u <- clust_u %>%
+  mutate(plot_diagram = map(plot_diagram, function (graph) {
+       graph + theme(legend.position = "none")
+      }))
+
+# Remove axis
+states <- map(list(state_u, state_f), rm_x_axis)
+states <- map(states, rm_y_axis)
+states[[1]] <- states[[1]] +
+  labs(title = "Strength of indirect facilitation (u)")
+states[[2]] <- states[[2]] +
+  labs(title = "Strength of direct facilitation (f)")
+p_qpn <- map(list(p_qpn_u, p_qpn_f), rm_y_axis)
+clust_f %<>% mutate(interp = map(interp, rm_x_axis))
+clust_f %<>% mutate(interp = map(interp, rm_y_axis))
+clust_u %<>% mutate(interp = map(interp, rm_x_axis))
+clust_u %<>% mutate(interp = map(interp, rm_y_axis))
+
+# Left column
+list_of_plot <- list(states[[1]], clust_u[1, ]$interp[[1]],
+  clust_u[2, ]$interp[[1]], p_qpn[[1]])
+left_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("A", "C", "E", "G"),
+  label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
+left_col
+
+# Right column
+list_of_plot <- list(states[[2]], clust_f[1, ]$interp[[1]],
+  clust_f[2, ]$interp[[1]], p_qpn[[2]])
+right_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("B", "D", "F", "H"),
+  label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
+right_col
+
+# Legend col
+legend_col <- plot_grid(legend_state, legend_clust, legend_qpn, ncol = 1,
+  align = "v", axis = "r", rel_heights = c(1, 2, 1))
+legend_col
+
+
 clustering_plot <- plot_grid(
-  state_u, clust_u, qpn_u, state_f, cnp_cveg_f, rho_qpn_f,
-  labels = "AUTO",
-  nrow = 2,
-  rel_widths = c(1,1.5,1,1,1.5,1)
+  left_col,
+  right_col,
+  legend_col,
+  ncol = 3,
+  rel_widths = c(1,1, .5)
   )
 clustering_plot
 
+
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
   clustering_plot,
-  base_width = 14.3,
-  base_height = 2.8,
-  nrow = 2)
+  base_width = 218/25.4,
+  base_height = 9,
+  ncol = 1)
 ```
 
-# Appendix
-
-## Relating to aridity and direct facilitation
-
-```{r aridity and facilitation, fig.dim = c(10, 4)}
-
-load("../inst/f_b_effect_pa_avg.RData")
-clust_avg <- scenar_avg
-
-clust_avg$run %<>%
-  mutate(
-    g = 0.2, #dummy variable for plot_fig3bisbis
-    N = ifelse(N < .01 & N != 0, 0, N),
-    P = ifelse(P < .01 & P != 0, 0, P)
-    )
-
-occurences <- compute_occurences(clust_avg) 
-filter(occurences$run, is.infinite(cveg))
-summary(occurences$run$cveg)
-
-a <- plot_fig3bisbis(occurences, x = "b", y = "f", facet = "g") +
-  xylabs(x = "b", y = "f") + theme_alain()
-b <- plot_diagram(compute_states(clust_avg), param = c(x = "b", y = "f")) +
-  xylabs(x = "b", y = "f") + theme_alain()
-c1 <- plot_diagram(occurences, param = c(x = "b", y = "f"), fill = "cveg") +
-  xylabs(x = "b", y = "f") + theme_alain()
-
-cowplot::plot_grid(a, c1, b, labels = "AUTO", ncol = 3)
-```
-
-## Relating to aridity and indirect facilitation
-
-```{r aridity and indirect facilitation, fig.dim = c(10, 4)}
-
-load("../inst/u_b_effect_pa_avg.RData")
-clust_avg <- scenar_avg
-
-clust_avg$run %<>%
-  mutate(
-    g = 0.2, #dummy variable for plot_fig3bisbis
-    N = ifelse(N < .01 & N != 0, 0, N),
-    P = ifelse(P < .01 & P != 0, 0, P)
-    )
-
-occurences <- compute_occurences(clust_avg) 
-filter(occurences$run, is.infinite(cveg))
-summary(occurences$run$cveg)
-
-a <- plot_fig3bisbis(occurences, x = "b", y = "u", facet = "g") +
-  xylabs(x = "b", y = "u") + theme_alain() 
-b <- plot_diagram(compute_states(clust_avg), param = c(x = "b", y = "u")) +
-  xylabs(x = "b", y = "u") + theme_alain()
-c1 <- plot_diagram(occurences, param = c(x = "b", y = "u"), fill = "cveg") +
-  xylabs(x = "b", y = "u") + theme_alain()
-
-cowplot::plot_grid(a, c1, b, labels = "AUTO", ncol = 3)
-```
-
-## Consistence pair approximation and cellular automata
-
-```{r}
-# Plot final densities along gradients 
-
-model_type <- c("ca", "pa")
-simulation <- list()
-for (i in seq_along(model_type)) {
-  load(file = paste("../inst/clustering_", model_type[i], "_avg.RData", sep = ""))
-  scenar_avg$run %<>% mutate( model = factor(model_type[i], levels = model_type))
-
-  if (model_type[i] == "ca") {
-  scenar_avg$run %<>% gather(rho, value, N, P) %>%
-  group_by(scenario, u, del, rho, model) %>%
-  summarise(value = mean(value, na.rm = TRUE)) %>%
-  spread(rho, value)
-  }
-
-  simulation[[i]] <- select(scenar_avg$run, scenario, u, del, N, P, model)
-  rm(scenar_avg)
-}
-simulation %<>% bind_rows(simulation)
-
-load(file = paste("../inst/clustering_", model_type[i], "_avg.RData", sep = ""))
-scenar_avg$run <- ungroup(simulation) %>%  ##NOT SAFE
-  select(-scenario)
-scenar_avg$run %<>% gather(rho, value, N, P) %>% 
-  group_by(u, del, rho, model) %>%
-  mutate(ind = row_number()) %>%
-  spread(model, value) %>%
-  ungroup() %>% select(-ind) %>%
-  mutate(
-    ca = ifelse(ca < .001, 0, ca),
-    pa = ifelse(pa < .001, 0, pa),
-    diff_ca_pa = (ca - pa) / pa * 100
-    )
-
-ca <- plot_diagram(scenar_avg, param = c(x = "del", y = "u"), fill = "diff_ca_pa") + 
-  theme_alain() +
-  scale_fill_temperature() +
-  facet_grid(cols = vars(rho), labeller = species_labeller()) +
-  xylabs(x = "del", y = "u")
-ca
-
-## Diff to write in the paper:
-filter(scenar_avg$run, u == 5) %>% select(diff_ca_pa) %>% max(.)
-
-```
