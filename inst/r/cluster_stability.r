@@ -22,7 +22,7 @@ output <- run_scenarii_gradient(
   gradient = gradient,
   model_spec = "two_facilitation_model",
   param = c(protection_type = list("first_protect"), gamma1 = 0.1),
-  scenarii = init_scenarii(type = "bifurcation", ini_cover = .8, low_cover = 0.01),
+  scenarii = init_scenarii(type = c("bifurcation", "protegee_bifurcation"), ini_cover = .8, low_cover = 0.001),
   time_seq = c(from = 0, to = 10000, by = 1),
   set_tail = 10,
   solver_type = steady_state_4
