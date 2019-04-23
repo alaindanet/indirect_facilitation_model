@@ -156,12 +156,18 @@ cowplot::save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stab
 
 ```
 
+# Bifurcation plot
+
 ```{r}
 letter_pos <- c(x = .49, y = .95)
 g_val <- c(0, .1, .25, .3)
 u_val <- c(0, 5)
 bifurc_together <- filter(u0_5, g %in% g_val, u %in% u_val)
 margin_set_up <- margin(t = 10, r = 0, b = 2, l = 2, unit = "pt")
+
+###########################
+#  Left and middle panel  #
+###########################
 
 fig3 <- plot_bifurcation(bifurc_together, N, P) +
     ggplot2::scale_colour_manual(
@@ -179,7 +185,23 @@ fig3 <- plot_bifurcation(bifurc_together, N, P) +
       plot.background = element_rect(color = "black", linetype = 0)
       ) +
     ggtitle("Protegee and Nurse")
-## Put A, B, C
+
+# Stability rectangle
+states_fig3 <- filter(states, g %in% g_val, u %in% u_val)$run %>%
+  group_by(g, u, state) %>%
+  summarise(x_min = min(b), x_max = max(b)) %>%
+  mutate(y_min = .875, y_max = 1)
+fig3 <- fig3 +
+ geom_rect(data = states_fig3, inherit.aes = FALSE,
+   aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max,
+     , fill = factor(state)), alpha=0.6, show.legend = FALSE) +
+   facet_grid(rows = vars(g), cols = vars(u)) +
+   ggplot2::scale_fill_manual(
+     values = color_states()
+     ) +
+   guides(fill = FALSE)
+
+# Put A, B, C
 combination_facet_var <- expand.grid(
   u = bifurc_together$run$u %>% unique,
   g = bifurc_together$run$g %>% unique
@@ -195,13 +217,12 @@ left_panel <- fig3 +
   geom_text(aes(x = x, y = y, label = lab, group = NULL),
     data = letter_left_panel,
     inherit.aes = FALSE)
+left_panel
     
 #################
 #  right panel  #
 #################
 
-protegee_only %<>% filter(u == 0, g %in% g_val) %>%
-select(P)
 
 right_panel <- plot_bifurcation(protegee_only, P) +
     ggplot2::scale_colour_manual(
@@ -220,6 +241,34 @@ right_panel <- plot_bifurcation(protegee_only, P) +
       plot.background = element_rect(color = "black", linetype = c(1))
       ) +
     ggtitle("Protegee alone")
+
+# Put stability 
+data(u0_5)
+protegee_only <- filter(u0_5, !(scenario %in% c("together", "low_together")))
+protegee_only$run$scenario %>% unique
+protegee_only$run %<>% filter(u == 0, g %in% g_val) %>%
+  mutate(scenario = stringr::str_replace_all(scenario,
+      c("low_protegee_only" = "low_together",
+	"protegee_only" = "together")),
+  scenario = as.factor(scenario))
+protegee_only$inits <- u0_5$inits[c("together", "low_together")]
+state_protegee <- compute_states(protegee_only, type = "double")
+
+## Stability rectangle
+states_right_panel <- filter(state_protegee, g %in% g_val, u %in% u_val)$run %>%
+  group_by(g, u, state) %>%
+  summarise(x_min = min(b), x_max = max(b)) %>%
+  mutate(y_min = .875, y_max = 1)
+right_panel <- right_panel +
+ geom_rect(data = states_right_panel, inherit.aes = FALSE,
+   aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max,
+     , fill = factor(state)), alpha=0.6, show.legend = FALSE) +
+   facet_grid(rows = vars(g), cols = vars(u)) +
+   ggplot2::scale_fill_manual(
+     values = color_states()
+     )
+right_panel
+
 ## Put A, B, C
 letter_right_panel <- tibble(
   g = protegee_only$run$g %>% unique,
@@ -527,27 +576,51 @@ clust_u <- clust_u %>%
 states <- map(list(state_u, state_f), rm_x_axis)
 states <- map(states, rm_y_axis)
 states[[1]] <- states[[1]] +
-  labs(title = "Strength of indirect facilitation (u)")
+  labs(title = "") #
 states[[2]] <- states[[2]] +
-  labs(title = "Strength of direct facilitation (f)")
+  labs(title = "") #
 p_qpn <- map(list(p_qpn_u, p_qpn_f), rm_y_axis)
 clust_f %<>% mutate(interp = map(interp, rm_x_axis))
 clust_f %<>% mutate(interp = map(interp, rm_y_axis))
 clust_u %<>% mutate(interp = map(interp, rm_x_axis))
 clust_u %<>% mutate(interp = map(interp, rm_y_axis))
+```
 
-# Left column
+```{r columns}
+# Set up
+text_size <- 10 
+text_angle <- 90 
+
+#################
+#  Left column  #
+#################
+
 list_of_plot <- list(states[[1]], clust_u[1, ]$interp[[1]],
   clust_u[2, ]$interp[[1]], p_qpn[[1]])
+left_title <- ggdraw() +
+  draw_label("Strength of indirect facilitation (u)",
+    fontface='bold', angle = text_angle, size = text_size)
 left_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("A", "C", "E", "G"),
   label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
-left_col
+left_col <- 
+plot_grid(left_title, left_col, ncol=2, rel_widths=c(0.05, 1))
 
-# Right column
+##################
+#  Right column  #
+##################
+
+
+## Build the columns
 list_of_plot <- list(states[[2]], clust_f[1, ]$interp[[1]],
   clust_f[2, ]$interp[[1]], p_qpn[[2]])
+right_title <- ggdraw() +
+  draw_label("Strength of direct facilitation (f)",
+    fontface='bold', angle = text_angle, size = text_size)
 right_col <- plot_grid(plotlist = list_of_plot, ncol = 1, labels = c("B", "D", "F", "H"),
   label_x = 0.05, label_y = .91, hjust = -0.5, vjust = -0.5)
+right_col <- 
+plot_grid(right_title, right_col, ncol=2, rel_widths=c(0.05, 1))
+
 right_col
 
 # Legend col
@@ -555,16 +628,30 @@ legend_col <- plot_grid(legend_state, legend_clust, legend_qpn, ncol = 1,
   align = "v", axis = "r", rel_heights = c(1, 2, 1))
 legend_col
 
+## Decrease ambiguity in clustering:
+white_label <- ggdraw() +
+  draw_label("",
+    fontface='bold', angle = text_angle, size = text_size)
+global_clust <- ggdraw() +
+  draw_label("Global vegetation clustering",
+    fontface='bold', angle = text_angle, size = text_size)
+inter_clust <- ggdraw() +
+  draw_label("Inter-species clustering",
+    fontface='bold', angle = text_angle, size = text_size)
+clust_col <- plot_grid(white_label, global_clust, inter_clust, white_label, ncol = 1,
+  align = "v", axis = "r", rel_heights = c(1, 1, 1, 1))
+clust_col
+
 
 clustering_plot <- plot_grid(
   left_col,
   right_col,
+  clust_col,
   legend_col,
-  ncol = 3,
-  rel_widths = c(1,1, .5)
+  ncol = 4,
+  rel_widths = c(1,1, .05, .5)
   )
 clustering_plot
-
 
 save_plot("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/clustering.pdf",
   clustering_plot,

@@ -308,17 +308,22 @@ identify_discontinuity.data.frame <- function(data, var = "rho", threshold = .1)
 
 }
 plot_bifurcation <- function(scenar, ...) {
-  species <- quos(...)
+  sp_var <- rlang::quos(...)
 
   # Select variables   
-  scenar <- dplyr::select(scenar, scenario, g, b, u, !!!species)
-  scenar$run %<>% mutate(P = P - 0.005) %>% gather(species, rho, !!!species) %>%
-    mutate(species = as.factor(species))
+  scenar <- dplyr::select(scenar, scenario, g, b, u, !!!sp_var)
+  scenar$run %<>%
+    dplyr::mutate(P = P - 0.005) %>%
+    tidyr::gather(species, rho, !!!sp_var) %>%
+    dplyr::mutate(species = as.factor(species))
   # Make group to split lines
-  scenar$run %<>% group_by(scenario, g, u, species) %>% nest() %>%
-  mutate(
-    group = map(data, identify_discontinuity, var = "rho", threshold = .05)
-    ) %>% unnest()
+  scenar$run %<>%
+    dplyr::group_by(scenario, g, u, species) %>%
+    dplyr::group_nest() %>%
+    dplyr::mutate(
+      group = purrr::map(data, identify_discontinuity, var = "rho", threshold = .05)
+    ) %>%
+    tidyr::unnest()
 
   # Have to do this in two steps due to a ggplot2 limitation: cannot specify
   # group and linetype in the same time:
