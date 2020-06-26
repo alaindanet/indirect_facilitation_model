@@ -22,7 +22,7 @@ You can install indirectfacilitation from github with:
 
 ```{r gh-installation, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("alaindanet/indirect_facilitation_model")
+#devtools::install_github("alaindanet/indirect_facilitation_model")
 ```
 
 ## Example
@@ -32,79 +32,58 @@ This is a basic example which shows you how to solve a common problem:
 
 - Load the packages:
 
-```
-devtools::load_all()
-
+```{r}
 library(simecol)
 library(ggplot2)
 library(tibble)
 library(magrittr)
+devtools::load_all()
+
 ```
 
 - Load the model and specify the parameters:
 
-```
-mod <- two_facilitation_model()
-mod
-
-# Show parameters:
-parms(mod)
-
-# Tweak parameters:
+```{r}
+mod <- indirect_facilitation_model()
+init(mod)
 parms(mod)["g"] <- 0.2
-parms(mod)["gamma1"] <- 0.10
-parms(mod)["u"] <- 5 
-times(mod) <- c(from = 0, to = 1000, by = 1)
+parms(mod)[c("gamma1", "u")] <- c(0.1, 1)
+parms(mod)["protection_type"] <- list("first_protect")
+times(mod) <- c(from = 0, to = 3000, by = 1)
+solver(mod) <- steady_state_3
 ```
 
 - Launch a simulation and plot the result:
 
-```
+```{r}
 mod_run <- sim(mod)
+tail(out(mod_run), 10)
 plotnp(mod_run)
 ```
 
-## Todo
+### Gradient
 
-### Paper 
+```{r}
+gradient <- list(
+  g = seq(0, 0.3, length.out = 5), # Grazing
+  b = seq(1, 0.5, length.out = 5) # Environmental quality
+  )
 
-- [ ] Fig 1: methods
-    - [ ] Add temporal dynamic CA + PA
-- [ ] Fig 2: multi-states 
-    - [ ] Add arrows
-- [x] Fig 3: bifurcation details
-- [x] Fig 4: Clustering cellular automata, C++ et  Cnp $f(\gamma, u)$ and
-  $f(\gamma, u)$
-  - [ ] (Change space between panel)[https://github.com/tidyverse/ggplot2/issues/2464#issuecomment-384980197]
-  - [ ] (Change margin of the plot for plot_grid)[https://github.com/wilkelab/cowplot/issues/31#issuecomment-292748114]
-  - [ ] Fix B and E legend decrease a bit the lowest value (some points
-    disapeared in fig B right panel, en haut à gauche)
+options(mc.cores = 3)
+gradient_2d <- run_scenarii_gradient(
+  gradient = gradient,
+  model_spec = "two_facilitation_model",
+  param = c(protection_type = list("first_protect"), gamma1 = 0.1, u = 0),
+  scenarii = init_scenarii(
+       type = "together", model = two_facilitation_model(),
+       ini_cover = .8),
+  time_seq = c(from = 0, to = 3000, by = 1),
+  set_tail = 10,
+  solver_type = steady_state_4
+  )
 
-### Run
+averaged_runs <- avg_runs(gradient_2d, cut_row = 10)
+plot_diagram(averaged_runs, param = c(x = "b", y = "g"))
+```
 
-1. [x] Run pair-approximation model with automated end of run
-2. [ ] Replace the file with `use_data()`
 
-### Implementation
-
-- [x] Clustering:
-- [x] plot: separate lines (create groups: e.g: together & < threshold, together
-  & >= threshold, low_together ...)
-- [x] Check if simulations have reached stability
-- [ ] sim_multi():
-    - [ ] Save a simecol object
-    - [ ] Save a time argument
-    - [ ] Save init values
-    - [ ] Save baseline parameters 
-    - [ ] Save param_combination
-    - [ ] param_combination: matrix of parameter combination
-    - [ ] be able to sim from a sim_multi object
-- [ ] Generalize run_scenarii_gradient and run_2d_gradient: f(b,g)
-    - [ ] check_param(model_spec, names(gradient)))
-    - [ ] Add check for argument conformity (check_param, check_inits)
-      of valid starting values (scenario = "custom"), or a named list (provided by init_scenarii())
-    - [ ] Add methods: init.scenarii(), param.scenarii() (S4 methods)
-      https://stackoverflow.com/questions/12100856/combining-s4-and-s3-methods-in-a-single-function
-    - [ ] See [here](https://stackoverflow.com/a/23863893/5968131) 
-- [x] Compare the effect of dispersal, facilitation strength, paturâge, aridité on clustering  
-- [ ] Document functions

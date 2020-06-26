@@ -397,31 +397,31 @@ filter.scenarii <- function (data, ...) {
 #' @return a scenarii object
 #' @seealso dplyr::select 
 #' @export
-select.scenarii <- function (data, ...) {
-  run <- data[["run"]]
-  set <- rlang::quos(...)
+#select.scenarii <- function (data, ...) {
+  #run <- data[["run"]]
+  #set <- rlang::quos(...)
 
-  param_gradient <- names(data[["gradient"]])
-  run %<>% dplyr::select(., scenario, param_gradient,!!! set)
+  #param_gradient <- names(data[["gradient"]])
+  #run %<>% dplyr::select(., scenario, param_gradient,!!! set)
 
-  data[["run"]] <- run
-  data[["gradient"]] <- data[["run"]] %>%
-    .[, names(.) %in% names(data[["gradient"]])] %>%
-    as.list(.)
+  #data[["run"]] <- run
+  #data[["gradient"]] <- data[["run"]] %>%
+    #.[, names(.) %in% names(data[["gradient"]])] %>%
+    #as.list(.)
 
-  if (any(class(data) %in% "avg_scenarii")) {
-    class_returned <- c("avg_scenarii","scenarii", "list")
-  } else {
-    class_returned <- c("scenarii", "list")
-  }
+  #if (any(class(data) %in% "avg_scenarii")) {
+    #class_returned <- c("avg_scenarii","scenarii", "list")
+  #} else {
+    #class_returned <- c("scenarii", "list")
+  #}
 
-  return(
-    structure(
-      data,
-      class = class_returned
-      )
-    )
-}
+  #return(
+    #structure(
+      #data,
+      #class = class_returned
+      #)
+    #)
+#}
 
 #' Check consistency of cellular automata runs 
 #'

@@ -32,7 +32,7 @@ export_citation <- function(pkg_name = NULL, dir_name = NULL){
   x <- toBibtex(citation(pkg_name))
   cat(x, file = paste(dir_name, pkg_name, ".bib", sep = ""), sep = "\n") 
 }
-sapply(c("simecol", "deSolve"), export_citation, dir_name = "~/Téléchargements/")
+sapply(c("base", "simecol", "deSolve"), export_citation, dir_name = "~/Téléchargements/")
 ```
 
 
@@ -63,6 +63,7 @@ p1 <- ggplot(df, aes(x = gamma1, y = tau)) +
     x = expression(paste("Cost of defense (", gamma, ")"))) +
   ylim(0,1) +
   theme_alain() +
+  theme(plot.margin = unit(rep(16, 4), "pt")) +
   theme(legend.position="bottom") 
 p2 <- ggdraw() +
   draw_image(magick::image_read_svg("~/Documents/thesis/papers/indirect_facilitation_dryland_stability/fig/stand_alone.svg"))
@@ -99,10 +100,10 @@ p_ts <- ggplot(example_time_series, aes(x = time, y = rho)) +
   scale_linetype_model() +
   xylabs(x = "time", y = "rho") +
   ylim(0, 1) +
-  theme_alain()
+  theme_alain() +
+  theme(plot.margin = unit(rep(4, 4), "pt"))
   #theme(legend.position="bottom")
 p_ts
-
 ```
 
 ```{r plot fig1}
@@ -195,7 +196,7 @@ fig3 <- fig3 +
  geom_rect(data = states_fig3, inherit.aes = FALSE,
    aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max,
      , fill = factor(state)), alpha=0.6, show.legend = FALSE) +
-   facet_grid(rows = vars(g), cols = vars(u)) +
+   facet_grid(rows = vars(g), cols = vars(u), labeller =  labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
    ggplot2::scale_fill_manual(
      values = color_states()
      ) +
@@ -263,7 +264,7 @@ right_panel <- right_panel +
  geom_rect(data = states_right_panel, inherit.aes = FALSE,
    aes(xmin=x_min, xmax=x_max, ymin=y_min, ymax=y_max,
      , fill = factor(state)), alpha=0.6, show.legend = FALSE) +
-   facet_grid(rows = vars(g), cols = vars(u)) +
+   facet_grid(rows = vars(g), cols = vars(u), labeller = labeller(u = u_labeller, g = facet_labeller(prefix = "g"))) +
    ggplot2::scale_fill_manual(
      values = color_states()
      )
@@ -573,11 +574,11 @@ clust_u <- clust_u %>%
       }))
 
 # Remove axis
-states <- map(list(state_u, state_f), rm_x_axis)
-states <- map(states, rm_y_axis)
-states[[1]] <- states[[1]] +
+states_uf <- map(list(state_u, state_f), rm_x_axis)
+states_uf <- map(states_uf, rm_y_axis)
+states_uf[[1]] <- states_uf[[1]] +
   labs(title = "") #
-states[[2]] <- states[[2]] +
+states_uf[[2]] <- states_uf[[2]] +
   labs(title = "") #
 p_qpn <- map(list(p_qpn_u, p_qpn_f), rm_y_axis)
 clust_f %<>% mutate(interp = map(interp, rm_x_axis))
@@ -611,7 +612,7 @@ plot_grid(left_title, left_col, ncol=2, rel_widths=c(0.05, 1))
 
 
 ## Build the columns
-list_of_plot <- list(states[[2]], clust_f[1, ]$interp[[1]],
+list_of_plot <- list(states_uf[[2]], clust_f[1, ]$interp[[1]],
   clust_f[2, ]$interp[[1]], p_qpn[[2]])
 right_title <- ggdraw() +
   draw_label("Strength of direct facilitation (f)",

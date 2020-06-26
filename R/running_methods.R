@@ -12,7 +12,7 @@ run_scenarii_gradient <- function (
   gradient = list(g = seq(0, .3, length.out = 1),
     b = seq(0, 1, length.out = 1)),
   model_spec = "two_facilitation_model",
-  time_seq = NULL,
+  time_seq = c(from = 0, to = 1000, by = 1),
   param = NULL, nb_cores = NULL, solver_type = NULL,
   scenarii = NULL, set_tail = NULL, nrep = NULL) {
 
@@ -22,10 +22,7 @@ run_scenarii_gradient <- function (
 
   model <- eval(call(model_spec))
   # Define parameters:
-
-  if (!is.null(time_seq)) {
   simecol::times(model) <- time_seq
-  }
   if (!is.null(param)) {
     simecol::parms(model)[names(param)] <- param
   }
@@ -57,6 +54,8 @@ run_scenarii_gradient <- function (
      MoreArgs = list(model = model, set_tail = set_tail)
      )
   # Run the simulations
+  #cat(str(run), str(param_combination), str(comb[["inits"]]),
+    #sep = "\n")
   output <- as.tibble(comb) %>%
     dplyr::mutate(
     scenario = comb[, "scenario"],
@@ -77,7 +76,7 @@ run_scenarii_gradient <- function (
   return(
     structure(
       list(
-	model = eval(call(model_spec)),
+	model = model_spec,
 	inits = scenarii,
 	param = basis_param,
 	gradient = gradient,
@@ -91,8 +90,7 @@ run_scenarii_gradient <- function (
 #' 
 #' Compute initial values of states variable according to a scenario
 #' 
-#' @param type character. the scenario. Can be either "all", "bifurcation",
-#' "together", "low_together", "nurse_only", "protegee_only", "low_N", "low_P"
+#' @param type character. the scenario
 #' @param ini_cover numeric initial cover for high starting cover
 #'
 #' @details when type = "all", all the scenarii are returned. High cover
@@ -106,11 +104,9 @@ run_scenarii_gradient <- function (
 #' @export
 init_scenarii <- function (type = "together",
   model = two_facilitation_model(),
-  ini_cover = .8, low_cover = .001) {
+  ini_cover = .8, low_cover = .05) {
 
-  stopifnot(type %in% c("nurse", "protegee", "together", "low_N", "low_P",
-      "low_together", "low_nurse_only", "low_protegee_only", "all", "bifurcation",
-      "nurse_bifurcation", "protegee_bifurcation"))
+  stopifnot(type %in% c("nurse", "protegee", "together", "low_N", "low_P", "low_together", "all", "bifurcation"))
 
     # Specify the final cover 
     mi_cover <- ini_cover / 2
@@ -124,15 +120,10 @@ init_scenarii <- function (type = "together",
     nurse_only <- c(N = ini_cover, P = 0, D = .1,
       NP = 0, PP = 0, NN = ini_cover * ini_cover,
       DD = .1 * .1, PD = 0, ND = ini_cover * .1)
-    low_nurse_only <- c(N = low_cover, P = 0, D = .99,
-      NP = 0, PP = 0, NN = low_cover * low_cover,
-      DD = .99 * .99, PD = 0, ND = low_cover * .99)
     protegee_only <- c(N = 0, P = ini_cover, D = .1,
       NP = 0, PP = ini_cover * ini_cover, NN = 0,
       DD = .1 * .1, PD = ini_cover * .1, ND = 0)
-    low_protegee_only <- c(N = 0, P = low_cover, D = .99,
-      NP = 0, PP = low_cover * low_cover, NN = 0,
-      DD = .99 * .99, PD = low_cover * .99, ND = 0)
+
 
     low_N <- c(N = mi_low_cover, P = high_cover, D = .1,
       NP = high_cover * mi_low_cover, PP = high_cover * high_cover,
@@ -143,10 +134,10 @@ init_scenarii <- function (type = "together",
       NN = high_cover * high_cover, DD = .1 * .1,
       PD = mi_low_cover * .1, ND = high_cover * .1)
 
-    low_together <- c(N = mi_low_cover, P = mi_low_cover, D = .99,
+    low_together <- c(N = mi_low_cover, P = mi_low_cover, D = .1,
       NP = mi_low_cover * mi_low_cover, PP = mi_low_cover * mi_low_cover,
-      NN = mi_low_cover * mi_low_cover, DD = .99 * .99,
-      PD = mi_low_cover * .99, ND = mi_low_cover * .99)
+      NN = mi_low_cover * mi_low_cover, DD = .1 * .1,
+      PD = mi_low_cover * .1, ND = mi_low_cover * .1)
 
     together <- c(N = mi_cover, P = mi_cover, D = .1,
       NP = mi_cover * mi_cover, PP = mi_cover * mi_cover,
@@ -158,12 +149,8 @@ init_scenarii <- function (type = "together",
 
     nurse_only <- c(N = ini_cover, P = 0,
       NP = 0, PP = 0, NN = ini_cover * ini_cover)
-    low_nurse_only <- c(N = low_cover, P = 0,
-      NP = 0, PP = 0, NN = low_cover* low_cover)
     protegee_only <- c(N = 0, P = ini_cover,
       NP = 0, PP = ini_cover * ini_cover, NN = 0)
-    low_protegee_only <- c(N = 0, P = low_cover,
-      NP = 0, PP =  low_cover* low_cover, NN = 0)
 
     low_N <- c(N = mi_low_cover, P = high_cover,
       NP = high_cover * mi_low_cover, PP = high_cover * high_cover,
@@ -189,9 +176,7 @@ init_scenarii <- function (type = "together",
 
     all_inits <- list(
       "protegee_only" = protegee_only,
-      "low_protegee_only" = low_protegee_only,
       "nurse_only" = nurse_only,
-      "low_nurse_only" = low_nurse_only,
       "together" = together,
       "low_N" = low_N,
       "low_P" = low_P,
@@ -199,14 +184,8 @@ init_scenarii <- function (type = "together",
       )
     if(all(type == "all")) {
       return(all_inits)
-    } else if (all(type %in% c("protegee_bifurcation", "bifurcation"))) {
-      return(all_inits[c("low_protegee_only", "protegee_only", "low_together", "together")])
     } else if (all(type == "bifurcation")) {
       return(all_inits[c("low_together", "together")])
-    } else if (all(type == "protegee_bifurcation")) {
-      return(all_inits[c("low_protegee_only", "protegee_only")])
-    } else if (all(type == "nurse_bifurcation")) {
-      return(all_inits[c("low_nurse_only", "nurse_only")])
     } else {
       return(all_inits[type])
     }
@@ -229,14 +208,14 @@ run_simecol <- function(inits, params, model, set_tail = NULL) {
 
   run <- simecol::sim(model)
 
-  # For big simulations, keep only the last step
-  if (!is.null(set_tail)) {
+  if (!is.null(set_tail)) { # For big simulations, keep only the last step 
     output <- simecol::out(run) %>%
-      tail(., set_tail)
+      tail(., set_tail) %>%
+      dplyr::select(-time)
   } else {
-    output <- simecol::out(run)
+    output <- simecol::out(run) %>%
+      dplyr::select(-time)
   }
-  #output %<>% select(-time)
 
   return(output)
 }

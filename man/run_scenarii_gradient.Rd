@@ -4,10 +4,17 @@
 \alias{run_scenarii_gradient}
 \title{Run simulation over different initial scenarii}
 \usage{
-run_scenarii_gradient(gradient = list(g = seq(0, 0.3, length.out = 1), b =
-  seq(0, 1, length.out = 1)), model_spec = "two_facilitation_model",
-  time_seq = NULL, param = NULL, nb_cores = NULL, solver_type = NULL,
-  scenarii = NULL, set_tail = NULL, nrep = NULL)
+run_scenarii_gradient(
+  gradient = list(g = seq(0, 0.3, length.out = 1), b = seq(0, 1, length.out = 1)),
+  model_spec = "two_facilitation_model",
+  time_seq = c(from = 0, to = 1000, by = 1),
+  param = NULL,
+  nb_cores = NULL,
+  solver_type = NULL,
+  scenarii = NULL,
+  set_tail = NULL,
+  nrep = NULL
+)
 }
 \arguments{
 \item{model_spec}{A character string. This is the name of the model function

@@ -2,20 +2,31 @@
 % Please edit documentation in R/analysis_methods.R
 \name{check_consistency}
 \alias{check_consistency}
-\title{Check consistency of cellular automata runs}
+\title{Select variables of runs}
 \usage{
 check_consistency(data, threshold = 0.001)
 }
 \arguments{
 \item{data}{a data.frame}
+
+\item{...}{variables selected}
 }
 \value{
+a scenarii object
+
 logical
 }
 \description{
-Check consistency of cellular automata runs
+Select variables of runs
 }
 \details{
+https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
+
 It checks that more than 80% of the simulations give the same
 behaviour (e.g. same species win)
+}
+\seealso{
+dplyr::select
+
+
 }

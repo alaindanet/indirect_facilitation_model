@@ -4,10 +4,19 @@
 \alias{run_2d_gradient}
 \title{Running a model over a two dimension gradient of parameters}
 \usage{
-run_2d_gradient(y = "g", x = "gamma1", gradienty = seq(0, 0.2, length.out
-  = 5), gradientx = NULL, model_spec = "indirect_facilitation_model",
-  run_type = run_2d_model, time_seq = c(from = 0, to = 1000, by = 1),
-  param = NULL, nb_cores = NULL, solver_type = NULL, inits = NULL)
+run_2d_gradient(
+  y = "g",
+  x = "gamma1",
+  gradienty = seq(0, 0.2, length.out = 5),
+  gradientx = NULL,
+  model_spec = "indirect_facilitation_model",
+  run_type = run_2d_model,
+  time_seq = c(from = 0, to = 1000, by = 1),
+  param = NULL,
+  nb_cores = NULL,
+  solver_type = NULL,
+  inits = NULL
+)
 }
 \arguments{
 \item{y}{A string. The first parameter of the 2d gradient}

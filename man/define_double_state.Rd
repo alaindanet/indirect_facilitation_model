@@ -14,3 +14,6 @@ define_double_state(scenar1, scenar2)
 \description{
 Define bistable states
 }
+\seealso{
+
+}

@@ -4,7 +4,7 @@
 \alias{filter.scenarii}
 \title{Subset runs}
 \usage{
-\method{filter}{scenarii}(data, ...)
+filter.scenarii(data, ...)
 }
 \arguments{
 \item{data}{a scenarii object}

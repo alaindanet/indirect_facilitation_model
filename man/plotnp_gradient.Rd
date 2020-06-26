@@ -4,8 +4,7 @@
 \alias{plotnp_gradient}
 \title{Plot density over a gradient}
 \usage{
-plotnp_gradient(data, state_var = c("N", "P"), param = c("gamma1", "g"),
-  ...)
+plotnp_gradient(data, state_var = c("N", "P"), param = c("gamma1", "g"), ...)
 }
 \arguments{
 \item{data}{}
